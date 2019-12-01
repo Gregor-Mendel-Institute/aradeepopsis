@@ -1,3 +1,4 @@
+# Lint as: python2, python3
 # Copyright 2018 The TensorFlow Authors All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,24 +68,49 @@ DatasetDescriptor = collections.namedtuple(
         'ignore_label',  # Ignore label value.
     ])
 
-_ROSETTE_INFORMATION = DatasetDescriptor(
-    splits_to_sizes={
-        'train': 240,
-        'trainval': 300,
-        'val': 60,
-	'test': 148796,
-#	'test': 28,
-    },
-    num_classes=3,
+_CITYSCAPES_INFORMATION = DatasetDescriptor(
+    splits_to_sizes={'train_fine': 2975,
+                     'train_coarse': 22973,
+                     'trainval_fine': 3475,
+                     'trainval_coarse': 23473,
+                     'val_fine': 500,
+                     'test_fine': 1525},
+    num_classes=19,
     ignore_label=255,
 )
 
+_PASCAL_VOC_SEG_INFORMATION = DatasetDescriptor(
+    splits_to_sizes={
+        'train': 1464,
+        'train_aug': 10582,
+        'trainval': 2913,
+        'val': 1449,
+    },
+    num_classes=21,
+    ignore_label=255,
+)
+
+_ADE20K_INFORMATION = DatasetDescriptor(
+    splits_to_sizes={
+        'train': 20210,  # num of samples in images/training
+        'val': 2000,  # num of samples in images/validation
+    },
+    num_classes=151,
+    ignore_label=0,
+)
+
 _DATASETS_INFORMATION = {
-    'ara_rosettes': _ROSETTE_INFORMATION,
+    'cityscapes': _CITYSCAPES_INFORMATION,
+    'pascal_voc_seg': _PASCAL_VOC_SEG_INFORMATION,
+    'ade20k': _ADE20K_INFORMATION,
 }
 
 # Default file pattern of TFRecord of TensorFlow Example.
 _FILE_PATTERN = '%s-*'
+
+
+def get_cityscapes_dataset_name():
+  return 'cityscapes'
 
 
 class Dataset(object):
@@ -255,12 +281,7 @@ class Dataset(object):
       ValueError: Ground truth label not provided during training.
     """
     image = sample[common.IMAGE]
-    try:
-       sample[common.LABELS_CLASS]
-    except KeyError:
-       label = None
-    else:
-       label = sample[common.LABELS_CLASS]
+    label = sample[common.LABELS_CLASS]
 
     original_image, image, label = input_preprocess.preprocess_image_and_label(
         image=image,

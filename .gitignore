@@ -1,4 +1,5 @@
 .nextflow*
+__pycache__
 test/
 results/
 work/
