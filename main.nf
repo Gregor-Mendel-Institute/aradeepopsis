@@ -10,73 +10,65 @@
 ----------------------------------------------------------------------------------------
 */
 
-params.chunksize = 5
+params.chunksize = 100
 params.imageformat = 'png'
+params.crop_width = 600
+params.crop_height = 600
+params.gpu = false
 
 Channel
     .fromPath(params.images, checkIfExists: true)
-    .tap {ch_images}
-    .collectFile() { item -> [ "list.txt", item.baseName + '\n' ] }
-    .set {ch_list}
+    .buffer(size:params.chunksize, remainder: true)
+    .set {ch_images}
 
 process build_TFRecords {
     publishDir "${params.outdir}/shards", mode: 'copy'
     input:
-        file(images) from ch_images.collect()
-        file(list) from ch_list
+        file(images) from ch_images
     output:
-        file('*.tfrecord') into shards mode flatten
+        file('*.tfrecord') into ch_shards
 
     script:
+//def cuda = params.gpu ? "os.environ['CUDA_VISIBLE_DEVICES']='-1'" : ''
 """
 #!/usr/bin/env python
-import math
-import os.path
 
 import tensorflow as tf
 
 with tf.Graph().as_default():
-    decode_data = tf.placeholder(dtype=tf.string)
-    image_format = ${params.imageformat}
-    channels = 3
-    session = tf.Session()
+    decode_data = tf.compat.v1.placeholder(dtype=tf.string)
+    image_format = '${params.imageformat}'
+    session = tf.compat.v1.Session()
 
     if image_format in ('jpeg', 'jpg'):
-        decode = tf.image.decode_jpeg(decode_data,
-                                        channels=channels)
+        decode = tf.image.decode_jpeg(decode_data, channels=3)
     elif image_format == 'png':
-        decode = tf.image.decode_png(decode_data,
-                                        channels=channels)
+        decode = tf.image.decode_png(decode_data, channels=3)
 
-filenames = [x.strip('\n') for x in open(${list}, 'r')]
-num_images = ${images.size()}
-num_per_shard = int(math.ceil(num_images / float(${params.chunksize})))
+filenames = tf.io.gfile.glob('*${params.imageformat}')
 
-for shard_id in range(${params.chunksize}):
+def _bytes_feature(value):
+  if isinstance(value, str):
+    value = value.encode()
+  return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+def _int64_feature(value):
+  return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+
+with tf.io.TFRecordWriter('chunk.tfrecord') as tfrecord_writer:
+  for i in range(len(filenames)):
+    image_data = tf.io.gfile.GFile(filenames[i], 'rb').read()
     image = session.run(decode, feed_dict={decode_data: image_data})
-    output_filename = '%05d-of-%05d.tfrecord'.format(shard_id, ${params.chunksize})
-    with tf.python_io.TFRecordWriter(output_filename) as tfrecord_writer:
-    start_idx = shard_id * num_per_shard
-    end_idx = min((shard_id + 1) * num_per_shard, num_images)
-    for i in range(start_idx, end_idx):
-        sys.stdout.write('\r>> Converting image %d/%d shard %d' % (
-            i + 1, len(filenames), shard_id))
-        sys.stdout.flush()
-        # Read the image.
-        image_filename = filenames[i]
-        image_data = tf.gfile.FastGFile(image_filename, 'rb').read()
-        height, width = image.shape[:2]
+    height, width = image.shape[:2]
 
-        example = tf.train.Example(features=tf.train.Features(feature={
-                                    'image/encoded': _bytes_list_feature(image_data),
-                                    'image/filename': _bytes_list_feature(filenames[i]),
-                                    'image/format': _bytes_list_feature(image_format),
-                                    'image/height': _int64_list_feature(height),
-                                    'image/width': _int64_list_feature(width),
-                                    'image/channels': _int64_list_feature(3),
-                                    }))
-        tfrecord_writer.write(example.SerializeToString())
-    sys.stdout.write('\n')
-    sys.stdout.flush()
+    example = tf.train.Example(features=tf.train.Features(feature={
+                                        'image/encoded': _bytes_feature(image_data),
+                                        'image/filename': _bytes_feature(filenames[i]),
+                                        'image/format': _bytes_feature(image_format),
+                                        'image/height': _int64_feature(height),
+                                        'image/width': _int64_feature(width),
+                                        'image/channels': _int64_feature(3),
+                                        }))
+    tfrecord_writer.write(example.SerializeToString())
 """
 }
