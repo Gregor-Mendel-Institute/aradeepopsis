@@ -38,7 +38,7 @@ def resize_bilinear(images, size, output_dtype=tf.float32):
     A tensor of size [batch, height_out, width_out, channels] as a dtype of
       output_dtype.
   """
-  images = tf.image.resize_bilinear(images, size, align_corners=True)
+  images = tf.compat.v1.image.resize_bilinear(images, size, align_corners=True)
   return tf.cast(images, dtype=output_dtype)
 
 

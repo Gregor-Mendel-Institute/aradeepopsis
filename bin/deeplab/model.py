@@ -121,7 +121,7 @@ def predict_labels_multi_scale(images,
   }
 
   for i, image_scale in enumerate(eval_scales):
-    with tf.variable_scope(tf.get_variable_scope(), reuse=True if i else None):
+    with tf.compat.v1.variable_scope(tf.compat.v1.get_variable_scope(), reuse=True if i else None):
       outputs_to_scales_to_logits = multi_scale_logits(
           images,
           model_options=model_options,
@@ -130,7 +130,7 @@ def predict_labels_multi_scale(images,
           fine_tune_batch_norm=False)
 
     if add_flipped_images:
-      with tf.variable_scope(tf.get_variable_scope(), reuse=True):
+      with tf.compat.v1.variable_scope(tf.compat.v1.get_variable_scope(), reuse=True):
         outputs_to_scales_to_logits_reversed = multi_scale_logits(
             tf.reverse_v2(images, [2]),
             model_options=model_options,
@@ -317,7 +317,7 @@ def multi_scale_logits(images,
         scaled_images,
         updated_options,
         weight_decay=weight_decay,
-        reuse=tf.AUTO_REUSE,
+        reuse=tf.compat.v1.AUTO_REUSE,
         is_training=is_training,
         fine_tune_batch_norm=fine_tune_batch_norm,
         nas_training_hyper_parameters=nas_training_hyper_parameters)
@@ -699,7 +699,7 @@ def refine_by_decoder(features,
       stride=1,
       reuse=reuse):
     with slim.arg_scope([batch_norm], **batch_norm_params):
-      with tf.variable_scope(DECODER_SCOPE, DECODER_SCOPE, [features]):
+      with tf.compat.v1.variable_scope(DECODER_SCOPE, DECODER_SCOPE, [features]):
         decoder_features = features
         decoder_stage = 0
         scope_suffix = ''
@@ -891,7 +891,7 @@ def get_branch_logits(features,
       weights_regularizer=slim.l2_regularizer(weight_decay),
       weights_initializer=tf.truncated_normal_initializer(stddev=0.01),
       reuse=reuse):
-    with tf.variable_scope(LOGITS_SCOPE_NAME, LOGITS_SCOPE_NAME, [features]):
+    with tf.compat.v1.variable_scope(LOGITS_SCOPE_NAME, LOGITS_SCOPE_NAME, [features]):
       branch_logits = []
       for i, rate in enumerate(atrous_rates):
         scope = scope_suffix

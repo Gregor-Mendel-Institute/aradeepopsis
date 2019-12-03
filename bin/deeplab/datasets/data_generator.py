@@ -48,9 +48,6 @@ _DATASETS_INFORMATION = {
     'rosettes': _ROSETTE_INFORMATION,
 }
 
-# Default file pattern of TFRecord of TensorFlow Example.
-_FILE_PATTERN = 'chunk*'
-
 class Dataset(object):
   """Represents input dataset for deeplab model."""
 
@@ -146,18 +143,18 @@ class Dataset(object):
 
     features = {
         'image/encoded':
-            tf.FixedLenFeature((), tf.string, default_value=''),
+            tf.io.FixedLenFeature((), tf.string, default_value=''),
         'image/filename':
-            tf.FixedLenFeature((), tf.string, default_value=''),
+            tf.io.FixedLenFeature((), tf.string, default_value=''),
         'image/format':
-            tf.FixedLenFeature((), tf.string, default_value='jpeg'),
+            tf.io.FixedLenFeature((), tf.string, default_value='jpeg'),
         'image/height':
-            tf.FixedLenFeature((), tf.int64, default_value=0),
+            tf.io.FixedLenFeature((), tf.int64, default_value=0),
         'image/width':
-            tf.FixedLenFeature((), tf.int64, default_value=0),
+            tf.io.FixedLenFeature((), tf.int64, default_value=0),
     }
 
-    parsed_features = tf.parse_single_example(example_proto, features)
+    parsed_features = tf.io.parse_single_example(example_proto, features)
 
     image = _decode_image(parsed_features['image/encoded'], channels=3)
 
@@ -201,30 +198,19 @@ class Dataset(object):
     sample[common.ORIGINAL_IMAGE] = original_image
     return sample
 
-  def get_one_shot_iterator(self):
+  def get_one_shot_iterator(self, chunk):
     """Gets an iterator that iterates across the dataset once.
 
     Returns:
       An iterator of type tf.data.Iterator.
     """
 
-    files = self._get_all_files()
-
     dataset = (
-        tf.data.TFRecordDataset(files, num_parallel_reads=self.num_readers)
+        tf.data.TFRecordDataset(chunk, num_parallel_reads=self.num_readers)
         .map(self._parse_function, num_parallel_calls=self.num_readers)
         .map(self._preprocess_image, num_parallel_calls=self.num_readers))
 
     dataset = dataset.repeat(1)
 
     dataset = dataset.batch(self.batch_size).prefetch(self.batch_size)
-    return dataset.make_one_shot_iterator()
-
-  def _get_all_files(self):
-    """Gets all the files to read data from.
-
-    Returns:
-      A list of input files.
-    """
-    file_pattern = 'chunk*'
-    return tf.gfile.Glob(file_pattern)
+    return tf.compat.v1.data.make_one_shot_iterator(dataset)

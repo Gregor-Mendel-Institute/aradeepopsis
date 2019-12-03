@@ -21,7 +21,7 @@ import copy
 import json
 import tensorflow as tf
 
-flags = tf.app.flags
+flags = tf.compat.v1.flags
 
 # Flags for input preprocessing.
 
