@@ -1,3 +1,3 @@
 buildDockerImage([imageName: "aradeepopsis",
                   pushRegistryNamespace: "becker",
-                  pushBranches:["master"]])
+                  pushBranches:["master","dev"]])
