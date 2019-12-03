@@ -47,7 +47,7 @@ flags.DEFINE_integer('logits_kernel_size', 1,
 # When using 'xception_65' or 'resnet_v1' model variants, we set
 # atrous_rates = [6, 12, 18] (output stride 16) and decoder_output_stride = 4.
 # See core/feature_extractor.py for supported model variants.
-flags.DEFINE_string('model_variant', 'mobilenet_v2', 'DeepLab model variant.')
+flags.DEFINE_string('model_variant', 'xception_65', 'DeepLab model variant.')
 
 flags.DEFINE_multi_float('image_pyramid', None,
                          'Input scales for multi-scale feature extraction.')
@@ -86,7 +86,7 @@ flags.DEFINE_integer('divisible_by', None,
 
 # For `xception_65`, use decoder_output_stride = 4. For `mobilenet_v2`, use
 # decoder_output_stride = None.
-flags.DEFINE_list('decoder_output_stride', None,
+flags.DEFINE_list('decoder_output_stride', ['4'],
                   'Comma-separated list of strings with the number specifying '
                   'output stride of low-level features at each network level.'
                   'Current semantic segmentation implementation assumes at '

@@ -106,50 +106,6 @@ def split_separable_conv2d(inputs,
       weights_regularizer=slim.l2_regularizer(weight_decay),
       scope=scope + '_pointwise')
 
-
-def get_label_weight_mask(labels, ignore_label, num_classes, label_weights=1.0):
-  """Gets the label weight mask.
-
-  Args:
-    labels: A Tensor of labels with the shape of [-1].
-    ignore_label: Integer, label to ignore.
-    num_classes: Integer, the number of semantic classes.
-    label_weights: A float or a list of weights. If it is a float, it means all
-      the labels have the same weight. If it is a list of weights, then each
-      element in the list represents the weight for the label of its index, for
-      example, label_weights = [0.1, 0.5] means the weight for label 0 is 0.1
-      and the weight for label 1 is 0.5.
-
-  Returns:
-    A Tensor of label weights with the same shape of labels, each element is the
-      weight for the label with the same index in labels and the element is 0.0
-      if the label is to ignore.
-
-  Raises:
-    ValueError: If label_weights is neither a float nor a list, or if
-      label_weights is a list and its length is not equal to num_classes.
-  """
-  if not isinstance(label_weights, (float, list)):
-    raise ValueError(
-        'The type of label_weights is invalid, it must be a float or a list.')
-
-  if isinstance(label_weights, list) and len(label_weights) != num_classes:
-    raise ValueError(
-        'Length of label_weights must be equal to num_classes if it is a list, '
-        'label_weights: %s, num_classes: %d.' % (label_weights, num_classes))
-
-  not_ignore_mask = tf.not_equal(labels, ignore_label)
-  not_ignore_mask = tf.cast(not_ignore_mask, tf.float32)
-  if isinstance(label_weights, float):
-    return not_ignore_mask * label_weights
-
-  label_weights = tf.constant(label_weights, tf.float32)
-  weight_mask = tf.einsum('...y,y->...',
-                          tf.one_hot(labels, num_classes, dtype=tf.float32),
-                          label_weights)
-  return tf.multiply(not_ignore_mask, weight_mask)
-
-
 def get_batch_norm_fn(sync_batch_norm_method):
   """Gets batch norm function.
 

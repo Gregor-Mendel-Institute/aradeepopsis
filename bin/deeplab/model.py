@@ -54,7 +54,7 @@ Alan L. Yuille (* equal contribution)
 """
 import tensorflow as tf
 from tensorflow.contrib import slim as contrib_slim
-from deeplab.core import dense_prediction_cell
+#from deeplab.core import dense_prediction_cell
 from deeplab.core import feature_extractor
 from deeplab.core import utils
 
@@ -162,7 +162,7 @@ def predict_labels_multi_scale(images,
     # Compute average prediction across different scales and flipped images.
     predictions = tf.reduce_mean(tf.concat(predictions, 4), axis=4)
     outputs_to_predictions[output] = tf.argmax(predictions, 3)
-    predictions[output + PROB_SUFFIX] = tf.nn.softmax(predictions)
+    outputs_to_predictions[output + PROB_SUFFIX] = tf.nn.softmax(predictions)
 
   return outputs_to_predictions
 

@@ -19,25 +19,17 @@ import tensorflow as tf
 from deeplab.core import feature_extractor
 from deeplab.core import preprocess_utils
 
-
-# The probability of flipping the images and labels
-# left-right during training
-_PROB_OF_FLIP = 0.5
-
-
-def preprocess_image_and_label(image,
-                               label,
-                               crop_height,
-                               crop_width,
-                               min_resize_value=None,
-                               max_resize_value=None,
-                               resize_factor=None,
-                               min_scale_factor=1.,
-                               max_scale_factor=1.,
-                               scale_factor_step_size=0,
-                               ignore_label=255,
-                               is_training=True,
-                               model_variant=None):
+def preprocess_image(image,
+                     crop_height,
+                     crop_width,
+                     min_resize_value=None,
+                     max_resize_value=None,
+                     resize_factor=None,
+                     min_scale_factor=1.,
+                     max_scale_factor=1.,
+                     scale_factor_step_size=0,
+                     ignore_label=255,
+                     model_variant=None):
   """Preprocesses the image and label.
 
   Args:
@@ -55,20 +47,16 @@ def preprocess_image_and_label(image,
       (min_scale_factor, max_scale_factor, scale_factor_step_size).
     ignore_label: The label value which will be ignored for training and
       evaluation.
-    is_training: If the preprocessing is used for training or not.
     model_variant: Model variant (string) for choosing how to mean-subtract the
       images. See feature_extractor.network_map for supported model variants.
 
   Returns:
     original_image: Original image (could be resized).
     processed_image: Preprocessed image.
-    label: Preprocessed ground truth segmentation label.
 
   Raises:
     ValueError: Ground truth label not provided during training.
   """
-  if is_training and label is None:
-    raise ValueError('During training, label must be provided.')
   if model_variant is None:
     tf.logging.warning('Default mean-subtraction is performed. Please specify '
                        'a model_variant. See feature_extractor.network_map for '
@@ -78,9 +66,6 @@ def preprocess_image_and_label(image,
   original_image = image
 
   processed_image = tf.cast(image, tf.float32)
-
-  if label is not None:
-    label = tf.cast(label, tf.int32)
 
   # Resize image and label to the desired range.
   if min_resize_value or max_resize_value:
@@ -95,14 +80,6 @@ def preprocess_image_and_label(image,
     # The `original_image` becomes the resized image.
     original_image = tf.identity(processed_image)
 
-  # Data augmentation by randomly scaling the inputs.
-  if is_training:
-    scale = preprocess_utils.get_random_scale(
-        min_scale_factor, max_scale_factor, scale_factor_step_size)
-    processed_image, label = preprocess_utils.randomly_scale_image_and_label(
-        processed_image, label, scale)
-    processed_image.set_shape([None, None, 3])
-
   # Pad image and label to have dimensions >= [crop_height, crop_width]
   image_shape = tf.shape(processed_image)
   image_height = image_shape[0]
@@ -112,28 +89,10 @@ def preprocess_image_and_label(image,
   target_width = image_width + tf.maximum(crop_width - image_width, 0)
 
   # Pad image with mean pixel value.
-  mean_pixel = tf.reshape(
-      feature_extractor.mean_pixel(model_variant), [1, 1, 3])
+  mean_pixel = tf.reshape([127.5, 127.5, 127.5], [1, 1, 3])
   processed_image = preprocess_utils.pad_to_bounding_box(
       processed_image, 0, 0, target_height, target_width, mean_pixel)
 
-  if label is not None:
-    label = preprocess_utils.pad_to_bounding_box(
-        label, 0, 0, target_height, target_width, ignore_label)
-
-  # Randomly crop the image and label.
-  if is_training and label is not None:
-    processed_image, label = preprocess_utils.random_crop(
-        [processed_image, label], crop_height, crop_width)
-
   processed_image.set_shape([crop_height, crop_width, 3])
 
-  if label is not None:
-    label.set_shape([crop_height, crop_width, 1])
-
-  if is_training:
-    # Randomly left-right flip the image and label.
-    processed_image, label, _ = preprocess_utils.flip_dim(
-        [processed_image, label], _PROB_OF_FLIP, dim=1)
-
-  return original_image, processed_image, label
+  return original_image, processed_image
