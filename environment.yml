@@ -3,7 +3,8 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - tensorflow-gpu=2.0.0
+  - tensorflow-gpu=1.15.0
+  - imagesize=1.1.0
   - pillow=6.1.0
   - pandas=0.25.0
   - scikit-image=0.15.0
