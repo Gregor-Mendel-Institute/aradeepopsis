@@ -132,7 +132,7 @@ def predict_labels_multi_scale(images,
     if add_flipped_images:
       with tf.compat.v1.variable_scope(tf.compat.v1.get_variable_scope(), reuse=True):
         outputs_to_scales_to_logits_reversed = multi_scale_logits(
-            tf.reverse_v2(images, [2]),
+            tf.reverse(images, [2]),
             model_options=model_options,
             image_pyramid=[image_scale],
             is_training=False,
@@ -151,7 +151,7 @@ def predict_labels_multi_scale(images,
         scales_to_logits_reversed = (
             outputs_to_scales_to_logits_reversed[output])
         logits_reversed = _resize_bilinear(
-            tf.reverse_v2(scales_to_logits_reversed[MERGED_LOGITS_SCOPE], [2]),
+            tf.reverse(scales_to_logits_reversed[MERGED_LOGITS_SCOPE], [2]),
             tf.shape(images)[1:3],
             scales_to_logits_reversed[MERGED_LOGITS_SCOPE].dtype)
         outputs_to_predictions[output].append(
