@@ -50,23 +50,35 @@ def format = imagetype == 'png' ?  'png' : 'jpeg'
 """
 #!/usr/bin/env python
 
+import logging
 import os
 
 import tensorflow as tf
 
 from data_record import create_record
 
+logger = tf.get_logger()
+
 images = tf.io.gfile.glob('*.${format}')
+
+broken = 0
 
 with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
   for i in range(len(images)):
     filename = os.path.basename(images[i])
     image_data = tf.io.gfile.GFile(images[i], 'rb').read()
-    image = tf.image.decode_${format}(image_data, 3)
+    try:
+      image = tf.image.decode_${format}(image_data, 3)
+    except tf.errors.InvalidArgumentError:
+      logger.info("%s is not a valid ${format} image" % filename)
+      broken += 1
+      continue
     height, width = image.shape[:2]
 
     record = create_record(image_data, filename, '${format}', height, width, 3)
     writer.write(record.SerializeToString())
+
+logger.info("Converted %d ${format} images to tfrecord, found %d broken images" % (len(images) - broken, broken))
 """
 }
 
