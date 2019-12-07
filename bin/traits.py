@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import csv
 import numpy as np
 from PIL import Image,ImageStat
@@ -8,8 +10,7 @@ from skimage.morphology import convex_hull_image
 
 def measure_traits(mask,
                    image,
-                   save_dir,
-                   file_name,
+                   filename,
                    get_regionprops=False,
                    channelstats=False,
                    label_names=['background', 'rosette'],
@@ -21,7 +22,6 @@ def measure_traits(mask,
     label: The numpy array to be saved. The data will be converted
       to uint8 and saved as png image.
     image: Array representing the original image.
-    save_dir: String, the directory to which the results will be saved.
     filename: String, the image filename.
     save_prediction: Boolean, save the resulting prediction to disk.
     get_regionprops: Boolean, calculate various region properties (see: https://scikit-image.org/docs/dev/api/skimage.measure.html#skimage.measure.regionprops).
@@ -29,9 +29,7 @@ def measure_traits(mask,
     label_names: List, Names of labels
   """
 
-  filename = file_name.decode('utf-8').strip('./')
-
-  frame = {'file' : filename.strip('./'), 'total_pixels' : mask.size}
+  frame = {'file' : filename, 'total_pixels' : mask.size}
 
   # iterate over label names and count pixels for each class 
   for idx,labelclass in enumerate(np.asarray(label_names)):
@@ -64,20 +62,19 @@ def measure_traits(mask,
   mask_dimensions = np.zeros(mask.shape)
 
   if save_mask:
-    
     colored_mask = np.stack((mask * 255, mask_dimensions, mask_dimensions), axis=2)
     mask_image = Image.fromarray(colored_mask.astype(dtype=np.uint8))
-    with tf.io.gfile.GFile('%s/mask_%s' % (save_dir, filename), mode='w') as m:
+    with tf.io.gfile.GFile('mask_%s' % (filename), mode='w') as m:
       mask_image.save(m, 'PNG')
 
   if save_hull:
     colored_hull = np.stack((convex_hull_image(mask) * 255, mask_dimensions, mask_dimensions), axis=2)
     hull_image = Image.fromarray(colored_hull.astype(dtype=np.uint8))
-    with tf.gfile.Open('%s/convex_hull_%s' % (save_dir, filename), mode='w') as h:
+    with tf.gfile.Open('convex_hull_%s' % (filename), mode='w') as h:
       hull_image.save(h, 'PNG')
 
   # write pixel counts to tsv file
-  with open(save_dir + '/traits.csv', 'a') as counts:
+  with open('traits.csv', 'a') as counts:
     Writer = csv.DictWriter(counts, fieldnames=frame.keys())
     if not counts.tell():
       Writer.writeheader()
