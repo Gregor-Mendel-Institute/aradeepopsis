@@ -58,6 +58,7 @@ import tensorflow as tf
 from data_record import create_record
 
 logger = tf.get_logger()
+logger.setLevel('INFO')
 
 images = tf.io.gfile.glob('*.${format}')
 
@@ -131,9 +132,11 @@ dataset = (
     .prefetch(1)
     .enumerate(start=1))
 
+size = len(list(dataset))
+
 for index, sample in dataset:
         filename = sample['filename'].numpy()[0].decode('utf-8')
-        logger.info("Running prediction on image %s (%d/%d)" % (filename,index, ${params.chunksize}))
+        logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
         original_image =  sample['image'].numpy()
         segmentation = predict(sample['image'])
         measure_traits(np.squeeze(segmentation),
