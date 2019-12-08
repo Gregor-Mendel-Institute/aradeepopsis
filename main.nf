@@ -38,12 +38,13 @@ print(max(imagesize.get(img) for img in glob.glob('*')))
 """
 }
 
-process build_TFRecords {
+process build_records {
     publishDir "${params.outdir}/shards", mode: 'copy'
     input:
         file(images) from ch_images.images.buffer(size:params.chunksize, remainder: true)
     output:
         file('*.tfrecord') into ch_shards
+        file('*txt') into broken_images optional true
 
     script:
 def format = imagetype == 'png' ?  'png' : 'jpeg'
@@ -62,7 +63,7 @@ logger.setLevel('INFO')
 
 images = tf.io.gfile.glob('*.${format}')
 
-broken = 0
+brokenimg = 0
 
 with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
   for i in range(len(images)):
@@ -72,16 +73,22 @@ with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
       image = tf.image.decode_${format}(image_data, 3)
     except tf.errors.InvalidArgumentError:
       logger.info("%s is not a valid ${format} image" % filename)
-      broken += 1
+      brokenimg += 1
+      with open("broken.txt", "a") as broken:
+        broken.write(f'{filename}\\n')
       continue
+
     height, width = image.shape[:2]
 
     record = create_record(image_data, filename, '${format}', height, width, 3)
     writer.write(record.SerializeToString())
 
-logger.info("Converted %d ${format} images to tfrecord, found %d broken images" % (len(images) - broken, broken))
+logger.info("Converted %d ${format} images to tfrecord, found %d broken images" % (len(images) - brokenimg, brokenimg))
 """
 }
+
+broken_images
+ .collectFile(name: 'broken_images.txt', storeDir: params.outdir)
 
 process run_prediction {
     publishDir "${params.outdir}/predictions", mode: 'copy',
