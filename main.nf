@@ -90,7 +90,7 @@ logger.info("Converted %d ${format} images to tfrecord, found %d broken images" 
 broken_images
  .collectFile(name: 'broken_images.txt', storeDir: params.outdir)
 
-process run_prediction {
+process run_predictions {
     publishDir "${params.outdir}/predictions", mode: 'copy',
         saveAs: { filename ->
                     if (filename.startsWith("mask_")) "mask/$filename"
