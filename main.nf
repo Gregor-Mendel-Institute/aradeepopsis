@@ -151,4 +151,4 @@ for index, sample in dataset:
 }
  
 results
- .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true, skip: 1)
+ .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir)
