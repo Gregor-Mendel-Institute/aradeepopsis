@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 import tensorflow as tf
+import imghdr
 
-def create_record(image_data, file_names, image_format, height, width, channels):
+def create_record(image_data, file_names, height, width, channels):
     def _bytes_feature(value):
         if isinstance(value, str):
             value = value.encode()
@@ -10,6 +11,8 @@ def create_record(image_data, file_names, image_format, height, width, channels)
 
     def _int64_feature(value):
       return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+
+    image_format = imghdr.what('',image_data)
 
     features= {
         'image/encoded': _bytes_feature(image_data),
@@ -34,10 +37,7 @@ def parse_record(record):
         }
     parsed = tf.io.parse_single_example(record, features)
     
-    if parsed['image/format'] == 'png':
-        image = tf.image.decode_png(parsed['image/encoded'], channels=3)
-    else:
-        image = tf.image.decode_jpeg(parsed['image/encoded'], channels=3)
+    image = tf.io.decode_image(parsed['image/encoded'], channels=3, expand_animations=False)
 
     name = parsed['image/filename']
 

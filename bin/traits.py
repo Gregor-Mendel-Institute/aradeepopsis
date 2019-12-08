@@ -10,7 +10,7 @@ from skimage.morphology import convex_hull_image
 
 def measure_traits(mask,
                    image,
-                   filename,
+                   file_name,
                    get_regionprops=False,
                    channelstats=False,
                    label_names=['background', 'rosette'],
@@ -22,12 +22,14 @@ def measure_traits(mask,
     label: The numpy array to be saved. The data will be converted
       to uint8 and saved as png image.
     image: Array representing the original image.
-    filename: String, the image filename.
+    file_name: String, the image filename.
     save_prediction: Boolean, save the resulting prediction to disk.
     get_regionprops: Boolean, calculate various region properties (see: https://scikit-image.org/docs/dev/api/skimage.measure.html#skimage.measure.regionprops).
     channelstats: Boolean, calculate channel means in original image within the label mask.
     label_names: List, Names of labels
   """
+
+  filename = file_name.rsplit('.', 1)[0]
 
   frame = {'file' : filename, 'total_pixels' : mask.size}
 
@@ -64,13 +66,13 @@ def measure_traits(mask,
   if save_mask:
     colored_mask = np.stack((mask * 255, mask_dimensions, mask_dimensions), axis=2)
     mask_image = Image.fromarray(colored_mask.astype(dtype=np.uint8))
-    with tf.io.gfile.GFile('mask_%s' % (filename), mode='w') as m:
+    with tf.io.gfile.GFile('mask_%s.png' % (filename), mode='w') as m:
       mask_image.save(m, 'PNG')
 
   if save_hull:
     colored_hull = np.stack((convex_hull_image(mask) * 255, mask_dimensions, mask_dimensions), axis=2)
     hull_image = Image.fromarray(colored_hull.astype(dtype=np.uint8))
-    with tf.gfile.Open('convex_hull_%s' % (filename), mode='w') as h:
+    with tf.gfile.Open('convex_hull_%s.png' % (filename), mode='w') as h:
       hull_image.save(h, 'PNG')
 
   # write pixel counts to tsv file

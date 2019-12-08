@@ -12,19 +12,11 @@
 
 Channel
     .fromPath(params.images, checkIfExists: true)
-    .fork { img ->
-      images: dimensions: img
-      format: img.extension
-    }
-    .set { ch_images }
-
-def imagetype = ch_images.format.unique().getVal()
-
-assert imagetype == 'png' || imagetype == 'jpeg' || imagetype == 'jpg' : "ERROR: Only png or jpeg files are supported"
+    .into { ch_images; ch_dimensions }
 
 process get_dimensions {
     input:
-        file(images) from ch_images.dimensions.collect() 
+        file(images) from ch_dimensions.collect() 
     output:
         stdout ch_maxdimensions
     script:
@@ -41,13 +33,11 @@ print(max(imagesize.get(img) for img in glob.glob('*')))
 process build_records {
     publishDir "${params.outdir}/shards", mode: 'copy'
     input:
-        file(images) from ch_images.images.buffer(size:params.chunksize, remainder: true)
+        file('images/*') from ch_images.buffer(size:params.chunksize, remainder: true)
     output:
         file('*.tfrecord') into ch_shards
-        file('*txt') into broken_images optional true
-
+        file('*txt') into invalid_images optional true
     script:
-def format = imagetype == 'png' ?  'png' : 'jpeg'
 """
 #!/usr/bin/env python
 
@@ -61,34 +51,36 @@ from data_record import create_record
 logger = tf.get_logger()
 logger.setLevel('INFO')
 
-images = tf.io.gfile.glob('*.${format}')
+images = tf.io.gfile.glob('images/*')
 
-brokenimg = 0
+count = len(images)
+invalid = 0
 
 with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
-  for i in range(len(images)):
+  for i in range(count):
     filename = os.path.basename(images[i])
     image_data = tf.io.gfile.GFile(images[i], 'rb').read()
     try:
-      image = tf.image.decode_${format}(image_data, 3)
+      image = tf.io.decode_image(image_data, channels=3, expand_animations=False)
     except tf.errors.InvalidArgumentError:
-      logger.info("%s is not a valid ${format} image" % filename)
-      brokenimg += 1
-      with open("broken.txt", "a") as broken:
+      logger.info("%s is either corrupted or not a supported image format" % filename)
+      invalid += 1
+      with open("invalid.txt", "a") as broken:
         broken.write(f'{filename}\\n')
       continue
 
     height, width = image.shape[:2]
 
-    record = create_record(image_data, filename, '${format}', height, width, 3)
+    record = create_record(image_data, filename, height, width, 3)
     writer.write(record.SerializeToString())
 
-logger.info("Converted %d ${format} images to tfrecord, found %d broken images" % (len(images) - brokenimg, brokenimg))
+logger.info("Converted %d images to tfrecords, found %d invalid images" % (count - invalid, invalid))
+assert invalid != count, "Could not convert any images, make sure to use only valid png or jpeg images!"
 """
 }
 
-broken_images
- .collectFile(name: 'broken_images.txt', storeDir: params.outdir)
+invalid_images
+ .collectFile(name: 'invalid_images.txt', storeDir: params.outdir)
 
 process run_predictions {
     publishDir "${params.outdir}/predictions", mode: 'copy',
@@ -122,6 +114,7 @@ from frozen_graph import wrap_frozen_graph
 from traits import measure_traits
 
 logger = tf.get_logger()
+logger.setLevel('INFO')
 
 with tf.io.gfile.GFile('${baseDir}/model/frozengraph/${scale}.pb', "rb") as f:
     graph_def = tf.compat.v1.GraphDef()
