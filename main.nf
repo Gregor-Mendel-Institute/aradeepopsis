@@ -86,13 +86,14 @@ process run_predictions {
                     else if (filename.startsWith("crop_")) "crop/$filename"
                     else if (filename.startsWith("histogram_")) "histogram/$filename"
                     else if (filename.startsWith("img_")) "img/$filename"
+                    else if (filename.startsWith("diag_")) "sidebyside/$filename"
                     else null
                 }
     input:
         file(shard) from ch_shards
     output:
         file('*.csv') into results
-        file('mask_*.png') into masks
+        file('*.png') into ch_masks
 
     script:
 def scale = params.multiscale ? 'multi' : 'single'
@@ -148,6 +149,7 @@ for index, sample in dataset:
                        original_image,
                        filename,
                        save_mask=${mask},
+                       save_rosette=${crop},
                        save_diagnostics=${diag},
                        save_histogram=${histogram},
                        save_hull=${hull},
@@ -156,6 +158,22 @@ for index, sample in dataset:
                        )
 """
 }
- 
+
+process draw_diagnostics {
+    publishDir "${params.outdir}/diagnostics", mode: 'copy', overwrite: false
+
+    input:
+        file(masks) from ch_masks
+    output:
+        path('*.png') into diagnostics
+
+    script:
+"""
+#!/usr/bin/env bash
+
+montage mask_*png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%f' -fill white \$RANDOM.png
+"""
+}
+
 results
  .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir)
