@@ -80,7 +80,7 @@ def measure_traits(mask,
   if save_mask:
     imsave('mask_%s.png' % filename, gray2rgb(mask)*[255,255,0])
 
-  if save_diagnostic:
+  if save_diagnostics:
     diag = np.concatenate((gray2rgb(mask)*[255,255,0],image),axis=1)
     imsave('img_%s.png' % filename, diag)
 
