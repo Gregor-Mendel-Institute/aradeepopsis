@@ -160,7 +160,7 @@ for index, sample in dataset:
 }
 
 process draw_diagnostics {
-    publishDir "${params.outdir}/diagnostics", mode: 'copy', overwrite: false
+    publishDir "${params.outdir}/diagnostics", mode: 'copy'
 
     input:
         file(masks) from ch_masks
@@ -168,10 +168,11 @@ process draw_diagnostics {
         path('*.png') into diagnostics
 
     script:
+def polaroid = params.polaroid ? '+polaroid' : ''
 """
 #!/usr/bin/env bash
 
-montage mask_*png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%f' -fill white \$RANDOM.png
+montage mask_*png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%f' -fill white ${polaroid} \$RANDOM.png
 """
 }
 
