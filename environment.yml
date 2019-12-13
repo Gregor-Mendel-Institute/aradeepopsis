@@ -5,3 +5,4 @@ channels:
 dependencies:
   - tensorflow-gpu=2.0.0
   - scikit-image=0.16.2
+  - imagemagick=7.0.9_7
