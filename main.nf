@@ -12,28 +12,13 @@
 
 Channel
     .fromPath(params.images, checkIfExists: true)
-    .into { ch_images; ch_dimensions }
-
-process get_dimensions {
-    input:
-        file(images) from ch_dimensions.collect() 
-    output:
-        stdout ch_maxdimensions
-    script:
-"""
-#!/usr/bin/env python
-
-import glob
-import imagesize
-
-print(max(imagesize.get(img) for img in glob.glob('*')))
-"""
-}
+    .buffer(size:params.chunksize, remainder: true)
+    .set { ch_images }
 
 process build_records {
     publishDir "${params.outdir}/shards", mode: 'copy'
     input:
-        file('images/*') from ch_images.buffer(size:params.chunksize, remainder: true)
+        file('images/*') from ch_images
     output:
         file('*.tfrecord') into ch_shards
         file('*txt') into invalid_images optional true
@@ -61,7 +46,7 @@ with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
     filename = os.path.basename(images[i])
     image_data = tf.io.gfile.GFile(images[i], 'rb').read()
     try:
-      image = tf.io.decode_image(image_data, channels=3, expand_animations=False)
+      image = tf.io.decode_image(image_data, channels=3)
     except tf.errors.InvalidArgumentError:
       logger.info("%s is either corrupted or not a supported image format" % filename)
       invalid += 1
@@ -69,13 +54,24 @@ with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
         broken.write(f'{filename}\\n')
       continue
 
-    height, width = image.shape[:2]
+    width, height = image.shape[:2]
 
-    record = create_record(image_data, filename, height, width, 3)
+    ratio = 1.0  
+    max_dimension = 521
+    
+    if height * width > max_dimension**2:
+        logger.info('%s: dimensions %d x %d are too large,' % (filename, height, width))
+        ratio = max(height,width)/max_dimension
+        new_height = int(height/ratio)
+        new_width = int(width/ratio)
+        logger.info('%s: resized to %d x %d (scale factor:%f)' % (filename, new_height, new_width,ratio))
+        image = tf.image.resize(image,
+                                size=[new_height,new_width],
+                                preserve_aspect_ratio=True)
+        image_data = tf.image.encode_png(tf.cast(image, tf.uint8)).numpy()
+    
+    record = create_record(image_data, filename, height, width, ratio, 3)
     writer.write(record.SerializeToString())
-
-logger.info("Converted %d images to tfrecords, found %d invalid images" % (count - invalid, invalid))
-assert invalid != count, "Could not convert any images, make sure to use only valid png or jpeg images!"
 """
 }
 
@@ -83,23 +79,28 @@ invalid_images
  .collectFile(name: 'invalid_images.txt', storeDir: params.outdir)
 
 process run_predictions {
-    publishDir "${params.outdir}/predictions", mode: 'copy',
+    publishDir "${params.outdir}", mode: 'copy',
         saveAs: { filename ->
                     if (filename.startsWith("mask_")) "mask/$filename"
                     else if (filename.startsWith("convex_hull_")) "convex_hull/$filename"
+                    else if (filename.startsWith("crop_")) "crop/$filename"
+                    else if (filename.startsWith("histogram_")) "histogram/$filename"
+                    else if (filename.startsWith("img_")) "img/$filename"
                     else null
                 }
     input:
         file(shard) from ch_shards
-        val(dim) from ch_maxdimensions
     output:
         file('*.csv') into results
-        file('*.png') into predictions
+        file('mask_*.png') into masks
 
     script:
 def scale = params.multiscale ? 'multi' : 'single'
 def mask = params.save_mask ? 'True' : 'False'
 def hull = params.save_hull ? 'True' : 'False'
+def crop = params.save_rosette ? 'True' : 'False'
+def diag = params.save_diagnostics ? 'True' : 'False'
+def histogram = params.save_histogram ? 'True' : 'False'
 """
 #!/usr/bin/env python
 
@@ -138,15 +139,21 @@ for index, sample in dataset:
         filename = sample['filename'].numpy()[0].decode('utf-8')
         logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
         original_image =  sample['image'].numpy()
-        segmentation = predict(sample['image'])
-        measure_traits(np.squeeze(segmentation),
-                                   np.squeeze(original_image),
-                                   filename,
-                                   save_mask=True,
-                                   save_hull=False,
-                                   get_regionprops=True,
-                                   label_names=['background', 'rosette'],
-                                   channelstats=True)
+        raw_segmentation = predict(sample['image'])
+        ratio = sample['resize_factor'].numpy()
+        
+        original_image = np.squeeze(original_image)
+        segmentation = np.squeeze(raw_segmentation)
+        measure_traits(segmentation,
+                       original_image,
+                       filename,
+                       save_mask=${mask},
+                       save_diagnostics=${diag},
+                       save_histogram=${histogram},
+                       save_hull=${hull},
+                       label_names=['background','rosette'],
+                       scale_ratio=ratio
+                       )
 """
 }
  
