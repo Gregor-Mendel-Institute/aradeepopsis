@@ -15,6 +15,10 @@ Channel
     .buffer(size:params.chunksize, remainder: true)
     .set { ch_images }
 
+Channel
+    .fromPath(params.model, checkIfExists: true)
+    .set { ch_model }
+
 process build_records {
     publishDir "${params.outdir}/shards", mode: 'copy'
     input:
@@ -57,7 +61,7 @@ with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
     width, height = image.shape[:2]
 
     ratio = 1.0  
-    max_dimension = 521
+    max_dimension = 602
     
     if height * width > max_dimension**2:
         logger.info('%s: dimensions %d x %d are too large,' % (filename, height, width))
@@ -91,12 +95,12 @@ process run_predictions {
                 }
     input:
         file(shard) from ch_shards
+        file(model) from ch_model
     output:
         file('*.csv') into results
         file('*.png') into ch_masks
 
     script:
-def scale = params.multiscale ? 'multi' : 'single'
 def mask = params.save_mask ? 'True' : 'False'
 def hull = params.save_hull ? 'True' : 'False'
 def crop = params.save_rosette ? 'True' : 'False'
@@ -118,7 +122,7 @@ from traits import measure_traits
 logger = tf.get_logger()
 logger.setLevel('INFO')
 
-with tf.io.gfile.GFile('${baseDir}/model/frozengraph/${scale}.pb', "rb") as f:
+with tf.io.gfile.GFile('${model}', "rb") as f:
     graph_def = tf.compat.v1.GraphDef()
     graph_def.ParseFromString(f.read())
 
@@ -139,7 +143,7 @@ size = len(list(dataset))
 for index, sample in dataset:
         filename = sample['filename'].numpy()[0].decode('utf-8')
         logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
-        original_image =  sample['image'].numpy()
+        original_image = sample['image'].numpy()
         raw_segmentation = predict(sample['image'])
         ratio = sample['resize_factor'].numpy()
         
@@ -153,7 +157,7 @@ for index, sample in dataset:
                        save_diagnostics=${diag},
                        save_histogram=${histogram},
                        save_hull=${hull},
-                       label_names=['background','rosette'],
+                       label_names=['background','rosette','senescent'],
                        scale_ratio=ratio
                        )
 """

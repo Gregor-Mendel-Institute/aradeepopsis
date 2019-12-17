@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from skimage.measure import regionprops
 from skimage.util import img_as_ubyte
-from skimage.color import gray2rgb
+from skimage.color import gray2rgb,label2rgb
 from skimage.io import imsave
 from skimage.transform import rescale
 from skimage.morphology import convex_hull_image
@@ -78,22 +78,23 @@ def measure_traits(mask,
     imsave('crop_%s.png' % filename, crop)
 
   if save_mask:
-    imsave('mask_%s.png' % filename, gray2rgb(mask)*[255,255,0])
+    colored = label2rgb(mask,image=image,bg_label=0,kind='overlay')
+    imsave('mask_%s.png' % filename, colored)
 
   if save_diagnostics:
-    diag = np.concatenate((gray2rgb(mask)*[255,255,0],image),axis=1)
+    diag = np.concatenate((label2rgb(mask,bg_label=0),image),axis=1)
     imsave('img_%s.png' % filename, diag)
 
   if save_hull:
-    hull = convex_hull_image(mask)
-    imsave('convex_hull_%s.png' % filename, gray2rgb(hull)*[255,255,0])
+    hull = label2rgb(convex_hull_image(mask),image=image,bg_label=0,kind='overlay')
+    imsave('convex_hull_%s.png' % filename, hull)
  
   if scale_ratio != 1.0:
     mask = rescale(mask,
                    scale=scale_ratio,
                    order=0,
                    preserve_range=True,
-                   anti_aliasing=False)
+                   anti_aliasing=False).astype(np.uint8)
 
   properties = regionprops(mask)
   for trait in traits:
