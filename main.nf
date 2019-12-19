@@ -10,6 +10,51 @@
 ----------------------------------------------------------------------------------------
 */
 
+log.info """
+MMMMMMMMMMMNOl;,;:lx0NWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMNx:,,,,,,;:lxOXWMMMMMMMMMMMMMMMMMMMWWWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMWk;,,,,,,,,,,,;cd0WMMMMMMMMMMMMMWKkdollodOXWMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMKl,,,,,,,,,,,,,,,:dKWMMMMMMMMWNKd:,,,,,,,;lKWMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMM0:,,,,,,,,,,,,,,,,,cOWMMMMMMXxoc,,,,,,,,,,;dNMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMM0c,,,,,,,,,,,,,,,,,,cOWMMMMXo;,,,,,,,,,,,,,oXMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMNd;,,,,,,,,,,,,,,,,,,oXMMMWk;,,,,,,,,,,,,,;xWMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMW0c,,,,,,,,,,,,,,,,,,:0MMMNd,,,,,,,,,,,,,;oXMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMNx;,,,,,,,,,,,,,,,,,;kWMMWO:,,,,,,,,,,,:xXMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMXd;,,,,,,,,,,,,,,,,;kWMMMNd;,,,,,,;:lxKWMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMNkc,,,,,,,,,,,,,,,c0MMMMWk;,,;cdk0XWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMWXkoc;,,,,,,,,,,;dNMMMMWk:;ckXWMMMWWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMWXk:,,,,,;;;,;xWMMMMNdld0WMWX0xdooxKWMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMWO:,,,,lOKkc;c0WMMWOcxXNXOoc;,,,,,lKMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMNx;,,,,c0WWXd::kNW0c;cooc;,,,,,,,,lKMMMMMWNK00OOO0KKXWWMMMMMMM
+MMMMMMMMMMMMMMMMMWOc;;;;:ok0K0o;:dkl,,,,,,,,,,,,,;oKWMMN0xoc:;;,,,;;:cldxOKNMMM
+MMMMMMMMMMMMMMMMMMWX000KXX0o::;,,,,,,,,,,,,,,,,:o0NMMW0o;,,,,,,,,,,,,,,,,,:lkNM
+MMMMMMMMMMMMMMMMMMMMMMMMMMNd,,,,,,,,,,,,,,,,,,cONWMWXkc,,,,,,,,,,,,,,,,,,,,,;oK
+MMMMMMMMMMWWNXXXXNWMMMMMMMKl,,,,,,,,,,,,,,,::::coddoc;,,,,,,,,,,,,,,,,,,,,,,,,l
+MMMMMMWX0xdlcc:::clkKWMMMMXl,,,,,,,,,,,,,,cOXK00Okdl;,,,,,,,,,,,,,,,,,,,,,,,,,;
+MMMMW0dc;,,,,,,,,,,,:dO00Od:,,;lxx:,,,,,,,:d0WMMMMWNx;,,,,,,,,,,,,,,,,,,,,,,,,;
+MMN0o:,,,,,,,,,,,,,,,,,;:lxko;oXWKl,cxOOOOkocoOKNWMMXo,,,,,,,,,,,,,,,,,,,,,,,:x
+WKo;,,,,,,,,,,,,,,,,,,,cOKko:;dNMXo,l0WMMMMWk;,:cokKWKo;,,,,,,,,,,,,,,,,,;cokKW
+0c,,,,,,,,,,,,,,,,,,,,:ONx;,,,lKW0c,,cx0KWMWO:,,,,,ckNN0xoc::;;;;;::cloxk0NWMMM
+d,,,,,,,,,,,,,,,,,,,,,oXWO:,,:xXKl;,,,,;:dKW0:,,,,,,:OWMMWNXKK00KKKXNWWMMMMMMMM
+c,,,,,,,,,,,,,,,,,,,,:OWMWKkkKKkc,,,,,,,,,l0Nkc,,,,,:OWMMMMMMMMMMMMMMMMMMMMMMMM
+;,,,,,,,,,,,,,,,,,,:o0WMMMMMMXd;,,,,,,,,,,,lKWKdc::lONMMMMMMMMMMMMMMMMMMMMMMMMM
+;,,,,,,,,,,,,,,,:lxKNMMMMMMMWk;,,,,,,,,,,,,;oXMWNKKNWMMMMMMMMMMMMMMMMMMMMMMMMMM
+klc:;;;;;;;:coxOKWMMMMMMMMMMXo,,,,,,,,,,,,,,:kWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+WWNXKK0000KXNWMMMMMMMMMMMMMMKl,,,,,,,,,,,,,,,oXMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMKl,,,,,,,,,,,,,,,cKMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMKc,,,,,,,,,,,,,,,c0MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMXo,,,,,,,,,,,,,,,lKMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMW0l,,,,,,,,,,,,,:kWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMWKl;,,,,,,,,,,:kNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWXx:;,,,,,,:o0WMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMW0o:,,:coONMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+
+                        ┌─┐┬─┐┌─┐╔╦╗╔═╗╔═╗╔═╗┌─┐┌─┐┌─┐┬┌─┐
+                        ├─┤├┬┘├─┤ ║║║╣ ║╣ ╠═╝│ │├─┘└─┐│└─┐
+                        ┴ ┴┴└─┴ ┴═╩╝╚═╝╚═╝╩  └─┘┴  └─┘┴└─┘
+                        
+"""
+
 Channel
     .fromPath(params.images, checkIfExists: true)
     .buffer(size:params.chunksize, remainder: true)
@@ -20,7 +65,6 @@ Channel
     .set { ch_model }
 
 process build_records {
-    publishDir "${params.outdir}/shards", mode: 'copy'
     input:
         file('images/*') from ch_images
     output:
@@ -94,8 +138,8 @@ process run_predictions {
                     else null
                 }
     input:
-        file(shard) from ch_shards
         file(model) from ch_model
+        each shard from ch_shards
     output:
         file('*.csv') into results
         file('*.png') into ch_masks
@@ -157,7 +201,7 @@ for index, sample in dataset:
                        save_diagnostics=${diag},
                        save_histogram=${histogram},
                        save_hull=${hull},
-                       label_names=['background','rosette','senescent'],
+                       label_names=['background','rosette','anthocyanin','senescent'],
                        scale_ratio=ratio
                        )
 """
@@ -176,7 +220,7 @@ def polaroid = params.polaroid ? '+polaroid' : ''
 """
 #!/usr/bin/env bash
 
-montage mask_*png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%f' -fill white ${polaroid} \$RANDOM.png
+montage mask_*png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%f' -fill white ${polaroid} "\${PWD##*/}.png"
 """
 }
 
