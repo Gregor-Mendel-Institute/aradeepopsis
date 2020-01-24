@@ -42,6 +42,13 @@ def measure_traits(mask,
 
   frame = {'file' : filename, 'format' : filefmt}
 
+  # define color map
+  green_leaf = [31,158,137]
+  senescent_leaf = [253,231,37]
+  antho_leaf = [72,40,120]
+
+  colormap = np.array([green_leaf, senescent_leaf, antho_leaf])
+
   traits = ['filled_area',
             'convex_area',
             'equivalent_diameter',
@@ -56,7 +63,7 @@ def measure_traits(mask,
   mask = img_as_ubyte(mask)
 
   crop = image * mask[...,None]
-  
+
   for idx,band in enumerate(['red','green','blue']):
     channel = image[:,:,idx]
     frame[band + '_channel_mean'] = np.mean(channel[mask > 0])
@@ -68,7 +75,7 @@ def measure_traits(mask,
     frame[labelclass] = count*scale_ratio**2 if scale_ratio != 1.0 else count
 
   if save_original:
-    imsave('img_%s.png' % filename, image)
+    imsave('img_%s.png' % filename, image) 
 
   if save_histogram:
     plt.figure(figsize=(2,4))
@@ -83,7 +90,7 @@ def measure_traits(mask,
     imsave('crop_%s.png' % filename, crop)
 
   if save_mask:
-    colored_mask = label2rgb(mask,bg_label=0,kind='overlay')
+    colored_mask = label2rgb(mask,colors=colormap,bg_label=0,kind='overlay')
     imsave('mask_%s.png' % filename, colored_mask)
 
   if save_overlay:

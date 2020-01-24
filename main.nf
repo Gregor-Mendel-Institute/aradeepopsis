@@ -133,8 +133,8 @@ process run_predictions {
                     else if (filename.startsWith("convex_hull_")) "convex_hull/$filename"
                     else if (filename.startsWith("crop_")) "crop/$filename"
                     else if (filename.startsWith("histogram_")) "histogram/$filename"
-                    else if (filename.startsWith("img_")) "img/$filename"
-                    else if (filename.startsWith("diag_")) "sidebyside/$filename"
+                    else if (filename.startsWith("img_")) "original/$filename"
+                    else if (filename.startsWith("diag_")) "diagnostics/$filename"
                     else null
                 }
     input:
@@ -142,13 +142,14 @@ process run_predictions {
         each shard from ch_shards
     output:
         file('*.csv') into results
-        file('*.png') into ch_masks
+        file('*.png') into ch_overlays
 
     script:
+def overlay = params.save_overlay ? 'True' : 'False'
 def mask = params.save_mask ? 'True' : 'False'
+def org = params.save_original ? 'True' : 'False'
 def hull = params.save_hull ? 'True' : 'False'
 def crop = params.save_rosette ? 'True' : 'False'
-def diag = params.save_diagnostics ? 'True' : 'False'
 def histogram = params.save_histogram ? 'True' : 'False'
 """
 #!/usr/bin/env python
@@ -196,12 +197,13 @@ for index, sample in dataset:
         measure_traits(segmentation,
                        original_image,
                        filename,
+                       save_overlay=${overlay},
                        save_mask=${mask},
+                       save_original=${org},
                        save_rosette=${crop},
-                       save_diagnostics=${diag},
                        save_histogram=${histogram},
                        save_hull=${hull},
-                       label_names=['background','rosette','anthocyanin','senescent'],
+                       label_names=['background','rosette','senescent','anthocyanin'],
                        scale_ratio=ratio
                        )
 """
@@ -211,7 +213,7 @@ process draw_diagnostics {
     publishDir "${params.outdir}/diagnostics", mode: 'copy'
 
     input:
-        file(masks) from ch_masks
+        file(masks) from ch_overlays
     output:
         path('*.png') into diagnostics
 
@@ -220,7 +222,7 @@ def polaroid = params.polaroid ? '+polaroid' : ''
 """
 #!/usr/bin/env bash
 
-montage mask_*png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%f' -fill white ${polaroid} "\${PWD##*/}.png"
+montage overlay_*png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%f' -fill white ${polaroid} "\${PWD##*/}.png"
 """
 }
 
