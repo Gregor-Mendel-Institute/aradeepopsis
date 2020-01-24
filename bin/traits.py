@@ -17,9 +17,10 @@ def measure_traits(mask,
                    label_names=['background','rosette'],
                    scale_ratio=1.0,
                    save_rosette=True,
+                   save_overlay=True,
+                   save_original=True,
                    save_histogram=True,
                    save_mask=True,
-                   save_diagnostics=True,
                    save_hull=True):
   """Calculates traits from plant rosette segmentations and optionally saves diagnostic images on disk.
 
@@ -29,9 +30,10 @@ def measure_traits(mask,
     image: Array representing the original image.
     file_name: String, the image filename.
     save_rosette: Boolean, save cropped rosette to disk.
+    save_original: Boolean, save (potentially resized) image to disk.
     save_mask: Boolean, save the prediction to disk.
+    save_overlay: Boolean, save the superimposed mask and image to disk.
     save_hull: Boolean, save the convex hull to disk.
-    save_img: Boolean, save the original image to disk.
     label_names: List, Names of labels
     scale_ratio: Float, Ratio to rescale the image back to its original dimensions
   """
@@ -65,6 +67,9 @@ def measure_traits(mask,
     count = np.count_nonzero(mask == idx)
     frame[labelclass] = count*scale_ratio**2 if scale_ratio != 1.0 else count
 
+  if save_original:
+    imsave('img_%s.png' % filename, image)
+
   if save_histogram:
     plt.figure(figsize=(2,4))
     for idx,band in enumerate(['red','green','blue']):
@@ -78,12 +83,12 @@ def measure_traits(mask,
     imsave('crop_%s.png' % filename, crop)
 
   if save_mask:
-    colored = label2rgb(mask,image=image,bg_label=0,kind='overlay')
-    imsave('mask_%s.png' % filename, colored)
+    colored_mask = label2rgb(mask,bg_label=0,kind='overlay')
+    imsave('mask_%s.png' % filename, colored_mask)
 
-  if save_diagnostics:
-    diag = np.concatenate((label2rgb(mask,bg_label=0),image),axis=1)
-    imsave('img_%s.png' % filename, diag)
+  if save_overlay:
+    colored = label2rgb(mask,image=image,bg_label=0,kind='overlay')
+    imsave('overlay_%s.png' % filename, colored)
 
   if save_hull:
     hull = label2rgb(convex_hull_image(mask),image=image,bg_label=0,kind='overlay')
@@ -95,6 +100,11 @@ def measure_traits(mask,
                    order=0,
                    preserve_range=True,
                    anti_aliasing=False).astype(np.uint8)
+
+  # set senescent leaves to zero
+  mask[mask == 2] = 0
+  # merge green and anthocyanin classes for calculating region properties
+  mask[mask > 0] = 1
 
   properties = regionprops(mask)
   for trait in traits:
