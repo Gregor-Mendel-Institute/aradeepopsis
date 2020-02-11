@@ -10,13 +10,61 @@
 ----------------------------------------------------------------------------------------
 */
 
+log.info """
+MMMMMMMMMMMNOl;,;:lx0NWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMNx:,,,,,,;:lxOXWMMMMMMMMMMMMMMMMMMMWWWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMWk;,,,,,,,,,,,;cd0WMMMMMMMMMMMMMWKkdollodOXWMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMKl,,,,,,,,,,,,,,,:dKWMMMMMMMMWNKd:,,,,,,,;lKWMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMM0:,,,,,,,,,,,,,,,,,cOWMMMMMMXxoc,,,,,,,,,,;dNMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMM0c,,,,,,,,,,,,,,,,,,cOWMMMMXo;,,,,,,,,,,,,,oXMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMNd;,,,,,,,,,,,,,,,,,,oXMMMWk;,,,,,,,,,,,,,;xWMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMW0c,,,,,,,,,,,,,,,,,,:0MMMNd,,,,,,,,,,,,,;oXMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMNx;,,,,,,,,,,,,,,,,,;kWMMWO:,,,,,,,,,,,:xXMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMXd;,,,,,,,,,,,,,,,,;kWMMMNd;,,,,,,;:lxKWMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMNkc,,,,,,,,,,,,,,,c0MMMMWk;,,;cdk0XWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMWXkoc;,,,,,,,,,,;dNMMMMWk:;ckXWMMMWWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMWXk:,,,,,;;;,;xWMMMMNdld0WMWX0xdooxKWMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMWO:,,,,lOKkc;c0WMMWOcxXNXOoc;,,,,,lKMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMNx;,,,,c0WWXd::kNW0c;cooc;,,,,,,,,lKMMMMMWNK00OOO0KKXWWMMMMMMM
+MMMMMMMMMMMMMMMMMWOc;;;;:ok0K0o;:dkl,,,,,,,,,,,,,;oKWMMN0xoc:;;,,,;;:cldxOKNMMM
+MMMMMMMMMMMMMMMMMMWX000KXX0o::;,,,,,,,,,,,,,,,,:o0NMMW0o;,,,,,,,,,,,,,,,,,:lkNM
+MMMMMMMMMMMMMMMMMMMMMMMMMMNd,,,,,,,,,,,,,,,,,,cONWMWXkc,,,,,,,,,,,,,,,,,,,,,;oK
+MMMMMMMMMMWWNXXXXNWMMMMMMMKl,,,,,,,,,,,,,,,::::coddoc;,,,,,,,,,,,,,,,,,,,,,,,,l
+MMMMMMWX0xdlcc:::clkKWMMMMXl,,,,,,,,,,,,,,cOXK00Okdl;,,,,,,,,,,,,,,,,,,,,,,,,,;
+MMMMW0dc;,,,,,,,,,,,:dO00Od:,,;lxx:,,,,,,,:d0WMMMMWNx;,,,,,,,,,,,,,,,,,,,,,,,,;
+MMN0o:,,,,,,,,,,,,,,,,,;:lxko;oXWKl,cxOOOOkocoOKNWMMXo,,,,,,,,,,,,,,,,,,,,,,,:x
+WKo;,,,,,,,,,,,,,,,,,,,cOKko:;dNMXo,l0WMMMMWk;,:cokKWKo;,,,,,,,,,,,,,,,,,;cokKW
+0c,,,,,,,,,,,,,,,,,,,,:ONx;,,,lKW0c,,cx0KWMWO:,,,,,ckNN0xoc::;;;;;::cloxk0NWMMM
+d,,,,,,,,,,,,,,,,,,,,,oXWO:,,:xXKl;,,,,;:dKW0:,,,,,,:OWMMWNXKK00KKKXNWWMMMMMMMM
+c,,,,,,,,,,,,,,,,,,,,:OWMWKkkKKkc,,,,,,,,,l0Nkc,,,,,:OWMMMMMMMMMMMMMMMMMMMMMMMM
+;,,,,,,,,,,,,,,,,,,:o0WMMMMMMXd;,,,,,,,,,,,lKWKdc::lONMMMMMMMMMMMMMMMMMMMMMMMMM
+;,,,,,,,,,,,,,,,:lxKNMMMMMMMWk;,,,,,,,,,,,,;oXMWNKKNWMMMMMMMMMMMMMMMMMMMMMMMMMM
+klc:;;;;;;;:coxOKWMMMMMMMMMMXo,,,,,,,,,,,,,,:kWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+WWNXKK0000KXNWMMMMMMMMMMMMMMKl,,,,,,,,,,,,,,,oXMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMKl,,,,,,,,,,,,,,,cKMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMKc,,,,,,,,,,,,,,,c0MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMXo,,,,,,,,,,,,,,,lKMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMW0l,,,,,,,,,,,,,:kWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMWKl;,,,,,,,,,,:kNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWXx:;,,,,,,:o0WMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMW0o:,,:coONMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+
+                        ┌─┐┬─┐┌─┐╔╦╗╔═╗╔═╗╔═╗┌─┐┌─┐┌─┐┬┌─┐
+                        ├─┤├┬┘├─┤ ║║║╣ ║╣ ╠═╝│ │├─┘└─┐│└─┐
+                        ┴ ┴┴└─┴ ┴═╩╝╚═╝╚═╝╩  └─┘┴  └─┘┴└─┘
+                        
+"""
+
 Channel
     .fromPath(params.images, checkIfExists: true)
     .buffer(size:params.chunksize, remainder: true)
     .set { ch_images }
 
+Channel
+    .fromPath(params.model, checkIfExists: true)
+    .set { ch_model }
+
 process build_records {
-    publishDir "${params.outdir}/shards", mode: 'copy'
     input:
         file('images/*') from ch_images
     output:
@@ -57,7 +105,7 @@ with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
     width, height = image.shape[:2]
 
     ratio = 1.0  
-    max_dimension = 521
+    max_dimension = 602
     
     if height * width > max_dimension**2:
         logger.info('%s: dimensions %d x %d are too large,' % (filename, height, width))
@@ -85,21 +133,23 @@ process run_predictions {
                     else if (filename.startsWith("convex_hull_")) "convex_hull/$filename"
                     else if (filename.startsWith("crop_")) "crop/$filename"
                     else if (filename.startsWith("histogram_")) "histogram/$filename"
-                    else if (filename.startsWith("img_")) "img/$filename"
+                    else if (filename.startsWith("img_")) "original/$filename"
+                    else if (filename.startsWith("diag_")) "diagnostics/$filename"
                     else null
                 }
     input:
-        file(shard) from ch_shards
+        file(model) from ch_model
+        each shard from ch_shards
     output:
         file('*.csv') into results
-        file('mask_*.png') into masks
+        file('*.png') into ch_overlays
 
     script:
-def scale = params.multiscale ? 'multi' : 'single'
+def overlay = params.save_overlay ? 'True' : 'False'
 def mask = params.save_mask ? 'True' : 'False'
+def org = params.save_original ? 'True' : 'False'
 def hull = params.save_hull ? 'True' : 'False'
 def crop = params.save_rosette ? 'True' : 'False'
-def diag = params.save_diagnostics ? 'True' : 'False'
 def histogram = params.save_histogram ? 'True' : 'False'
 """
 #!/usr/bin/env python
@@ -117,7 +167,7 @@ from traits import measure_traits
 logger = tf.get_logger()
 logger.setLevel('INFO')
 
-with tf.io.gfile.GFile('${baseDir}/model/frozengraph/${scale}.pb', "rb") as f:
+with tf.io.gfile.GFile('${model}', "rb") as f:
     graph_def = tf.compat.v1.GraphDef()
     graph_def.ParseFromString(f.read())
 
@@ -138,7 +188,7 @@ size = len(list(dataset))
 for index, sample in dataset:
         filename = sample['filename'].numpy()[0].decode('utf-8')
         logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
-        original_image =  sample['image'].numpy()
+        original_image = sample['image'].numpy()
         raw_segmentation = predict(sample['image'])
         ratio = sample['resize_factor'].numpy()
         
@@ -147,15 +197,34 @@ for index, sample in dataset:
         measure_traits(segmentation,
                        original_image,
                        filename,
+                       save_overlay=${overlay},
                        save_mask=${mask},
-                       save_diagnostics=${diag},
+                       save_original=${org},
+                       save_rosette=${crop},
                        save_histogram=${histogram},
                        save_hull=${hull},
-                       label_names=['background','rosette'],
+                       label_names=['background','rosette','senescent','anthocyanin'],
                        scale_ratio=ratio
                        )
 """
 }
- 
+
+process draw_diagnostics {
+    publishDir "${params.outdir}/diagnostics", mode: 'copy'
+
+    input:
+        file(masks) from ch_overlays
+    output:
+        path('*.png') into diagnostics
+
+    script:
+def polaroid = params.polaroid ? '+polaroid' : ''
+"""
+#!/usr/bin/env bash
+
+montage overlay_*png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%f' -fill white ${polaroid} "\${PWD##*/}.png"
+"""
+}
+
 results
  .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir)

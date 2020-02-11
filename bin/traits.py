@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from skimage.measure import regionprops
 from skimage.util import img_as_ubyte
-from skimage.color import gray2rgb
+from skimage.color import gray2rgb,label2rgb
 from skimage.io import imsave
 from skimage.transform import rescale
 from skimage.morphology import convex_hull_image
@@ -17,9 +17,10 @@ def measure_traits(mask,
                    label_names=['background','rosette'],
                    scale_ratio=1.0,
                    save_rosette=True,
+                   save_overlay=True,
+                   save_original=True,
                    save_histogram=True,
                    save_mask=True,
-                   save_diagnostics=True,
                    save_hull=True):
   """Calculates traits from plant rosette segmentations and optionally saves diagnostic images on disk.
 
@@ -29,9 +30,10 @@ def measure_traits(mask,
     image: Array representing the original image.
     file_name: String, the image filename.
     save_rosette: Boolean, save cropped rosette to disk.
+    save_original: Boolean, save (potentially resized) image to disk.
     save_mask: Boolean, save the prediction to disk.
+    save_overlay: Boolean, save the superimposed mask and image to disk.
     save_hull: Boolean, save the convex hull to disk.
-    save_img: Boolean, save the original image to disk.
     label_names: List, Names of labels
     scale_ratio: Float, Ratio to rescale the image back to its original dimensions
   """
@@ -39,6 +41,13 @@ def measure_traits(mask,
   filename, filefmt = file_name.rsplit('.', 1)
 
   frame = {'file' : filename, 'format' : filefmt}
+
+  # define color map
+  green_leaf = [31,158,137]
+  senescent_leaf = [253,231,37]
+  antho_leaf = [72,40,120]
+
+  colormap = np.array([green_leaf, senescent_leaf, antho_leaf])
 
   traits = ['filled_area',
             'convex_area',
@@ -54,7 +63,7 @@ def measure_traits(mask,
   mask = img_as_ubyte(mask)
 
   crop = image * mask[...,None]
-  
+
   for idx,band in enumerate(['red','green','blue']):
     channel = image[:,:,idx]
     frame[band + '_channel_mean'] = np.mean(channel[mask > 0])
@@ -64,6 +73,9 @@ def measure_traits(mask,
   for idx,labelclass in enumerate(label_names):
     count = np.count_nonzero(mask == idx)
     frame[labelclass] = count*scale_ratio**2 if scale_ratio != 1.0 else count
+
+  if save_original:
+    imsave('img_%s.png' % filename, image) 
 
   if save_histogram:
     plt.figure(figsize=(2,4))
@@ -78,22 +90,28 @@ def measure_traits(mask,
     imsave('crop_%s.png' % filename, crop)
 
   if save_mask:
-    imsave('mask_%s.png' % filename, gray2rgb(mask)*[255,255,0])
+    colored_mask = label2rgb(mask,colors=colormap,bg_label=0,kind='overlay')
+    imsave('mask_%s.png' % filename, colored_mask)
 
-  if save_diagnostics:
-    diag = np.concatenate((gray2rgb(mask)*[255,255,0],image),axis=1)
-    imsave('img_%s.png' % filename, diag)
+  if save_overlay:
+    colored = label2rgb(mask,image=image,bg_label=0,kind='overlay')
+    imsave('overlay_%s.png' % filename, colored)
 
   if save_hull:
-    hull = convex_hull_image(mask)
-    imsave('convex_hull_%s.png' % filename, gray2rgb(hull)*[255,255,0])
+    hull = label2rgb(convex_hull_image(mask),image=image,bg_label=0,kind='overlay')
+    imsave('convex_hull_%s.png' % filename, hull)
  
   if scale_ratio != 1.0:
     mask = rescale(mask,
                    scale=scale_ratio,
                    order=0,
                    preserve_range=True,
-                   anti_aliasing=False)
+                   anti_aliasing=False).astype(np.uint8)
+
+  # set senescent leaves to zero
+  mask[mask == 2] = 0
+  # merge green and anthocyanin classes for calculating region properties
+  mask[mask > 0] = 1
 
   properties = regionprops(mask)
   for trait in traits:
