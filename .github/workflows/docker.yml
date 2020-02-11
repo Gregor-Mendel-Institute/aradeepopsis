@@ -22,10 +22,10 @@ jobs:
 
       - name: Build image
         if: success()
-        run: docker build -t ${GITHUB_REPOSITORY}:${IMAGE_TAG} .
+        run: docker build -t beckerlab/aradeepopsis:${IMAGE_TAG} .
 
       - name: Push to Dockerhub
         if: success()
         uses: actions-hub/docker@master
         with:
-          args: push ${GITHUB_REPOSITORY}:${IMAGE_TAG}
+          args: push beckerlab/aradeepopsis:${IMAGE_TAG}
