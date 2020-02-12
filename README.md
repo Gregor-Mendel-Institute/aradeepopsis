@@ -32,10 +32,10 @@ The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a
 
 ## Running the pipeline
 
-To run the pipeline you have to provide a trained model and the single-pot plant images:
+To run the pipeline you have to provide single-pot plant images:
 
 ```bash
-nextflow /path/to/main.nf --model '/path/to/frozen_graph.pb' --images 'path/to/images/*{png|jpg}' -profile {conda|docker|singularity}
+nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile {conda|docker|singularity}
 ```
 
 ### Example to run on the CBE cluster using Singularity
@@ -44,19 +44,21 @@ nextflow /path/to/main.nf --model '/path/to/frozen_graph.pb' --images 'path/to/i
 module load singularity/3.4.1
 module load nextflow/19.10.0
 
-nextflow /path/to/main.nf --model '/path/to/frozen_graph.pb' --images 'path/to/images/*{png|jpg}' -profile cbe,singularity
+nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,singularity
 ```
 
 ## Additional parameters
 
-* `outdir` (output path `default: ./results`)
-* `chunksize` (number of images to process in per chunk `default: 10`)
-* `save_overlay` (save a diagnostic image with the original image overlayed with the predicted mask `default: true`)
-* `save_mask` (save the predicted mask to the output folder `default: true`)
-* `save_original` (save the original image to the output folder `default: true`)
-* `save_rosette` (save the original image cropped to the predicted mask to the output folder `default: false`)
-* `save_hull` (save the convex hull of the predicted mask to the output folder `default: false`)
-* `save_histogram` (save a color channel histogram of the cropped plant to the output folder `default: false`)
+* `--leaf_classes` (number of leaf classes to score `default: 3 (rosette leaf, senescent leaf, anthocyanin-rich leaf)`)
+* `--multiscale` (run multiscale inference which is slower but more accurate `default: false`)
+* `--outdir` (output path `default: ./results`)
+* `--chunksize` (number of images to process in per chunk `default: 10`)
+* `--save_overlay` (save a diagnostic image with the original image overlayed with the predicted mask `default: true`)
+* `--save_mask` (save the predicted mask to the output folder `default: true`)
+* `--save_original` (save the original image to the output folder `default: true`)
+* `--save_rosette` (save the original image cropped to the predicted mask to the output folder `default: false`)
+* `--save_hull` (save the convex hull of the predicted mask to the output folder `default: false`)
+* `--save_histogram` (save a color channel histogram of the cropped plant to the output folder `default: false`)
 
 # References
 
