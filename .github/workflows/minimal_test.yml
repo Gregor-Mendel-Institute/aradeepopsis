@@ -12,6 +12,12 @@ jobs:
         nxf_ver: ["19.10.0", ""]
     steps:
       - uses: actions/checkout@master
+
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '8.0.222' 
+          architecture: x64
       - name: Install Nextflow
         run: |
           wget -qO- get.nextflow.io | bash
