@@ -54,6 +54,8 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMW0o:,,:coONMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
                         ┴ ┴┴└─┴ ┴═╩╝╚═╝╚═╝╩  └─┘┴  └─┘┴└─┘
                         
 """
+// validate parameters
+ParameterChecks.checkParams(params)
 
 switch(params.leaf_classes) {
     case 1:
