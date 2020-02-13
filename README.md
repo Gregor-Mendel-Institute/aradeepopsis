@@ -50,16 +50,19 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,sing
 
 ## Additional parameters
 
-* `--leaf_classes` (number of leaf classes to score `default: 3 (rosette leaf, senescent leaf, anthocyanin-rich leaf)`)
-* `--multiscale` (run multiscale inference which is slower but more accurate `default: false`)
-* `--outdir` (output path `default: ./results`)
-* `--chunksize` (number of images to process in per chunk `default: 10`)
-* `--save_overlay` (save a diagnostic image with the original image overlayed with the predicted mask `default: true`)
-* `--save_mask` (save the predicted mask to the output folder `default: true`)
-* `--save_original` (save the original image to the output folder `default: true`)
-* `--save_rosette` (save the original image cropped to the predicted mask to the output folder `default: false`)
-* `--save_hull` (save the convex hull of the predicted mask to the output folder `default: false`)
-* `--save_histogram` (save a color channel histogram of the cropped plant to the output folder `default: false`)
+* `--leaf_classes`: number of leaf classes to score. `default: 3`
+    * `1` (rosette leaf)
+    * `2` (rosette leaf, senescent leaf)
+    * `3` (rosette leaf, senescent leaf, anthocyanin-rich leaf)
+* `--multiscale`: run multiscale inference which is slower but more accurate. `default: false`
+* `--outdir`: output path. `default: ./results`
+* `--chunksize`: number of images to process in per chunk. `default: 10`
+* `--save_overlay`: save a diagnostic image with the original image overlayed with the predicted mask. `default: true`
+* `--save_mask`: save the predicted mask to the output folder. `default: true`
+* `--save_original`: save the original image to the output folder. `default: true`
+* `--save_rosette`: save the original image cropped to the predicted mask to the output folder. `default: false`
+* `--save_hull`: save the convex hull of the predicted mask to the output folder. `default: false`
+* `--save_histogram`: save a color channel histogram of the cropped plant to the output folder. `default: false`
 
 # References
 
