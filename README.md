@@ -1,5 +1,5 @@
-![](https://github.com/phue/aradeepopsis/workflows/Docker%20build/badge.svg)
-![](https://github.com/phue/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
+![](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20build/badge.svg)
+![](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.10.0-important.svg)](https://www.nextflow.io/)
 
 # Introduction
@@ -29,7 +29,7 @@ The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a
 
 2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/), [`Docker`](https://docs.docker.com/install/) (recommended) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html)
 
-3. Clone the repository: `git clone https://github.com/phue/aradeepopsis`
+3. Clone the repository: `git clone https://github.com/Gregor-Mendel-Institute/aradeepopsis`
 
 ## Running the pipeline
 
@@ -50,16 +50,19 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,sing
 
 ## Additional parameters
 
-* `--leaf_classes` (number of leaf classes to score `default: 3 (rosette leaf, senescent leaf, anthocyanin-rich leaf)`)
-* `--multiscale` (run multiscale inference which is slower but more accurate `default: false`)
-* `--outdir` (output path `default: ./results`)
-* `--chunksize` (number of images to process in per chunk `default: 10`)
-* `--save_overlay` (save a diagnostic image with the original image overlayed with the predicted mask `default: true`)
-* `--save_mask` (save the predicted mask to the output folder `default: true`)
-* `--save_original` (save the original image to the output folder `default: true`)
-* `--save_rosette` (save the original image cropped to the predicted mask to the output folder `default: false`)
-* `--save_hull` (save the convex hull of the predicted mask to the output folder `default: false`)
-* `--save_histogram` (save a color channel histogram of the cropped plant to the output folder `default: false`)
+* `--leaf_classes`: number of leaf classes to score. `default: 3`
+    * `1` (rosette leaf)
+    * `2` (rosette leaf, senescent leaf)
+    * `3` (rosette leaf, senescent leaf, anthocyanin-rich leaf)
+* `--multiscale`: run multiscale inference which is slower but more accurate. `default: false`
+* `--outdir`: output path. `default: ./results`
+* `--chunksize`: number of images to process in per chunk. `default: 10`
+* `--save_overlay`: save a diagnostic image with the original image overlayed with the predicted mask. `default: true`
+* `--save_mask`: save the predicted mask to the output folder. `default: true`
+* `--save_original`: save the original image to the output folder. `default: true`
+* `--save_rosette`: save the original image cropped to the predicted mask to the output folder. `default: false`
+* `--save_hull`: save the convex hull of the predicted mask to the output folder. `default: false`
+* `--save_histogram`: save a color channel histogram of the cropped plant to the output folder. `default: false`
 
 # References
 

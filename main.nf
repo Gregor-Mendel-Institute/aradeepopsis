@@ -79,7 +79,7 @@ Channel
     .set { ch_images }
 
 Channel
-    .fromPath(model, checkIfExists: true)
+    .fromPath(model, glob: false, checkIfExists: true)
     .set { ch_model }
 
 process build_records {

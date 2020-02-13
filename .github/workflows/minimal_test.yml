@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        nxf_ver: ["19.10.0"]
+        nxf_ver: ["19.10.0", ""]
     steps:
       - uses: actions/checkout@v2
 
