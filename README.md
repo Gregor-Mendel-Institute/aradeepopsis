@@ -1,4 +1,5 @@
 ![](https://github.com/phue/aradeepopsis/workflows/Docker%20build/badge.svg)
+![](https://github.com/phue/aradeepopsis/workflows/CI%20Test/badge.svg?branch=master)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.10.0-important.svg)](https://www.nextflow.io/)
 
 # Introduction
