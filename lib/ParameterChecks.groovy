@@ -2,7 +2,7 @@ class ParameterChecks {
   static void checkParams(params) {
     assert params.images, "ERROR! Images in png or jpeg format have to be provided!"
     assert params.chunksize instanceof Integer, "ERROR! chunksize parameter has to be an integer!"
-    assert params.leaf_classes in 1..3, "ERROR! leaf_classes parameter must be between 0 and 3!"
+    assert params.leaf_classes in 1..3, "ERROR! leaf_classes parameter must be between 1 and 3!"
     assert params.multiscale instanceof Boolean, "ERROR! multiscale parameter must be set to either false (off) or true (on)"
     assert params.save_overlay instanceof Boolean, "ERROR! save_overlay parameter must be set to either false (off) or true (on)"
     assert params.save_mask instanceof Boolean, "ERROR! save_mask parameter must be set to either false (off) or true (on)"

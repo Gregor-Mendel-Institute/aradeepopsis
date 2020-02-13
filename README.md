@@ -1,5 +1,5 @@
 ![](https://github.com/phue/aradeepopsis/workflows/Docker%20build/badge.svg)
-![](https://github.com/phue/aradeepopsis/workflows/CI%20Test/badge.svg?branch=master)
+![](https://github.com/phue/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.10.0-important.svg)](https://www.nextflow.io/)
 
 # Introduction
@@ -8,7 +8,7 @@ ara*deep*opsis is a software tool that enables plant researchers to non-invasive
 
 It is built upon the published, convolutional neural network (CNN) [DeepLabv3+](https://github.com/tensorflow/models/tree/master/research/deeplab)<sup>[[1]](#ref1)</sup> that serves the task of semantic image segmentation. A [pretrained checkpoint](http://download.tensorflow.org/models/deeplabv3_xception_2018_01_04.tar.gz) of this model has been trained upon using manually annotated top-view images of *Arabidopsis thaliana* plants of different ages.
 
-# How it works:
+# How it works
 
 The pipeline is implemented using open source technology such as [`Nextflow`](https://www.nextflow.io/)<sup>[[2]](#ref2)</sup>, [`TensorFlow`](https://www.tensorflow.org/)<sup>[[3]](#ref3)</sup>, [`ImageMagick`](https://imagemagick.org) and [`scikit-image`](https://scikit-image.org/)<sup>[[4]](#ref4)</sup>.
 
