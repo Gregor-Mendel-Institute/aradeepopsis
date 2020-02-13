@@ -10,7 +10,7 @@ jobs:
       matrix:
         nxf_ver: ["19.10.0"]
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
 
       - name: Install Nextflow
         run: |

@@ -1,16 +1,18 @@
 name: Docker build
 
 on:
-   pull_request:
+   push:
      branches:
       - master
+     tags:
+      - 'v*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2 
 
       - name: Login to docker hub
         if: success()
