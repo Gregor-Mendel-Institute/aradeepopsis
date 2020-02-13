@@ -1,5 +1,5 @@
-![](https://github.com/phue/aradeepopsis/workflows/Docker%20build/badge.svg)
-![](https://github.com/phue/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
+![](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20build/badge.svg)
+![](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.10.0-important.svg)](https://www.nextflow.io/)
 
 # Introduction
@@ -29,7 +29,7 @@ The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a
 
 2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/), [`Docker`](https://docs.docker.com/install/) (recommended) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html)
 
-3. Clone the repository: `git clone https://github.com/phue/aradeepopsis`
+3. Clone the repository: `git clone https://github.com/Gregor-Mendel-Institute/aradeepopsis`
 
 ## Running the pipeline
 
