@@ -4,14 +4,15 @@ on:
    push:
      branches:
       - master
-      - dev
+     tags:
+      - 'v*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
 
       - name: Login to docker hub
         if: success()

@@ -1,4 +1,5 @@
 ![](https://github.com/phue/aradeepopsis/workflows/Docker%20build/badge.svg)
+![](https://github.com/phue/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.10.0-important.svg)](https://www.nextflow.io/)
 
 # Introduction
@@ -7,7 +8,7 @@ ara*deep*opsis is a software tool that enables plant researchers to non-invasive
 
 It is built upon the published, convolutional neural network (CNN) [DeepLabv3+](https://github.com/tensorflow/models/tree/master/research/deeplab)<sup>[[1]](#ref1)</sup> that serves the task of semantic image segmentation. A [pretrained checkpoint](http://download.tensorflow.org/models/deeplabv3_xception_2018_01_04.tar.gz) of this model has been trained upon using manually annotated top-view images of *Arabidopsis thaliana* plants of different ages.
 
-# How it works:
+# How it works
 
 The pipeline is implemented using open source technology such as [`Nextflow`](https://www.nextflow.io/)<sup>[[2]](#ref2)</sup>, [`TensorFlow`](https://www.tensorflow.org/)<sup>[[3]](#ref3)</sup>, [`ImageMagick`](https://imagemagick.org) and [`scikit-image`](https://scikit-image.org/)<sup>[[4]](#ref4)</sup>.
 
@@ -32,10 +33,10 @@ The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a
 
 ## Running the pipeline
 
-To run the pipeline you have to provide a trained model and the single-pot plant images:
+To run the pipeline you have to provide single-pot plant images:
 
 ```bash
-nextflow /path/to/main.nf --model '/path/to/frozen_graph.pb' --images 'path/to/images/*{png|jpg}' -profile {conda|docker|singularity}
+nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile {conda|docker|singularity}
 ```
 
 ### Example to run on the CBE cluster using Singularity
@@ -44,19 +45,21 @@ nextflow /path/to/main.nf --model '/path/to/frozen_graph.pb' --images 'path/to/i
 module load singularity/3.4.1
 module load nextflow/19.10.0
 
-nextflow /path/to/main.nf --model '/path/to/frozen_graph.pb' --images 'path/to/images/*{png|jpg}' -profile cbe,singularity
+nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,singularity
 ```
 
 ## Additional parameters
 
-* `outdir` (output path `default: ./results`)
-* `chunksize` (number of images to process in per chunk `default: 10`)
-* `save_overlay` (save a diagnostic image with the original image overlayed with the predicted mask `default: true`)
-* `save_mask` (save the predicted mask to the output folder `default: true`)
-* `save_original` (save the original image to the output folder `default: true`)
-* `save_rosette` (save the original image cropped to the predicted mask to the output folder `default: false`)
-* `save_hull` (save the convex hull of the predicted mask to the output folder `default: false`)
-* `save_histogram` (save a color channel histogram of the cropped plant to the output folder `default: false`)
+* `--leaf_classes` (number of leaf classes to score `default: 3 (rosette leaf, senescent leaf, anthocyanin-rich leaf)`)
+* `--multiscale` (run multiscale inference which is slower but more accurate `default: false`)
+* `--outdir` (output path `default: ./results`)
+* `--chunksize` (number of images to process in per chunk `default: 10`)
+* `--save_overlay` (save a diagnostic image with the original image overlayed with the predicted mask `default: true`)
+* `--save_mask` (save the predicted mask to the output folder `default: true`)
+* `--save_original` (save the original image to the output folder `default: true`)
+* `--save_rosette` (save the original image cropped to the predicted mask to the output folder `default: false`)
+* `--save_hull` (save the convex hull of the predicted mask to the output folder `default: false`)
+* `--save_histogram` (save a color channel histogram of the cropped plant to the output folder `default: false`)
 
 # References
 
