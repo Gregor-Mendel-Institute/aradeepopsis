@@ -4,7 +4,7 @@
 
 # Introduction
 
-ara*deep*opsis is a software tool that enables plant researchers to non-invasively score plant growth, biomass accumulation and senescence from image data in a highly parallelized, high throughput, yet easy to use manner.
+ara*deep*opsis ((*Ara*bidopsis *deep*learning based *op*timal *s*emantic *i*mage *s*egmentation)) is a software tool that enables plant researchers to non-invasively score plant growth, biomass accumulation and senescence from image data in a highly parallelized, high throughput, yet easy to use manner.
 
 It is built upon the published, convolutional neural network (CNN) [DeepLabv3+](https://github.com/tensorflow/models/tree/master/research/deeplab)<sup>[[1]](#ref1)</sup> that serves the task of semantic image segmentation. A [pretrained checkpoint](http://download.tensorflow.org/models/deeplabv3_xception_2018_01_04.tar.gz) of this model has been trained upon using manually annotated top-view images of *Arabidopsis thaliana* plants of different ages.
 
@@ -27,7 +27,7 @@ The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a
 
 1. Install [`Nextflow`](https://www.nextflow.io/index.html#GetStarted)
 
-2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/), [`Docker`](https://docs.docker.com/install/) (recommended) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html)
+2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/) (recommended for use within the [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)), [`Docker`](https://docs.docker.com/install/) (recommended) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html)
 
 3. Clone the repository: `git clone https://github.com/Gregor-Mendel-Institute/aradeepopsis`
 
