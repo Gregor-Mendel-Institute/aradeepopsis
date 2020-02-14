@@ -17,7 +17,7 @@ Once the pipeline is fed with images of single plants, it converts the images in
 * plant area
 * degree of senescence and anthocyanin accumulation
 * color composition
-* a variety of morphometric traits that are informative about growth performance and behaviour
+* a variety of morphometric traits that are informative about growth performance and development
 
 The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a [Docker container](https://www.docker.com/resources/what-container) to resolve dependencies, ensuring a high level of reproducibility and portability. It is largely platform independent and scales from Personal Computers to High Performance Computing (HPC) infrastructure, allowing for time efficient analysis of hundreds of thousands of images within a day.
 
