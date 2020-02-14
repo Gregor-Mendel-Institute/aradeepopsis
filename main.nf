@@ -122,7 +122,7 @@ with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
 
     width, height = image.shape[:2]
 
-    ratio = 1.0  
+    ratio = 1.0
     max_dimension = 602
     
     if height * width > max_dimension**2:
@@ -136,7 +136,12 @@ with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
                                 preserve_aspect_ratio=True)
         image_data = tf.image.encode_png(tf.cast(image, tf.uint8)).numpy()
     
-    record = create_record(image_data, filename, height, width, ratio, 3)
+    record = create_record(image_data=image_data,
+                           filename=filename,
+                           height=height,
+                           width=width,
+                           ratio=ratio,
+                           channels=3)
     writer.write(record.SerializeToString())
 """
 }
@@ -161,6 +166,7 @@ process run_predictions {
     output:
         file('*.csv') into results
         file('*.png') into ch_overlays
+        file('*.tfrecord') into ch_predicted_chunk
 
     script:
 def overlay = params.save_overlay ? 'True' : 'False'
@@ -178,7 +184,7 @@ import time
 
 import tensorflow as tf
 
-from data_record import parse_record
+from data_record import create_record, parse_record
 from frozen_graph import wrap_frozen_graph
 from traits import measure_traits
 
@@ -194,24 +200,48 @@ predict = wrap_frozen_graph(
     inputs='ImageTensor:0',
     outputs='SemanticPredictions:0')
 
-dataset = (
-    tf.data.TFRecordDataset('${shard}')
-    .map(parse_record)
-    .batch(1)
-    .prefetch(1)
-    .enumerate(start=1))
+with tf.io.TFRecordWriter('predicted_chunk.tfrecord') as writer:
+    dataset = (
+        tf.data.TFRecordDataset('${shard}')
+        .map(parse_record)
+        .batch(1)
+        .prefetch(1)
+        .enumerate(start=1))
 
-size = len(list(dataset))
+    size = len(list(dataset))
 
-for index, sample in dataset:
+    for index, sample in dataset:
         filename = sample['filename'].numpy()[0].decode('utf-8')
         logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
-        original_image = sample['image'].numpy()
-        raw_segmentation = predict(sample['image'])
+
+        original = sample['original'].numpy()
+
+        raw_segmentation = predict(sample['original']).numpy()
+
+        height = sample['height'].numpy()
+        width = sample['width'].numpy()
         ratio = sample['resize_factor'].numpy()
+
+        original_image = np.squeeze(original).astype(np.uint8)
+        segmentation = np.squeeze(raw_segmentation).astype(np.uint8)
+
+        print(original_image.shape)
+        print(raw_segmentation.shape)
+        print(segmentation.shape)
+        print(segmentation[:, :, None].shape)
+        input = tf.image.encode_png(original_image)
+        output = tf.image.encode_png(segmentation[:, :, None])
+
+        record = create_record(image_data=input,
+                               filename=filename,
+                               height=height,
+                               width=width,
+                               ratio=ratio,
+                               channels=3,
+                               mask=output)
         
-        original_image = np.squeeze(original_image)
-        segmentation = np.squeeze(raw_segmentation)
+        writer.write(record.SerializeToString())
+
         measure_traits(segmentation,
                        original_image,
                        filename,
