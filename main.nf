@@ -245,4 +245,4 @@ montage overlay_*png -background 'black' -font Ubuntu-Condensed -geometry 200x20
 }
 
 results
- .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir)
+ .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true)

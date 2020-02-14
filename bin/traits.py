@@ -122,7 +122,7 @@ def measure_traits(mask,
 
   # write pixel counts to tsv file
   with open('traits.csv', 'a') as counts:
-    Writer = csv.DictWriter(counts, fieldnames=frame.keys())
+    Writer = csv.DictWriter(counts, fieldnames=frame.keys(), dialect='unix', quoting=csv.QUOTE_NONE)
     if not counts.tell():
       Writer.writeheader()
     Writer.writerow(frame)
