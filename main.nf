@@ -78,10 +78,14 @@ if (!params.custom_model) {
     labels = "['background','rosette','senescent','anthocyanin']"
 }
 
+
+def chunk_idx = 1
+
 Channel
     .fromPath(params.images, checkIfExists: true)
     .buffer(size:params.chunksize, remainder: true)
-    .set { ch_images }
+    .map { chunk -> [chunk_idx++, chunk] }
+    .into { ch_images_records; ch_images_traits }
 
 Channel
     .fromPath(model, glob: false, checkIfExists: true)
@@ -89,9 +93,9 @@ Channel
 
 process build_records {
     input:
-        file('images/*') from ch_images
+        tuple val(index), file('images/*') from ch_images_records
     output:
-        file('*.tfrecord') into ch_shards
+         tuple val(index), file('*.tfrecord') into ch_shards
         file('*txt') into invalid_images optional true
     script:
 """
@@ -113,40 +117,40 @@ count = len(images)
 invalid = 0
 
 with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
-  for i in range(count):
-    filename = os.path.basename(images[i])
-    image_data = tf.io.gfile.GFile(images[i], 'rb').read()
-    try:
-      image = tf.io.decode_image(image_data, channels=3)
-    except tf.errors.InvalidArgumentError:
-      logger.info("%s is either corrupted or not a supported image format" % filename)
-      invalid += 1
-      with open("invalid.txt", "a") as broken:
-        broken.write(f'{filename}\\n')
-      continue
+    for i in range(count):
+        filename = os.path.basename(images[i])
+        image_data = tf.io.gfile.GFile(images[i], 'rb').read()
+        try:
+            image = tf.io.decode_image(image_data, channels=3)
+        except tf.errors.InvalidArgumentError:
+            logger.info("%s is either corrupted or not a supported image format" % filename)
+            invalid += 1
+            with open("invalid.txt", "a") as broken:
+                broken.write(f'{filename}\\n')
+            continue
 
-    width, height = image.shape[:2]
+        width, height = image.shape[:2]
 
-    ratio = 1.0
-    max_dimension = 602
-    
-    if height * width > max_dimension**2:
-        logger.info('%s: dimensions %d x %d are too large,' % (filename, height, width))
-        ratio = max(height,width)/max_dimension
-        new_height = int(height/ratio)
-        new_width = int(width/ratio)
-        logger.info('%s: resized to %d x %d (scale factor:%f)' % (filename, new_height, new_width,ratio))
-        image = tf.image.resize(image,
-                                size=[new_height,new_width],
-                                preserve_aspect_ratio=True)
-        image_data = tf.image.encode_png(tf.cast(image, tf.uint8)).numpy()
-    
-    record = create_record(image_data=image_data,
-                                             filename=filename,
-                                             height=height,
-                                             width=width,
-                                             ratio=ratio)
-    writer.write(record.SerializeToString())
+        ratio = 1.0
+        max_dimension = 602
+        
+        if height * width > max_dimension**2:
+            logger.info('%s: dimensions %d x %d are too large,' % (filename, height, width))
+            ratio = max(height,width)/max_dimension
+            new_height = int(height/ratio)
+            new_width = int(width/ratio)
+            logger.info('%s: resized to %d x %d (scale factor:%f)' % (filename, new_height, new_width,ratio))
+            image = tf.image.resize(image,
+                                                    size=[new_height,new_width],
+                                                    preserve_aspect_ratio=True)
+            image_data = tf.image.encode_png(tf.cast(image, tf.uint8)).numpy()
+        
+        record = create_record(image_data=image_data,
+                                                 filename=filename,
+                                                 height=height,
+                                                 width=width,
+                                                 ratio=ratio)
+        writer.write(record.SerializeToString())
 """
 }
 
@@ -154,24 +158,22 @@ invalid_images
  .collectFile(name: 'invalid_images.txt', storeDir: params.outdir)
 
 process run_predictions {
-    publishDir "${params.outdir}", mode: 'copy'
+    publishDir "${params.outdir}/test", mode: 'copy'
     input:
-        file(model) from ch_model
-        each shard from ch_shards
+        file(model) from ch_model.collect()
+        tuple val(index), file(shard) from ch_shards
     output:
-        file('*.tfrecord') into ch_predicted_chunk
+        tuple val(index), file('*png') into ch_predictions
 
     script:
 """
 #!/usr/bin/env python
 
 import logging
-import numpy as np
-import time
 
 import tensorflow as tf
 
-from data_record import create_record, parse_record
+from data_record import parse_record
 from frozen_graph import wrap_frozen_graph
 
 logger = tf.get_logger()
@@ -186,42 +188,31 @@ predict = wrap_frozen_graph(
     inputs='ImageTensor:0',
     outputs='SemanticPredictions:0')
 
-with tf.io.TFRecordWriter('predicted_chunk.tfrecord') as writer:
-    dataset = (
-        tf.data.TFRecordDataset('${shard}')
-        .map(parse_record)
-        .batch(1)
-        .prefetch(1)
-        .enumerate(start=1))
+dataset = (
+    tf.data.TFRecordDataset('${shard}')
+    .map(parse_record)
+    .batch(1)
+    .prefetch(1)
+    .enumerate(start=1))
 
-    size = len(list(dataset))
+size = len(list(dataset))
 
-    for index, sample in dataset:
-        filename = sample['filename'].numpy()[0].decode('utf-8')
-        logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
+for index, sample in dataset:
+    filename = sample['filename'].numpy()[0].decode('utf-8')
+    logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
+    raw_segmentation = predict(sample['original'])[0][:, :, None]
 
-        original = sample['original'].numpy()
+    ratio = sample['resize_factor'][0]
 
-        raw_segmentation = predict(sample['original'])
+    if ratio != 1.0 :
+        height = sample['height'][0]
+        width = sample['width'][0]
+        raw_segmentation = tf.image.resize(raw_segmentation,
+                                                                         size=[width,height],
+                                                                         method='nearest')
 
-        height = sample['height'].numpy()
-        width = sample['width'].numpy()
-        ratio = sample['resize_factor'].numpy()
-
-        original_image = np.squeeze(original).astype(np.uint8)
-        segmentation = np.squeeze(raw_segmentation).astype(np.uint8)
-
-        input = tf.image.encode_png(original_image).numpy()
-        output = tf.image.encode_png(segmentation[:, :, None]).numpy()
-
-        record = create_record(image_data=input,
-                               filename=filename,
-                               height=height,
-                               width=width,
-                               ratio=ratio,
-                               mask=output)
-        
-        writer.write(record.SerializeToString())
+    output = tf.image.encode_png(tf.cast(raw_segmentation, tf.uint8))
+    tf.io.write_file(filename,output)
 """
 }
 
@@ -232,13 +223,13 @@ process extract_traits {
                     else if (filename.startsWith("convex_hull_")) "convex_hull/$filename"
                     else if (filename.startsWith("crop_")) "crop/$filename"
                     else if (filename.startsWith("histogram_")) "histogram/$filename"
-                    else if (filename.startsWith("img_")) "original/$filename"
                     else if (filename.startsWith("diag_")) "diagnostics/$filename"
                     else null
                 }
 
     input:
-        file predicted_shard from ch_predicted_chunk
+        tuple val(index), file("original_images/*"), file("raw_masks/*") from ch_images_traits.join(ch_predictions)
+
     output:
         file('*.csv') into results
         file('*.png') into ch_overlays
@@ -246,57 +237,31 @@ process extract_traits {
     script:
 def overlay = params.save_overlay ? 'True' : 'False'
 def mask = params.save_mask ? 'True' : 'False'
-def org = params.save_original ? 'True' : 'False'
 def hull = params.save_hull ? 'True' : 'False'
 def crop = params.save_rosette ? 'True' : 'False'
 def histogram = params.save_histogram ? 'True' : 'False'
 """
 #!/usr/bin/env python
 
-import logging
-import numpy as np
-import time
-
-import tensorflow as tf
-
-from data_record import parse_record
+import glob
+import os
+from skimage.io import ImageCollection
 from traits import measure_traits
 
-logger = tf.get_logger()
-logger.setLevel('INFO')
+masks = ImageCollection('raw_masks/*')
+originals = ['original_images/' + os.path.basename(i).rsplit('.', 1)[0] + '.*' for i in masks.files]
+originals = ImageCollection(originals)
 
-dataset = (
-    tf.data.TFRecordDataset('${predicted_shard}')
-    .map(parse_record)
-    .batch(1)
-    .prefetch(1)
-    .enumerate(start=1))
-
-size = len(list(dataset))
-
-for index, sample in dataset:
-    filename = sample['filename'].numpy()[0].decode('utf-8')
-    logger.info("Running measurements on image %s (%d/%d)" % (filename,index,size))
-
-    original = sample['original'].numpy()
-    mask = sample['mask'].numpy()
-
-    ratio = sample['resize_factor'].numpy()
-
-    original_image = np.squeeze(original).astype(np.uint8)
-    segmentation = np.squeeze(mask).astype(np.uint8)
-
-    measure_traits(segmentation,
-                    original_image,
-                    filename,
+for index, name in enumerate(masks.files):
+    measure_traits(masks[index],
+                    originals[index],
+                    os.path.basename(name),
                     save_overlay=${overlay},
                     save_mask=${mask},
-                    save_original=${org},
                     save_rosette=${crop},
                     save_histogram=${histogram},
                     save_hull=${hull},
-                    label_names=${labels},
-                    scale_ratio=ratio)
+                    label_names=${labels})
 """
 }
 

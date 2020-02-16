@@ -8,17 +8,14 @@ from skimage.measure import regionprops
 from skimage.util import img_as_ubyte
 from skimage.color import gray2rgb,label2rgb
 from skimage.io import imsave
-from skimage.transform import rescale
 from skimage.morphology import convex_hull_image
 
 def measure_traits(mask,
                    image,
                    file_name,
                    label_names=['background','rosette'],
-                   scale_ratio=1.0,
                    save_rosette=True,
                    save_overlay=True,
-                   save_original=True,
                    save_histogram=True,
                    save_mask=True,
                    save_hull=True):
@@ -30,12 +27,10 @@ def measure_traits(mask,
     image: Array representing the original image.
     file_name: String, the image filename.
     save_rosette: Boolean, save cropped rosette to disk.
-    save_original: Boolean, save (potentially resized) image to disk.
     save_mask: Boolean, save the prediction to disk.
     save_overlay: Boolean, save the superimposed mask and image to disk.
     save_hull: Boolean, save the convex hull to disk.
     label_names: List, Names of labels
-    scale_ratio: Float, Ratio to rescale the image back to its original dimensions
   """
 
   filename, filefmt = file_name.rsplit('.', 1)
@@ -72,10 +67,7 @@ def measure_traits(mask,
   # iterate over label names and count pixels for each class 
   for idx,labelclass in enumerate(label_names):
     count = np.count_nonzero(mask == idx)
-    frame[labelclass] = count*scale_ratio**2 if scale_ratio != 1.0 else count
-
-  if save_original:
-    imsave('img_%s.png' % filename, image) 
+    frame[labelclass] = count
 
   if save_histogram:
     plt.figure(figsize=(2,4))
@@ -100,13 +92,6 @@ def measure_traits(mask,
   if save_hull:
     hull = label2rgb(convex_hull_image(mask),image=image,bg_label=0,kind='overlay')
     imsave('convex_hull_%s.png' % filename, hull)
- 
-  if scale_ratio != 1.0:
-    mask = rescale(mask,
-                   scale=scale_ratio,
-                   order=0,
-                   preserve_range=True,
-                   anti_aliasing=False).astype(np.uint8)
 
   # set senescent leaves to zero
   mask[mask == 2] = 0
