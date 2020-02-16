@@ -58,19 +58,24 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMW0o:,,:coONMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 // validate parameters
 ParameterChecks.checkParams(params)
 
-switch(params.leaf_classes) {
-    case 1:
-        model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
-        labels = "['background','rosette']"
-        break
-    case 2:
-        model = params.multiscale ? 'https://www.dropbox.com/s/9m4wy990ajv7cmg/2_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/s808kcq9jgiyko9/2_class_singlescale.pb?dl=1'
-        labels = "['background','rosette','senescent']"
-        break
-    case 3:
-        model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
-        labels = "['background','rosette','senescent','anthocyanin']"
-        break
+if (!params.custom_model) {
+    switch(params.leaf_classes) {
+        case 1:
+            model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
+            labels = "['background','rosette']"
+            break
+        case 2:
+            model = params.multiscale ? 'https://www.dropbox.com/s/9m4wy990ajv7cmg/2_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/s808kcq9jgiyko9/2_class_singlescale.pb?dl=1'
+            labels = "['background','rosette','senescent']"
+            break
+        case 3:
+            model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
+            labels = "['background','rosette','senescent','anthocyanin']"
+            break
+    }
+} else {
+    model = params.custom_model
+    labels = "['background','rosette','senescent','anthocyanin']"
 }
 
 Channel
@@ -137,11 +142,10 @@ with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
         image_data = tf.image.encode_png(tf.cast(image, tf.uint8)).numpy()
     
     record = create_record(image_data=image_data,
-                           filename=filename,
-                           height=height,
-                           width=width,
-                           ratio=ratio,
-                           channels=3)
+                                             filename=filename,
+                                             height=height,
+                                             width=width,
+                                             ratio=ratio)
     writer.write(record.SerializeToString())
 """
 }
@@ -150,31 +154,14 @@ invalid_images
  .collectFile(name: 'invalid_images.txt', storeDir: params.outdir)
 
 process run_predictions {
-    publishDir "${params.outdir}", mode: 'copy',
-        saveAs: { filename ->
-                    if (filename.startsWith("mask_")) "mask/$filename"
-                    else if (filename.startsWith("convex_hull_")) "convex_hull/$filename"
-                    else if (filename.startsWith("crop_")) "crop/$filename"
-                    else if (filename.startsWith("histogram_")) "histogram/$filename"
-                    else if (filename.startsWith("img_")) "original/$filename"
-                    else if (filename.startsWith("diag_")) "diagnostics/$filename"
-                    else null
-                }
+    publishDir "${params.outdir}", mode: 'copy'
     input:
         file(model) from ch_model
         each shard from ch_shards
     output:
-        file('*.csv') into results
-        file('*.png') into ch_overlays
         file('*.tfrecord') into ch_predicted_chunk
 
     script:
-def overlay = params.save_overlay ? 'True' : 'False'
-def mask = params.save_mask ? 'True' : 'False'
-def org = params.save_original ? 'True' : 'False'
-def hull = params.save_hull ? 'True' : 'False'
-def crop = params.save_rosette ? 'True' : 'False'
-def histogram = params.save_histogram ? 'True' : 'False'
 """
 #!/usr/bin/env python
 
@@ -186,7 +173,6 @@ import tensorflow as tf
 
 from data_record import create_record, parse_record
 from frozen_graph import wrap_frozen_graph
-from traits import measure_traits
 
 logger = tf.get_logger()
 logger.setLevel('INFO')
@@ -216,7 +202,7 @@ with tf.io.TFRecordWriter('predicted_chunk.tfrecord') as writer:
 
         original = sample['original'].numpy()
 
-        raw_segmentation = predict(sample['original']).numpy()
+        raw_segmentation = predict(sample['original'])
 
         height = sample['height'].numpy()
         width = sample['width'].numpy()
@@ -225,35 +211,92 @@ with tf.io.TFRecordWriter('predicted_chunk.tfrecord') as writer:
         original_image = np.squeeze(original).astype(np.uint8)
         segmentation = np.squeeze(raw_segmentation).astype(np.uint8)
 
-        print(original_image.shape)
-        print(raw_segmentation.shape)
-        print(segmentation.shape)
-        print(segmentation[:, :, None].shape)
-        input = tf.image.encode_png(original_image)
-        output = tf.image.encode_png(segmentation[:, :, None])
+        input = tf.image.encode_png(original_image).numpy()
+        output = tf.image.encode_png(segmentation[:, :, None]).numpy()
 
         record = create_record(image_data=input,
                                filename=filename,
                                height=height,
                                width=width,
                                ratio=ratio,
-                               channels=3,
                                mask=output)
         
         writer.write(record.SerializeToString())
+"""
+}
 
-        measure_traits(segmentation,
-                       original_image,
-                       filename,
-                       save_overlay=${overlay},
-                       save_mask=${mask},
-                       save_original=${org},
-                       save_rosette=${crop},
-                       save_histogram=${histogram},
-                       save_hull=${hull},
-                       label_names=${labels},
-                       scale_ratio=ratio
-                       )
+process extract_traits {
+    publishDir "${params.outdir}/diagnostics", mode: 'copy',
+        saveAs: { filename ->
+                    if (filename.startsWith("mask_")) "mask/$filename"
+                    else if (filename.startsWith("convex_hull_")) "convex_hull/$filename"
+                    else if (filename.startsWith("crop_")) "crop/$filename"
+                    else if (filename.startsWith("histogram_")) "histogram/$filename"
+                    else if (filename.startsWith("img_")) "original/$filename"
+                    else if (filename.startsWith("diag_")) "diagnostics/$filename"
+                    else null
+                }
+
+    input:
+        file predicted_shard from ch_predicted_chunk
+    output:
+        file('*.csv') into results
+        file('*.png') into ch_overlays
+
+    script:
+def overlay = params.save_overlay ? 'True' : 'False'
+def mask = params.save_mask ? 'True' : 'False'
+def org = params.save_original ? 'True' : 'False'
+def hull = params.save_hull ? 'True' : 'False'
+def crop = params.save_rosette ? 'True' : 'False'
+def histogram = params.save_histogram ? 'True' : 'False'
+"""
+#!/usr/bin/env python
+
+import logging
+import numpy as np
+import time
+
+import tensorflow as tf
+
+from data_record import parse_record
+from traits import measure_traits
+
+logger = tf.get_logger()
+logger.setLevel('INFO')
+
+dataset = (
+    tf.data.TFRecordDataset('${predicted_shard}')
+    .map(parse_record)
+    .batch(1)
+    .prefetch(1)
+    .enumerate(start=1))
+
+size = len(list(dataset))
+
+for index, sample in dataset:
+    filename = sample['filename'].numpy()[0].decode('utf-8')
+    logger.info("Running measurements on image %s (%d/%d)" % (filename,index,size))
+
+    original = sample['original'].numpy()
+    mask = sample['mask'].numpy()
+
+    ratio = sample['resize_factor'].numpy()
+
+    original_image = np.squeeze(original).astype(np.uint8)
+    segmentation = np.squeeze(mask).astype(np.uint8)
+
+    measure_traits(segmentation,
+                    original_image,
+                    filename,
+                    save_overlay=${overlay},
+                    save_mask=${mask},
+                    save_original=${org},
+                    save_rosette=${crop},
+                    save_histogram=${histogram},
+                    save_hull=${hull},
+                    label_names=${labels},
+                    scale_ratio=ratio)
 """
 }
 

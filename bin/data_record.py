@@ -2,7 +2,7 @@
 
 import tensorflow as tf
 
-def create_record(image_data, filename, height, width, ratio, channels, mask=''):
+def create_record(image_data, filename, height, width, ratio, mask=None):
     def _bytes_feature(value):
         if isinstance(value, str):
             value = value.encode()
@@ -20,12 +20,10 @@ def create_record(image_data, filename, height, width, ratio, channels, mask='')
         'image/height': _int64_feature(height),
         'image/width': _int64_feature(width),
         'image/resize_ratio': _float_feature(ratio),
-        'image/channels': _int64_feature(channels),
-        'image/mask': _bytes_feature(mask)
         }
 
-#    if mask is not None:
-#        features.update( {'image/mask': _bytes_feature(mask)} )
+    if mask is not None:
+        features.update( {'image/mask': _bytes_feature(mask)} )
 
     sample = tf.train.Example(features=tf.train.Features(feature=features))
     return sample
@@ -37,28 +35,29 @@ def parse_record(record):
         'image/height': tf.io.FixedLenFeature((), tf.int64),
         'image/width': tf.io.FixedLenFeature((), tf.int64),
         'image/resize_ratio': tf.io.FixedLenFeature((), tf.float32),
-        'image/channels': tf.io.FixedLenFeature((), tf.int64),
         'image/mask': tf.io.FixedLenFeature((), tf.string, default_value=''),
         }
 
     parsed = tf.io.parse_single_example(record, features)
     
-    image = tf.io.decode_image(parsed['image/original'], channels=3, expand_animations=False)
-    #image = parsed['image/original']
+    image, mask = decode_image(parsed['image/original'], parsed['image/mask'])
     name = parsed['image/filename']
 
     sample = {
     'original': image,
+    'mask': mask,
     'filename': parsed['image/filename'],
     'height': parsed['image/height'],
     'width': parsed['image/width'],
     'resize_factor': parsed['image/resize_ratio'],
     }
-
-    try:
-        mask = tf.io.decode_image(parsed['image/mask'], channels=1, expand_animations=False)
-        sample.update( {'mask': mask} )
-    except tf.errors.InvalidArgumentError:
-        print('record does not contain a mask')
-
     return sample
+
+def decode_image(image_data, image_mask):
+    image = tf.io.decode_image(image_data, channels=3)
+    print(image_mask)
+    if image_mask != '' :
+         mask  = tf.io.decode_png(image_mask, channels=1)
+    else:
+        mask = tf.zeros_like(image)
+    return image, mask
