@@ -18,4 +18,4 @@ jobs:
           sudo mv nextflow /usr/local/bin/
       - name: Run aradeepopsis on test images
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test,docker
+          nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull -profile test,docker
