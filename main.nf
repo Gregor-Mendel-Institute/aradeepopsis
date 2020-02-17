@@ -215,7 +215,7 @@ for index, sample in dataset:
                                                                          method='nearest')
 
     output = tf.image.encode_png(tf.cast(raw_segmentation, tf.uint8))
-    tf.io.write_file(filename,output)
+    tf.io.write_file(filename.rsplit('.', 1)[0] + '.png',output)
 """
 }
 
