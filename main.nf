@@ -11,43 +11,46 @@
 */
 
 log.info """
-MMMMMMMMMMMNOl;,;:lx0NWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMNx:,,,,,,;:lxOXWMMMMMMMMMMMMMMMMMMMWWWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMWk;,,,,,,,,,,,;cd0WMMMMMMMMMMMMMWKkdollodOXWMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMKl,,,,,,,,,,,,,,,:dKWMMMMMMMMWNKd:,,,,,,,;lKWMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMM0:,,,,,,,,,,,,,,,,,cOWMMMMMMXxoc,,,,,,,,,,;dNMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMM0c,,,,,,,,,,,,,,,,,,cOWMMMMXo;,,,,,,,,,,,,,oXMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMNd;,,,,,,,,,,,,,,,,,,oXMMMWk;,,,,,,,,,,,,,;xWMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMW0c,,,,,,,,,,,,,,,,,,:0MMMNd,,,,,,,,,,,,,;oXMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMNx;,,,,,,,,,,,,,,,,,;kWMMWO:,,,,,,,,,,,:xXMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMXd;,,,,,,,,,,,,,,,,;kWMMMNd;,,,,,,;:lxKWMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMNkc,,,,,,,,,,,,,,,c0MMMMWk;,,;cdk0XWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMWXkoc;,,,,,,,,,,;dNMMMMWk:;ckXWMMMWWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMWXk:,,,,,;;;,;xWMMMMNdld0WMWX0xdooxKWMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMWO:,,,,lOKkc;c0WMMWOcxXNXOoc;,,,,,lKMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMNx;,,,,c0WWXd::kNW0c;cooc;,,,,,,,,lKMMMMMWNK00OOO0KKXWWMMMMMMM
-MMMMMMMMMMMMMMMMMWOc;;;;:ok0K0o;:dkl,,,,,,,,,,,,,;oKWMMN0xoc:;;,,,;;:cldxOKNMMM
-MMMMMMMMMMMMMMMMMMWX000KXX0o::;,,,,,,,,,,,,,,,,:o0NMMW0o;,,,,,,,,,,,,,,,,,:lkNM
-MMMMMMMMMMMMMMMMMMMMMMMMMMNd,,,,,,,,,,,,,,,,,,cONWMWXkc,,,,,,,,,,,,,,,,,,,,,;oK
-MMMMMMMMMMWWNXXXXNWMMMMMMMKl,,,,,,,,,,,,,,,::::coddoc;,,,,,,,,,,,,,,,,,,,,,,,,l
-MMMMMMWX0xdlcc:::clkKWMMMMXl,,,,,,,,,,,,,,cOXK00Okdl;,,,,,,,,,,,,,,,,,,,,,,,,,;
-MMMMW0dc;,,,,,,,,,,,:dO00Od:,,;lxx:,,,,,,,:d0WMMMMWNx;,,,,,,,,,,,,,,,,,,,,,,,,;
-MMN0o:,,,,,,,,,,,,,,,,,;:lxko;oXWKl,cxOOOOkocoOKNWMMXo,,,,,,,,,,,,,,,,,,,,,,,:x
-WKo;,,,,,,,,,,,,,,,,,,,cOKko:;dNMXo,l0WMMMMWk;,:cokKWKo;,,,,,,,,,,,,,,,,,;cokKW
-0c,,,,,,,,,,,,,,,,,,,,:ONx;,,,lKW0c,,cx0KWMWO:,,,,,ckNN0xoc::;;;;;::cloxk0NWMMM
-d,,,,,,,,,,,,,,,,,,,,,oXWO:,,:xXKl;,,,,;:dKW0:,,,,,,:OWMMWNXKK00KKKXNWWMMMMMMMM
-c,,,,,,,,,,,,,,,,,,,,:OWMWKkkKKkc,,,,,,,,,l0Nkc,,,,,:OWMMMMMMMMMMMMMMMMMMMMMMMM
-;,,,,,,,,,,,,,,,,,,:o0WMMMMMMXd;,,,,,,,,,,,lKWKdc::lONMMMMMMMMMMMMMMMMMMMMMMMMM
-;,,,,,,,,,,,,,,,:lxKNMMMMMMMWk;,,,,,,,,,,,,;oXMWNKKNWMMMMMMMMMMMMMMMMMMMMMMMMMM
-klc:;;;;;;;:coxOKWMMMMMMMMMMXo,,,,,,,,,,,,,,:kWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-WWNXKK0000KXNWMMMMMMMMMMMMMMKl,,,,,,,,,,,,,,,oXMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMMMMMMMMMKl,,,,,,,,,,,,,,,cKMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMMMMMMMMMKc,,,,,,,,,,,,,,,c0MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMMMMMMMMMXo,,,,,,,,,,,,,,,lKMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMMMMMMMMMW0l,,,,,,,,,,,,,:kWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMMMMMMMMMMWKl;,,,,,,,,,,:kNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWXx:;,,,,,,:o0WMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMW0o:,,:coONMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+
+#################################################################################
+###############    ##############################################################
+#############         ###########################################################
+############             #####################     ##############################
+############                ##############          #############################
+###########                  ############            ############################
+############                  #########              ############################
+############                   #######               ############################
+#############                   ######              #############################
+#############                   ######             ##############################
+##############                  #######         #################################
+################               ########    ######################################
+###################            ########  ########################################
+####################           ######## #########################################
+####################     ##### ####### #######      #############################
+####################     ######  ##### ####         #############################
+#####################      #####  ###              ##########         ###########
+##########################                       ########                   #####
+#############################                  #########                      ###
+#############################                                                  ##
+###############   ###########              ##########                           #
+#########             ####      ###         ##########                          #
+######                     ### ##### ######## #########                        ##
+####                    #####  ##### #########   #######                   ######
+###                     ###    #####  ########      ########         ############
+##                     ####    ####       ####        ###########################
+##                     ###########         #####      ###########################
+#                    ###########            ######  #############################
+#                 #############              ####################################
+###           #################               ###################################
+###############################               ###################################
+###############################               ###################################
+###############################               ###################################
+###############################               ###################################
+################################              ###################################
+#################################            ####################################
+##################################         ######################################
+####################################    #########################################
+#################################################################################
 
                         ┌─┐┬─┐┌─┐╔╦╗╔═╗╔═╗╔═╗┌─┐┌─┐┌─┐┬┌─┐
                         ├─┤├┬┘├─┤ ║║║╣ ║╣ ╠═╝│ │├─┘└─┐│└─┐
@@ -93,10 +96,10 @@ Channel
 
 process build_records {
     input:
-        tuple val(index), file('images/*') from ch_images_records
+        tuple val(index), path('images/*') from ch_images_records
     output:
-         tuple val(index), file('*.tfrecord') into ch_shards
-        file('*txt') into invalid_images optional true
+        tuple val(index), path('*.tfrecord') into ch_shards
+        path('*txt') into invalid_images optional true
     script:
 """
 #!/usr/bin/env python
@@ -160,10 +163,10 @@ invalid_images
 process run_predictions {
     publishDir "${params.outdir}/test", mode: 'copy'
     input:
-        file(model) from ch_model.collect()
-        tuple val(index), file(shard) from ch_shards
+        path(model) from ch_model.collect()
+        tuple val(index), path(shard) from ch_shards
     output:
-        tuple val(index), file('*png') into ch_predictions
+        tuple val(index), path('*png') into ch_predictions
 
     script:
 """
@@ -217,22 +220,14 @@ for index, sample in dataset:
 }
 
 process extract_traits {
-    publishDir "${params.outdir}/diagnostics", mode: 'copy',
-        saveAs: { filename ->
-                    if (filename.startsWith("mask_")) "mask/$filename"
-                    else if (filename.startsWith("convex_hull_")) "convex_hull/$filename"
-                    else if (filename.startsWith("crop_")) "crop/$filename"
-                    else if (filename.startsWith("histogram_")) "histogram/$filename"
-                    else if (filename.startsWith("diag_")) "diagnostics/$filename"
-                    else null
-                }
+    publishDir "${params.outdir}/diagnostics", mode: 'copy'
 
     input:
-        tuple val(index), file("original_images/*"), file("raw_masks/*") from ch_images_traits.join(ch_predictions)
+        tuple val(index), path("original_images/*"), path("raw_masks/*") from ch_images_traits.join(ch_predictions)
 
     output:
-        file('*.csv') into results
-        file('*.png') into ch_overlays
+        path('*.csv') into results
+        path('overlay/*.png') into ch_overlays
 
     script:
 def overlay = params.save_overlay ? 'True' : 'False'
@@ -243,25 +238,24 @@ def histogram = params.save_histogram ? 'True' : 'False'
 """
 #!/usr/bin/env python
 
-import glob
 import os
-from skimage.io import ImageCollection
-from traits import measure_traits
+from traits import measure_traits, draw_diagnostics, load_images
 
-masks = ImageCollection('raw_masks/*')
-originals = ['original_images/' + os.path.basename(i).rsplit('.', 1)[0] + '.*' for i in masks.files]
-originals = ImageCollection(originals)
+masks, originals = load_images()
 
-for index, name in enumerate(masks.files):
+for index, name in enumerate(originals.files):
     measure_traits(masks[index],
-                    originals[index],
-                    os.path.basename(name),
-                    save_overlay=${overlay},
-                    save_mask=${mask},
-                    save_rosette=${crop},
-                    save_histogram=${histogram},
-                    save_hull=${hull},
-                    label_names=${labels})
+                   originals[index],
+                   os.path.basename(name),
+                   label_names=${labels})
+    draw_diagnostics(masks[index],
+                     originals[index],
+                     os.path.basename(name),
+                     save_overlay=${overlay},
+                     save_mask=${mask},
+                     save_rosette=${crop},
+                     save_histogram=${histogram},
+                     save_hull=${hull})
 """
 }
 
@@ -269,16 +263,31 @@ process draw_diagnostics {
     publishDir "${params.outdir}/diagnostics", mode: 'copy'
 
     input:
-        file(masks) from ch_overlays
+        path(masks) from ch_overlays
     output:
-        path('*.png') into diagnostics
+        path('*_summary.png') into diagnostics
 
     script:
 def polaroid = params.polaroid ? '+polaroid' : ''
 """
 #!/usr/bin/env bash
 
-montage overlay_*png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%f' -fill white ${polaroid} "\${PWD##*/}.png"
+case "${params.leaf_classes}" in
+    "1")
+        convert -size 200x200 xc:'rgb(31,158,137)' 01-healthy.png
+        ;;
+    "2")
+        convert -size 200x200 xc:'rgb(31,158,137)' 01-healthy.png
+        convert -size 200x200 xc:'rgb(253,231,37)' 02-senescent.png
+        ;;
+    "3")
+        convert -size 200x200 xc:'rgb(31,158,137)' 01-healthy.png
+        convert -size 200x200 xc:'rgb(253,231,37)' 02-senescent.png
+        convert -size 200x200 xc:'rgb(72,40,120)' 03-anthocyanin-rich.png
+        ;;
+esac
+
+montage *.png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%t' -fill white ${polaroid} "\${PWD##*/}_summary.png"
 """
 }
 

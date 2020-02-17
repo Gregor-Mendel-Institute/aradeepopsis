@@ -1,48 +1,29 @@
 #!/usr/bin/env python
 
 import csv
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
 from skimage.measure import regionprops
-from skimage.util import img_as_ubyte
-from skimage.color import gray2rgb,label2rgb
-from skimage.io import imsave
+from skimage.io import imsave,imread,ImageCollection
 from skimage.morphology import convex_hull_image
 
 def measure_traits(mask,
                    image,
                    file_name,
-                   label_names=['background','rosette'],
-                   save_rosette=True,
-                   save_overlay=True,
-                   save_histogram=True,
-                   save_mask=True,
-                   save_hull=True):
-  """Calculates traits from plant rosette segmentations and optionally saves diagnostic images on disk.
+                   label_names=['background','rosette']):
+  """Calculates traits from plant rosette segmentations.
 
   Args:
-    label: The numpy array to be saved. The data will be converted
-      to uint8 and saved as png image.
+    mask: Array representing the segmented mask.
     image: Array representing the original image.
     file_name: String, the image filename.
-    save_rosette: Boolean, save cropped rosette to disk.
-    save_mask: Boolean, save the prediction to disk.
-    save_overlay: Boolean, save the superimposed mask and image to disk.
-    save_hull: Boolean, save the convex hull to disk.
     label_names: List, Names of labels
   """
-
   filename, filefmt = file_name.rsplit('.', 1)
 
   frame = {'file' : filename, 'format' : filefmt}
-
-  # define color map
-  green_leaf = [31,158,137]
-  senescent_leaf = [253,231,37]
-  antho_leaf = [72,40,120]
-
-  colormap = np.array([green_leaf, senescent_leaf, antho_leaf])
 
   traits = ['filled_area',
             'convex_area',
@@ -53,52 +34,21 @@ def measure_traits(mask,
             'eccentricity',
             'extent',
             'solidity']
- 
-  image = img_as_ubyte(image)
-  mask = img_as_ubyte(mask)
-
-  crop = image * mask[...,None]
-
-  for idx,band in enumerate(['red','green','blue']):
-    channel = image[:,:,idx]
-    frame[band + '_channel_mean'] = np.mean(channel[mask > 0])
-    frame[band + '_channel_median'] = np.median(channel[mask > 0])
 
   # iterate over label names and count pixels for each class 
   for idx,labelclass in enumerate(label_names):
     count = np.count_nonzero(mask == idx)
     frame[labelclass] = count
 
-  if save_histogram:
-    plt.figure(figsize=(2,4))
-    for idx,band in enumerate(['red','green','blue']):
-        plt.plot(np.bincount(image[:,:,idx][mask > 0]),color=band)
-    plt.axis('off')
-    plt.text(0,-20,filename)
-    plt.savefig('histogram_%s.png' % filename, bbox_inches='tight')
-    plt.close()
+  for idx,band in enumerate(['red','green','blue']):
+    channel = image[:,:,idx]
+    frame[band + '_channel_mean'] = np.mean(channel[mask > 0])
+    frame[band + '_channel_median'] = np.median(channel[mask > 0])
 
-  if save_rosette:
-    imsave('crop_%s.png' % filename, crop)
+  # only consider non-senescent leaves for calculating region properties
+  merged = (mask > 0) & (mask != 2)
 
-  if save_mask:
-    colored_mask = label2rgb(mask,colors=colormap,bg_label=0,kind='overlay')
-    imsave('mask_%s.png' % filename, colored_mask)
-
-  if save_overlay:
-    colored = label2rgb(mask,image=image,bg_label=0,kind='overlay')
-    imsave('overlay_%s.png' % filename, colored)
-
-  if save_hull:
-    hull = label2rgb(convex_hull_image(mask),image=image,bg_label=0,kind='overlay')
-    imsave('convex_hull_%s.png' % filename, hull)
-
-  # set senescent leaves to zero
-  mask[mask == 2] = 0
-  # merge green and anthocyanin classes for calculating region properties
-  mask[mask > 0] = 1
-
-  properties = regionprops(mask)
+  properties = regionprops(merged.astype(np.uint8))
   for trait in traits:
     try:
       frame[trait] = properties[0][trait]
@@ -112,4 +62,63 @@ def measure_traits(mask,
       Writer.writeheader()
     Writer.writerow(frame)
 
-  return frame
+def draw_diagnostics(mask,
+                     image,
+                     file_name,
+                     save_rosette=True,
+                     save_overlay=True,
+                     save_histogram=True,
+                     save_mask=True,
+                     save_hull=True):
+  """Saves diagnostic images to disk.
+
+  Args:
+    mask: Array representing the segmented mask
+    image: Array representing the original image.
+    file_name: String, the image filename.
+    save_rosette: Boolean, save cropped rosette to disk.
+    save_mask: Boolean, save the prediction to disk.
+    save_overlay: Boolean, save the superimposed image and mask to disk.
+    save_hull: Boolean, save the convex hull to disk.
+  """
+  filename, filefmt = file_name.rsplit('.', 1)
+  colormap = np.array([[0,0,0],[31,158,137],[253,231,37],[72,40,120]])
+
+  colored_mask = colormap[mask]
+
+  if save_histogram:
+    os.makedirs('histogram', exist_ok=True)
+    plt.figure(figsize=(2,4))
+    for idx,band in enumerate(['red','green','blue']):
+        plt.plot(np.bincount(image[:,:,idx][mask > 0]),color=band)
+    plt.axis('off')
+    plt.text(0,-20,filename)
+    plt.savefig('histogram/%s.png' % filename, bbox_inches='tight')
+    plt.close()
+
+  if save_rosette:
+    os.makedirs('crop', exist_ok=True)
+    crop = image * (mask > 0)[...,None]
+    imsave('crop/%s.png' % filename, crop.astype(np.uint8))
+
+  if save_mask:
+    os.makedirs('mask', exist_ok=True)
+    imsave('mask/%s.png' % filename, colored_mask.astype(np.uint8))
+
+  if save_overlay:
+    os.makedirs('overlay', exist_ok=True)
+    overlay = 0.4 * image + 0.6 * colored_mask
+    imsave('overlay/%s.png' % filename, overlay.astype(np.uint8))
+
+  if save_hull:
+    os.makedirs('convex_hull', exist_ok=True)
+    hull = convex_hull_image(mask)*255
+    imsave('convex_hull/%s.png' % filename, hull.astype(np.uint8))
+
+def load_images():
+  def _loader(f):
+    return imread(f).astype(np.uint8)
+  masks = ImageCollection('raw_masks/*',load_func=_loader)
+  originals = ['original_images/' + os.path.basename(i).rsplit('.', 1)[0] + '.*' for i in masks.files]
+  originals = ImageCollection(originals,load_func=_loader)
+  return masks, originals
