@@ -61,26 +61,20 @@ log.info """
 // validate parameters
 ParameterChecks.checkParams(params)
 
-if (!params.custom_model) {
-    switch(params.leaf_classes) {
-        case 1:
-            model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
-            labels = "['background','rosette']"
-            break
-        case 2:
-            model = params.multiscale ? 'https://www.dropbox.com/s/9m4wy990ajv7cmg/2_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/s808kcq9jgiyko9/2_class_singlescale.pb?dl=1'
-            labels = "['background','rosette','senescent']"
-            break
-        case 3:
-            model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
-            labels = "['background','rosette','senescent','anthocyanin']"
-            break
-    }
-} else {
-    model = params.custom_model
-    labels = "['background','rosette','senescent','anthocyanin']"
+switch(params.leaf_classes) {
+    case 1:
+        model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
+        labels = "['background','rosette']"
+        break
+    case 2:
+        model = params.multiscale ? 'https://www.dropbox.com/s/9m4wy990ajv7cmg/2_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/s808kcq9jgiyko9/2_class_singlescale.pb?dl=1'
+        labels = "['background','rosette','senescent']"
+        break
+    case 3:
+        model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
+        labels = "['background','rosette','senescent','anthocyanin']"
+        break
 }
-
 
 def chunk_idx = 1
 
@@ -93,6 +87,10 @@ Channel
 Channel
     .fromPath(model, glob: false, checkIfExists: true)
     .set { ch_model }
+
+Channel
+    .fromPath("$baseDir/assets/color_legend/${params.leaf_classes}_class.png", checkIfExists: true)
+    .collectFile(name: 'colorlegend.png', storeDir: "$params.outdir/diagnostics")
 
 process build_records {
     input:
@@ -161,7 +159,6 @@ invalid_images
  .collectFile(name: 'invalid_images.txt', storeDir: params.outdir)
 
 process run_predictions {
-    publishDir "${params.outdir}/test", mode: 'copy'
     input:
         path(model) from ch_model.collect()
         tuple val(index), path(shard) from ch_shards
@@ -220,21 +217,20 @@ for index, sample in dataset:
 }
 
 process extract_traits {
-    publishDir "${params.outdir}/diagnostics", mode: 'copy'
+    publishDir "${params.outdir}/diagnostics/single_pot", mode: 'copy'
 
     input:
         tuple val(index), path("original_images/*"), path("raw_masks/*") from ch_images_traits.join(ch_predictions)
 
     output:
-        path('*.csv') into results
-        path('overlay/*.png') into ch_overlays
+        path('*.csv') into ch_results
+        tuple val(index), val('overlay'), path('overlay/*') into ch_overlays optional true
+        tuple val(index), val('histogram'), path('histogram/*') into ch_histogram optional true
+        tuple val(index), val('mask'), path('mask/*') into ch_masks optional true
+        tuple val(index), val('cropped'), path('crop/*') into ch_crops optional true
+        tuple val(index), val('hull'), path('convex_hull/*') into ch_hull optional true
 
     script:
-def overlay = params.save_overlay ? 'True' : 'False'
-def mask = params.save_mask ? 'True' : 'False'
-def hull = params.save_hull ? 'True' : 'False'
-def crop = params.save_rosette ? 'True' : 'False'
-def histogram = params.save_histogram ? 'True' : 'False'
 """
 #!/usr/bin/env python
 
@@ -251,45 +247,37 @@ for index, name in enumerate(originals.files):
     draw_diagnostics(masks[index],
                      originals[index],
                      os.path.basename(name),
-                     save_overlay=${overlay},
-                     save_mask=${mask},
-                     save_rosette=${crop},
-                     save_histogram=${histogram},
-                     save_hull=${hull})
+                     save_overlay=${params.save_overlay.toString().capitalize()},
+                     save_mask=${params.save_mask.toString().capitalize()},
+                     save_rosette=${params.save_rosette.toString().capitalize()},
+                     save_histogram=${params.save_histogram.toString().capitalize()},
+                     save_hull=${params.save_hull.toString().capitalize()})
 """
 }
 
-process draw_diagnostics {
-    publishDir "${params.outdir}/diagnostics", mode: 'copy'
+ch_diagnostics = ch_masks.concat(ch_overlays,ch_crops)
 
+process draw_diagnostics {
+    publishDir "${params.outdir}/diagnostics", mode: 'copy',
+        saveAs: { filename ->
+                    if (filename.startsWith("mask_")) "summary/mask/$filename"
+                    else if (filename.startsWith("overlay_")) "summary/overlay/$filename"
+                    else if (filename.startsWith("cropped_")) "summary/crop/$filename"
+                    else null
+                }
     input:
-        path(masks) from ch_overlays
+        tuple val(index), val(type), path(image) from ch_diagnostics
     output:
-        path('*_summary.png') into diagnostics
+        path('*.jpeg')
 
     script:
 def polaroid = params.polaroid ? '+polaroid' : ''
 """
 #!/usr/bin/env bash
 
-case "${params.leaf_classes}" in
-    "1")
-        convert -size 200x200 xc:'rgb(31,158,137)' 01-healthy.png
-        ;;
-    "2")
-        convert -size 200x200 xc:'rgb(31,158,137)' 01-healthy.png
-        convert -size 200x200 xc:'rgb(253,231,37)' 02-senescent.png
-        ;;
-    "3")
-        convert -size 200x200 xc:'rgb(31,158,137)' 01-healthy.png
-        convert -size 200x200 xc:'rgb(253,231,37)' 02-senescent.png
-        convert -size 200x200 xc:'rgb(72,40,120)' 03-anthocyanin-rich.png
-        ;;
-esac
-
-montage *.png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%t' -fill white ${polaroid} "\${PWD##*/}_summary.png"
+montage * -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%t' -fill white ${polaroid} "${type}_chunk_${index}.jpeg"
 """
 }
 
-results
+ch_results
  .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true)
