@@ -226,11 +226,11 @@ process extract_traits {
 
     output:
         path('*.csv') into ch_results
-        path('overlay/*.png') into ch_overlays optional true
-        path('histogram/*.png') into ch_histogram optional true
-        path('mask/*.png') into ch_masks optional true
-        path('crop/*.png') into ch_crop optional true
-        path('convex_hull/*.png') into ch_hull optional true
+        path('overlay/*') into ch_overlays optional true
+        path('histogram/*') into ch_histogram optional true
+        path('mask/*') into ch_masks optional true
+        path('crop/*') into ch_crop optional true
+        path('convex_hull/*') into ch_hull optional true
 
     script:
 def overlay = params.save_overlay ? 'True' : 'False'
@@ -268,7 +268,7 @@ process draw_diagnostics {
     input:
         path(masks) from ch_overlays
     output:
-        path('*_summary.png') into diagnostics
+        path('*_summary.jpeg') into diagnostics
 
     script:
 def polaroid = params.polaroid ? '+polaroid' : ''
@@ -290,7 +290,7 @@ case "${params.leaf_classes}" in
         ;;
 esac
 
-montage *.png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%t' -fill white ${polaroid} "\${PWD##*/}_summary.png"
+montage * -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%t' -fill white ${polaroid} "\${PWD##*/}_summary.jpeg"
 """
 }
 

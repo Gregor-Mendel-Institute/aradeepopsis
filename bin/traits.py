@@ -99,7 +99,7 @@ def draw_diagnostics(mask,
   if save_rosette:
     os.makedirs('crop', exist_ok=True)
     crop = image * (mask > 0)[...,None]
-    imsave('crop/%s.png' % filename, crop.astype(np.uint8))
+    imsave('crop/%s.jpeg' % filename, crop.astype(np.uint8))
 
   if save_mask:
     os.makedirs('mask', exist_ok=True)
@@ -108,7 +108,7 @@ def draw_diagnostics(mask,
   if save_overlay:
     os.makedirs('overlay', exist_ok=True)
     overlay = 0.4 * image + 0.6 * colored_mask
-    imsave('overlay/%s.png' % filename, overlay.astype(np.uint8))
+    imsave('overlay/%s.jpeg' % filename, overlay.astype(np.uint8))
 
   if save_hull:
     os.makedirs('convex_hull', exist_ok=True)
