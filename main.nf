@@ -89,7 +89,7 @@ Channel
     .set { ch_model }
 
 Channel
-    .fromPath("$baseDir/assets/color_legend/${params.leaf_classes}_class.png")
+    .fromPath("$baseDir/assets/color_legend/${params.leaf_classes}_class.png", checkIfExists: true)
     .collectFile(name: 'colorlegend.png', storeDir: "$params.outdir/diagnostics")
 
 process build_records {
