@@ -161,7 +161,6 @@ invalid_images
  .collectFile(name: 'invalid_images.txt', storeDir: params.outdir)
 
 process run_predictions {
-    publishDir "${params.outdir}/test", mode: 'copy'
     input:
         path(model) from ch_model.collect()
         tuple val(index), path(shard) from ch_shards
@@ -220,21 +219,20 @@ for index, sample in dataset:
 }
 
 process extract_traits {
-    publishDir "${params.outdir}/diagnostics", mode: 'copy'
+    publishDir "${params.outdir}/diagnostics/single_pot", mode: 'copy'
 
     input:
         tuple val(index), path("original_images/*"), path("raw_masks/*") from ch_images_traits.join(ch_predictions)
 
     output:
-        path('*.csv') into results
-        path('overlay/*.png') into ch_overlays
+        path('*.csv') into ch_results
+        tuple val(index), val('overlay'), path('overlay/*') into ch_overlays optional true
+        tuple val(index), val('histogram'), path('histogram/*') into ch_histogram optional true
+        tuple val(index), val('mask'), path('mask/*') into ch_masks optional true
+        tuple val(index), val('cropped'), path('crop/*') into ch_crops optional true
+        tuple val(index), val('hull'), path('convex_hull/*') into ch_hull optional true
 
     script:
-def overlay = params.save_overlay ? 'True' : 'False'
-def mask = params.save_mask ? 'True' : 'False'
-def hull = params.save_hull ? 'True' : 'False'
-def crop = params.save_rosette ? 'True' : 'False'
-def histogram = params.save_histogram ? 'True' : 'False'
 """
 #!/usr/bin/env python
 
@@ -251,21 +249,28 @@ for index, name in enumerate(originals.files):
     draw_diagnostics(masks[index],
                      originals[index],
                      os.path.basename(name),
-                     save_overlay=${overlay},
-                     save_mask=${mask},
-                     save_rosette=${crop},
-                     save_histogram=${histogram},
-                     save_hull=${hull})
+                     save_overlay=${params.save_overlay.toString().capitalize()},
+                     save_mask=${params.save_mask.toString().capitalize()},
+                     save_rosette=${params.save_rosette.toString().capitalize()},
+                     save_histogram=${params.save_histogram.toString().capitalize()},
+                     save_hull=${params.save_hull.toString().capitalize()})
 """
 }
 
-process draw_diagnostics {
-    publishDir "${params.outdir}/diagnostics", mode: 'copy'
+ch_diagnostics = ch_masks.concat(ch_overlays,ch_crops)
 
+process draw_diagnostics {
+    publishDir "${params.outdir}/diagnostics", mode: 'copy',
+        saveAs: { filename ->
+                    if (filename.startsWith("mask_")) "summary/mask/$filename"
+                    else if (filename.startsWith("overlay_")) "summary/overlay/$filename"
+                    else if (filename.startsWith("cropped_")) "summary/crop/$filename"
+                    else null
+                }
     input:
-        path(masks) from ch_overlays
+        tuple val(index), val(type), path(image) from ch_diagnostics
     output:
-        path('*_summary.png') into diagnostics
+        path('*.jpeg')
 
     script:
 def polaroid = params.polaroid ? '+polaroid' : ''
@@ -287,9 +292,9 @@ case "${params.leaf_classes}" in
         ;;
 esac
 
-montage *.png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%t' -fill white ${polaroid} "\${PWD##*/}_summary.png"
+montage * -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%t' -fill white ${polaroid} "${type}_chunk_${index}.jpeg"
 """
 }
 
-results
+ch_results
  .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true)
