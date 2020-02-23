@@ -61,26 +61,20 @@ log.info """
 // validate parameters
 ParameterChecks.checkParams(params)
 
-if (!params.custom_model) {
-    switch(params.leaf_classes) {
-        case 1:
-            model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
-            labels = "['background','rosette']"
-            break
-        case 2:
-            model = params.multiscale ? 'https://www.dropbox.com/s/9m4wy990ajv7cmg/2_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/s808kcq9jgiyko9/2_class_singlescale.pb?dl=1'
-            labels = "['background','rosette','senescent']"
-            break
-        case 3:
-            model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
-            labels = "['background','rosette','senescent','anthocyanin']"
-            break
-    }
-} else {
-    model = params.custom_model
-    labels = "['background','rosette','senescent','anthocyanin']"
+switch(params.leaf_classes) {
+    case 1:
+        model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
+        labels = "['background','rosette']"
+        break
+    case 2:
+        model = params.multiscale ? 'https://www.dropbox.com/s/9m4wy990ajv7cmg/2_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/s808kcq9jgiyko9/2_class_singlescale.pb?dl=1'
+        labels = "['background','rosette','senescent']"
+        break
+    case 3:
+        model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
+        labels = "['background','rosette','senescent','anthocyanin']"
+        break
 }
-
 
 def chunk_idx = 1
 
@@ -93,6 +87,10 @@ Channel
 Channel
     .fromPath(model, glob: false, checkIfExists: true)
     .set { ch_model }
+
+Channel
+    .fromPath("$baseDir/assets/color_legend/${params.leaf_classes}_class.png")
+    .collectFile(name: 'colorlegend.png', storeDir: "$params.outdir/diagnostics")
 
 process build_records {
     input:
@@ -276,21 +274,6 @@ process draw_diagnostics {
 def polaroid = params.polaroid ? '+polaroid' : ''
 """
 #!/usr/bin/env bash
-
-case "${params.leaf_classes}" in
-    "1")
-        convert -size 200x200 xc:'rgb(31,158,137)' 01-healthy.png
-        ;;
-    "2")
-        convert -size 200x200 xc:'rgb(31,158,137)' 01-healthy.png
-        convert -size 200x200 xc:'rgb(253,231,37)' 02-senescent.png
-        ;;
-    "3")
-        convert -size 200x200 xc:'rgb(31,158,137)' 01-healthy.png
-        convert -size 200x200 xc:'rgb(253,231,37)' 02-senescent.png
-        convert -size 200x200 xc:'rgb(72,40,120)' 03-anthocyanin-rich.png
-        ;;
-esac
 
 montage * -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%t' -fill white ${polaroid} "${type}_chunk_${index}.jpeg"
 """
