@@ -161,7 +161,6 @@ invalid_images
  .collectFile(name: 'invalid_images.txt', storeDir: params.outdir)
 
 process run_predictions {
-    publishDir "${params.outdir}/test", mode: 'copy'
     input:
         path(model) from ch_model.collect()
         tuple val(index), path(shard) from ch_shards
@@ -226,8 +225,12 @@ process extract_traits {
         tuple val(index), path("original_images/*"), path("raw_masks/*") from ch_images_traits.join(ch_predictions)
 
     output:
-        path('*.csv') into results
-        path('overlay/*.png') into ch_overlays
+        path('*.csv') into ch_results
+        path('overlay/*.png') into ch_overlays optional true
+        path('histogram/*.png') into ch_histogram optional true
+        path('mask/*.png') into ch_masks optional true
+        path('crop/*.png') into ch_crop optional true
+        path('convex_hull/*.png') into ch_hull optional true
 
     script:
 def overlay = params.save_overlay ? 'True' : 'False'
@@ -291,5 +294,5 @@ montage *.png -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set 
 """
 }
 
-results
+ch_results
  .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true)
