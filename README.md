@@ -51,7 +51,7 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,sing
 ## Additional parameters
 
 * `--leaf_classes`: number of leaf classes to score. `default: 3`
-    * `1` (rosette leaf)
+    * `1` (rosette leaf) ## What happens to anthocyanin leaves? Are they put into this class? Needs to be clarified.
     * `2` (rosette leaf, senescent leaf)
     * `3` (rosette leaf, senescent leaf, anthocyanin-rich leaf)
 * `--multiscale`: run multiscale inference which is slower but more accurate. `default: false`
