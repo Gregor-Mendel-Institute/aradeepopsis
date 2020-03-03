@@ -1,5 +1,13 @@
 name: Integration test
-on: [push, pull_request]
+on:
+  push:
+    branches-ignore:
+      - master
+      - dev    
+  pull_request:
+    branches:
+      - master
+      - dev
 
 jobs:
   test:
@@ -8,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        nxf_ver: ["19.10.0", ""]
+        nxf_ver: ["20.01.0", ""]
     steps:
       - uses: actions/checkout@v2
 

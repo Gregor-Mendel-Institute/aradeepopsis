@@ -61,7 +61,7 @@ log.info """
 // validate parameters
 ParameterChecks.checkParams(params)
 
-switch(params.leaf_classes) {
+switch(params.model) {
     case 1:
         model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
         labels = "['background','rosette']"
@@ -89,8 +89,13 @@ Channel
     .set { ch_model }
 
 Channel
-    .fromPath("$baseDir/assets/color_legend/${params.leaf_classes}_class.png", checkIfExists: true)
+    .fromPath("$baseDir/assets/color_legend/${params.model}_class.png", checkIfExists: true)
     .collectFile(name: 'colorlegend.png', storeDir: "$params.outdir/diagnostics")
+
+Channel
+    .fromPath("$baseDir/assets/shiny/app.R", checkIfExists: true)
+    .collectFile(name: 'app.R', storeDir: "$params.outdir")
+    .set {ch_shinyapp}
 
 process build_records {
     input:
@@ -255,8 +260,6 @@ for index, name in enumerate(originals.files):
 """
 }
 
-ch_diagnostics = ch_masks.concat(ch_overlays,ch_crops)
-
 process draw_diagnostics {
     publishDir "${params.outdir}/diagnostics", mode: 'copy',
         saveAs: { filename ->
@@ -266,9 +269,12 @@ process draw_diagnostics {
                     else null
                 }
     input:
-        tuple val(index), val(type), path(image) from ch_diagnostics
+        tuple val(index), val(type), path(image) from ch_masks.concat(ch_overlays,ch_crops)
     output:
         path('*.jpeg')
+        val(true) into ch_done
+    when:
+        params.summary_diagnostics
 
     script:
 def polaroid = params.polaroid ? '+polaroid' : ''
@@ -281,3 +287,27 @@ montage * -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set labe
 
 ch_results
  .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true)
+ .tap {ch_resultfile}
+ .subscribe {
+    log.info"""
+    Analysis complete!
+    Visit the shiny server running at ${"http://"+"hostname -i".execute().text.trim()+':44333'} to inspect the results.
+    Closing the browser window will terminate the pipeline.
+    """.stripIndent()
+    }
+
+process launch_shiny {
+    tag "${'http://'+'hostname -i'.execute().text.trim()+':44333'}"
+    containerOptions { workflow.profile.contains('singularity') ? '' : '-p 44333:44333' }
+    executor 'local'
+    cache false
+
+    input:
+        val(launch) from ch_done.ifEmpty(true)
+        path ch_resultfile
+        path app from ch_shinyapp
+    script:
+"""
+R -e "shiny::runApp('${app}', port=44333, host='0.0.0.0')"
+"""
+}

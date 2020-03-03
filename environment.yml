@@ -1,8 +1,14 @@
 name: aradeepopsis
 channels:
   - conda-forge
+  - r
   - defaults
 dependencies:
-  - tensorflow-gpu=2.0.0
-  - scikit-image=0.16.2
-  - imagemagick=7.0.9_7
+  - anaconda::tensorflow-base=2.1.0
+  - conda-forge::scikit-image=0.16.2
+  - conda-forge::imagemagick=7.0.9_27
+  - conda-forge::r-shiny=1.4.0
+  - conda-forge::r-tidyverse=1.3.0
+  - conda-forge::r-shinycssloaders=0.3
+  - conda-forge::r-slickr=0.4.9
+  - r::r-radarchart=0.3.1
