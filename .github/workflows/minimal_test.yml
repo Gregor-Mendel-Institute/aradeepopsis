@@ -1,5 +1,13 @@
 name: Integration test
-on: [push, pull_request]
+on:
+  push:
+    branches-ignore:
+      - master
+      - dev    
+  pull_request:
+    branches:
+      - master
+      - dev
 
 jobs:
   test:
