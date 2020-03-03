@@ -10,7 +10,7 @@ It is built upon the published, convolutional neural network (CNN) [DeepLabv3+](
 
 # How it works
 
-The pipeline is implemented using open source technology such as [`Nextflow`](https://www.nextflow.io/)<sup>[[2]](#ref2)</sup>, [`TensorFlow`](https://www.tensorflow.org/)<sup>[[3]](#ref3)</sup>, [`ImageMagick`](https://imagemagick.org), [`scikit-image`](https://scikit-image.org/)<sup>[[4]](#ref4)</sup>, [`Shiny`](https://shiny.rstudio.com/)<sup>[[5]](#ref5)</sup>.
+The pipeline is implemented using open source technology such as [`Nextflow`](https://www.nextflow.io/)<sup>[[2]](#ref2)</sup>, [`TensorFlow`](https://www.tensorflow.org/)<sup>[[3]](#ref3)</sup>, [`ImageMagick`](https://imagemagick.org), [`scikit-image`](https://scikit-image.org/)<sup>[[4]](#ref4)</sup> and [`shiny`](https://shiny.rstudio.com/)<sup>[[5]](#ref5)</sup>.
 
 Once the pipeline is fed with images of single plants, it converts the images into chunks of arbitrary size by saving the image data into an [IO-optimized binary file format](https://www.tensorflow.org/tutorials/load_data/tfrecord). These file records are then, in parallel, served to the deep learning model, allowing for pixel-by-pixel classification of the image data. The pipeline in turn extracts relevant phenotypic information such as:
 
@@ -74,4 +74,4 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,sing
 
 > <a name="ref4">[4]</a> **scikit-image: Image processing in Python.**<br />Stéfan van der Walt, Johannes L. Schönberger, Juan Nunez-Iglesias, François Boulogne, Joshua D. Warner, Neil Yager, Emmanuelle Gouillart, Tony Yu and the scikit-image contributors. PeerJ 2:e453 (2014) 
 
-> <a name="ref5">[5]</a> **Sshiny: Easy web applications in R**<br />Rstudio Inc. (2014)
+> <a name="ref5">[5]</a> **shiny: Easy web applications in R**<br />Rstudio Inc. (2014)
