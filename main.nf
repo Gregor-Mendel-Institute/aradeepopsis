@@ -286,14 +286,19 @@ montage * -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set labe
 """
 }
 
-def host = "hostname -I".execute().text.tokenize(" ")[-1]
-
 ch_results
  .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true)
  .tap {ch_resultfile}
- .subscribe { log.info "Analysis complete! To review the results, visit the shiny server running at ${host}:44333. Close the browser window to terminate the pipeline." }
+ .subscribe {
+    log.info"""
+    Analysis complete!
+    To review the results, visit the shiny server running at ${"hostname -i".execute().text.trim()}:44333
+    Close the browser window to terminate the pipeline.
+    """.stripIndent()
+    }
 
 process launch_shiny {
+    containerOptions { workflow.profile.contains('singularity') ? '' : '-p 44333:44333' }
     executor 'local'
     cache false
 
