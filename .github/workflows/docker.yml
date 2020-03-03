@@ -1,11 +1,10 @@
 name: Docker build
 
 on:
-   push:
-     branches:
-      - master
-     tags:
-      - 'v*'
+  push:
+    paths:
+      - 'Dockerfile'
+      - 'environment.yml'
 
 jobs:
   build:
