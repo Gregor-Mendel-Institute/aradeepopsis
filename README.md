@@ -50,7 +50,7 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,sing
 
 ## Additional parameters
 
-* `--leaf_classes`: number of leaf classes to score. `default: 3`
+* `--model`: number of leaf classes to score. `default: 3`
     * `1` (rosette leaf)
     * `2` (rosette leaf, senescent leaf)
     * `3` (rosette leaf, senescent leaf, anthocyanin-rich leaf)

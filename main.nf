@@ -61,7 +61,7 @@ log.info """
 // validate parameters
 ParameterChecks.checkParams(params)
 
-switch(params.leaf_classes) {
+switch(params.model) {
     case 1:
         model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
         labels = "['background','rosette']"
@@ -89,8 +89,13 @@ Channel
     .set { ch_model }
 
 Channel
-    .fromPath("$baseDir/assets/color_legend/${params.leaf_classes}_class.png", checkIfExists: true)
+    .fromPath("$baseDir/assets/color_legend/${params.model}_class.png", checkIfExists: true)
     .collectFile(name: 'colorlegend.png', storeDir: "$params.outdir/diagnostics")
+
+Channel
+    .fromPath("$baseDir/assets/shiny/app.R", checkIfExists: true)
+    .collectFile(name: 'app.R', storeDir: "$params.outdir")
+//    .set {ch_shiny}
 
 process build_records {
     input:
@@ -269,6 +274,8 @@ process draw_diagnostics {
         tuple val(index), val(type), path(image) from ch_diagnostics
     output:
         path('*.jpeg')
+    when :
+        params.summary_diagnostics
 
     script:
 def polaroid = params.polaroid ? '+polaroid' : ''
@@ -279,5 +286,21 @@ montage * -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set labe
 """
 }
 
+def host = "hostname -I".execute().text.tokenize(" ")[0]
+
 ch_results
  .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true)
+ .tap {ch_resultfile}
+ .subscribe { log.info "Analysis complete! To review the results, visit the shiny server running at ${host}:44333. Close the browser window to terminate the pipeline." }
+
+process launch_shiny {
+    executor 'local'
+    cache false
+
+    input:
+        path ch_resultfile
+    script:
+"""
+R -e "shiny::runApp('${params.outdir}', port=44333, host='${host}')"
+"""
+}
