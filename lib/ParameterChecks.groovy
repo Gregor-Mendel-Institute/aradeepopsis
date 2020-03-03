@@ -11,5 +11,6 @@ class ParameterChecks {
     assert params.save_hull instanceof Boolean, "ERROR! save_hull parameter must be set to either false (off) or true (on)"
     assert params.save_histogram instanceof Boolean, "ERROR! save_histogram parameter must be set to either false (off) or true (on)"
     assert params.polaroid instanceof Boolean, "ERROR! polaroid parameter must be set to either false (off) or true (on)"
+    assert params.summary_diagnostics instanceof Boolean, "ERROR! summary_diagnostics parameter must be set to either false (off) or true (on)"
   }
 }
