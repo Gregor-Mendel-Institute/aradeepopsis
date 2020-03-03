@@ -286,7 +286,7 @@ montage * -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set labe
 """
 }
 
-def host = "hostname -I".execute().text.tokenize(" ")[0]
+def host = "hostname -I".execute().text.tokenize(" ")[-1]
 
 ch_results
  .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true)
@@ -294,7 +294,6 @@ ch_results
  .subscribe { log.info "Analysis complete! To review the results, visit the shiny server running at ${host}:44333. Close the browser window to terminate the pipeline." }
 
 process launch_shiny {
-    containerOptions = '-p 44333:44333'
     executor 'local'
     cache false
 
