@@ -95,7 +95,7 @@ Channel
 Channel
     .fromPath("$baseDir/assets/shiny/app.R", checkIfExists: true)
     .collectFile(name: 'app.R', storeDir: "$params.outdir")
-//    .set {ch_shiny}
+    .set {ch_shinyapp}
 
 process build_records {
     input:
@@ -260,8 +260,6 @@ for index, name in enumerate(originals.files):
 """
 }
 
-ch_diagnostics = ch_masks.concat(ch_overlays,ch_crops)
-
 process draw_diagnostics {
     publishDir "${params.outdir}/diagnostics", mode: 'copy',
         saveAs: { filename ->
@@ -271,10 +269,11 @@ process draw_diagnostics {
                     else null
                 }
     input:
-        tuple val(index), val(type), path(image) from ch_diagnostics
+        tuple val(index), val(type), path(image) from ch_masks.concat(ch_overlays,ch_crops)
     output:
         path('*.jpeg')
-    when :
+        val(true) into ch_done
+    when:
         params.summary_diagnostics
 
     script:
@@ -292,20 +291,23 @@ ch_results
  .subscribe {
     log.info"""
     Analysis complete!
-    To review the results, visit the shiny server running at ${"hostname -i".execute().text.trim()}:44333
-    Close the browser window to terminate the pipeline.
+    Visit the shiny server running at ${"http://"+"hostname -i".execute().text.trim()+':44333'} to inspect the results.
+    Closing the browser window will terminate the pipeline.
     """.stripIndent()
     }
 
 process launch_shiny {
+    tag "${'http://'+'hostname -i'.execute().text.trim()+':44333'}"
     containerOptions { workflow.profile.contains('singularity') ? '' : '-p 44333:44333' }
     executor 'local'
     cache false
 
     input:
+        val(launch) from ch_done.ifEmpty(true)
         path ch_resultfile
+        path app from ch_shinyapp
     script:
 """
-R -e "shiny::runApp('${params.outdir}', port=44333, host='0.0.0.0')"
+R -e "shiny::runApp('${app}', port=44333, host='0.0.0.0')"
 """
 }
