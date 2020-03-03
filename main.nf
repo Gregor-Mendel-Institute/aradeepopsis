@@ -294,6 +294,7 @@ ch_results
  .subscribe { log.info "Analysis complete! To review the results, visit the shiny server running at ${host}:44333. Close the browser window to terminate the pipeline." }
 
 process launch_shiny {
+    containerOptions = '-p 44333:44333'
     executor 'local'
     cache false
 
@@ -301,6 +302,6 @@ process launch_shiny {
         path ch_resultfile
     script:
 """
-R -e "shiny::runApp('${params.outdir}', port=44333, host='${host}')"
+R -e "shiny::runApp('${params.outdir}', port=44333, host='0.0.0.0')"
 """
 }
