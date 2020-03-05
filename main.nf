@@ -289,12 +289,15 @@ ch_results
  .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true)
  .tap {ch_resultfile}
  .subscribe {
-    log.info"""
-    Analysis complete!
-    Visit the shiny server running at ${"http://"+"hostname -i".execute().text.trim()+':44333'} to inspect the results.
-    Closing the browser window will terminate the pipeline.
-    """.stripIndent()
+    if(params.shiny) { 
+        log.info"""
+        Analysis complete!
+        Visit the shiny server running at ${"http://"+"hostname -i".execute().text.trim()+':44333'} to inspect the results.
+        Closing the browser window will terminate the pipeline.
+        """.stripIndent() 
+    } else { log.info "Analysis complete!" }
     }
+
 
 process launch_shiny {
     tag "${'http://'+'hostname -i'.execute().text.trim()+':44333'}"
@@ -306,6 +309,8 @@ process launch_shiny {
         val(launch) from ch_done.ifEmpty(true)
         path ch_resultfile
         path app from ch_shinyapp
+    when:
+        params.shiny
     script:
 """
 R -e "shiny::runApp('${app}', port=44333, host='0.0.0.0')"
