@@ -8,6 +8,7 @@ library(shinycssloaders)
 library(shinythemes)
 
 data <- read_csv("aradeepopsis_traits.csv")
+imagenames <- data %>% select(file)
 
 traitcount <- ncol(data) - 2 #filename and extension don't count
 imagecount <- nrow(data)
@@ -20,7 +21,7 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 		),
 		tabPanel("Rosette Explorer",
 			sidebarPanel(
-				selectInput("explorer_files",label="Select Image:", choices=data$file)
+				selectizeInput("explorer_files",label="Select Image:", choices=NULL)
 			),
 			mainPanel(
 				tabsetPanel(id='tabset1',
@@ -33,10 +34,10 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 		),
 		tabPanel("Rosette Statistics",
 			sidebarPanel(
-				selectInput("statistics_files",label="Select Image:", choices=data$file),
+				selectizeInput("statistics_files",label="Select Image:", choices=NULL),
 				conditionalPanel(
 					condition="input.tabset2 == 1",
-					selectInput("statistics_traits","Select Trait:", choices = colnames(data %>% select(-file,-format)), selected = "rosette"))
+					selectizeInput("statistics_traits","Select Trait:", choices = colnames(data %>% select(-file,-format)), selected = "rosette"))
 				),
 			mainPanel(
 				tabsetPanel(id='tabset2',
@@ -54,7 +55,7 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 					varSelectInput("date","Select column containing the date", data = NULL),
 					varSelectInput("id","Select column containing grouping variable", data = NULL),
 					actionButton("mergedat", "Merge data"),
-					selectInput("exp_traits","Select Trait:", choices = colnames(data %>% select(-file,-format)), selected = "rosette")
+					selectizeInput("exp_traits","Select Trait:", choices = colnames(data %>% select(-file,-format)), selected = "rosette")
 				),
 				mainPanel(
 					tabsetPanel(id='tabset3',
@@ -65,6 +66,9 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 )
 
 server <- function(input, output, session) {
+	#for large datasets it helps with performance if selection lists are done on the server-side
+    updateSelectizeInput(session, "statistics_files", choices = c(imagenames), server = TRUE)
+    updateSelectizeInput(session, "explorer_files", choices = c(imagenames), server = TRUE)
 
 	output$mask <- renderImage({
 		list(src = glue("diagnostics/single_pot/mask/{input$explorer_files}.png"),width=400,height=400)
@@ -110,10 +114,10 @@ server <- function(input, output, session) {
 		req(metafile)
 		table <- read_csv(metafile$datapath)
 		columns = colnames(table)
-		updateSelectInput(session, "file", choices = columns)
+		updateselectizeInput(session, "file", choices = columns)
 		#TODO handle different date formats
-		updateSelectInput(session, "date", choices = columns)
-		updateSelectInput(session, "id", choices = columns)
+		updateselectizeInput(session, "date", choices = columns)
+		updateselectizeInput(session, "id", choices = columns)
 		table
 	})
 
@@ -141,7 +145,7 @@ server <- function(input, output, session) {
 
 		# split the filenames into chunks of 60, corresponding to 10 pages per chunk
 		# this drastically improves page loading time
-		chunks <- if (imagecount > 60) split(data$file, ceiling(seq_along(data$file)/60)) else split(data$file, 1)
+		chunks <- if (imagecount > 60) split(imagenames$file, ceiling(seq_along(imagenames$file)/60)) else split(imagenames$file, 1)
 		
 		opts <- settings(slidesToShow = 6, slidesToScroll = 6)
 		
