@@ -1,6 +1,7 @@
-![](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20build/badge.svg)
 ![](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
-[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.10.0-important.svg)](https://www.nextflow.io/)
+[![Docker](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20build/badge.svg)](https://hub.docker.com/r/beckerlab/aradeepopsis/)
+[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.01.0-important.svg)](https://www.nextflow.io/)
+[![conda](https://img.shields.io/badge/install%20with-conda-brightgreen.svg)](https://conda.io/)
 
 # Introduction
 
@@ -10,7 +11,7 @@ It is built upon the published, convolutional neural network (CNN) [DeepLabv3+](
 
 # How it works
 
-The pipeline is implemented using open source technology such as [`Nextflow`](https://www.nextflow.io/)<sup>[[2]](#ref2)</sup>, [`TensorFlow`](https://www.tensorflow.org/)<sup>[[3]](#ref3)</sup>, [`ImageMagick`](https://imagemagick.org) and [`scikit-image`](https://scikit-image.org/)<sup>[[4]](#ref4)</sup>.
+The pipeline is implemented using open source technology such as [`Nextflow`](https://www.nextflow.io/)<sup>[[2]](#ref2)</sup>, [`TensorFlow`](https://www.tensorflow.org/)<sup>[[3]](#ref3)</sup>, [`ImageMagick`](https://imagemagick.org), [`scikit-image`](https://scikit-image.org/)<sup>[[4]](#ref4)</sup> and [`shiny`](https://shiny.rstudio.com/)<sup>[[5]](#ref5)</sup>.
 
 Once the pipeline is fed with images of single plants, it converts the images into chunks of arbitrary size by saving the image data into an [IO-optimized binary file format](https://www.tensorflow.org/tutorials/load_data/tfrecord). These file records are then, in parallel, served to the deep learning model, allowing for pixel-by-pixel classification of the image data. The pipeline in turn extracts relevant phenotypic information such as:
 
@@ -27,7 +28,7 @@ The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a
 
 1. Install [`Nextflow`](https://www.nextflow.io/index.html#GetStarted)
 
-2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/), [`Docker`](https://docs.docker.com/install/) (recommended) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html)
+2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/), [`Docker`](https://docs.docker.com/install/) (recommended), [`podman`](https://podman.io/getting-started/installation) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html)
 
 3. Clone the repository: `git clone https://github.com/Gregor-Mendel-Institute/aradeepopsis`
 
@@ -36,7 +37,7 @@ The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a
 To run the pipeline you have to provide single-pot plant images:
 
 ```bash
-nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile {conda|docker|singularity}
+nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile {conda|docker|podman|singularity}
 ```
 
 ### Example to run on the CBE cluster using Singularity
@@ -50,7 +51,7 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,sing
 
 ## Additional parameters
 
-* `--leaf_classes`: number of leaf classes to score. `default: 3`
+* `--model`: number of leaf classes to score. `default: 3`
     * `1` (rosette leaf)
     * `2` (rosette leaf, senescent leaf)
     * `3` (rosette leaf, senescent leaf, anthocyanin-rich leaf)
@@ -73,3 +74,5 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,sing
 > <a name="ref3">[3]</a> **TensorFlow: Large-scale machine learning on heterogeneous systems.**<br />Martín Abadi, Ashish Agarwal, Paul Barham, Eugene Brevdo, Zhifeng Chen, Craig Citro, Greg S. Corrado, Andy Davis, Jeffrey Dean, Matthieu Devin, Sanjay Ghemawat, Ian Goodfellow, Andrew Harp, Geoffrey Irving, Michael Isard, Rafal Jozefowicz, Yangqing Jia,Lukasz Kaiser, Manjunath Kudlur, Josh Levenberg, Dan Mané, Mike Schuster, Rajat Monga, Sherry Moore, Derek Murray, Chris Olah, Jonathon Shlens, Benoit Steiner, Ilya Sutskever, Kunal Talwar, Paul Tucker, Vincent Vanhoucke, Vijay Vasudevan, Fernanda Viégas, Oriol Vinyals, Pete Warden, Martin Wattenberg, Martin Wicke, Yuan Yu, and Xiaoqiang Zheng, 2015
 
 > <a name="ref4">[4]</a> **scikit-image: Image processing in Python.**<br />Stéfan van der Walt, Johannes L. Schönberger, Juan Nunez-Iglesias, François Boulogne, Joshua D. Warner, Neil Yager, Emmanuelle Gouillart, Tony Yu and the scikit-image contributors. PeerJ 2:e453 (2014) 
+
+> <a name="ref5">[5]</a> **shiny: Easy web applications in R**<br />Rstudio Inc. (2014)

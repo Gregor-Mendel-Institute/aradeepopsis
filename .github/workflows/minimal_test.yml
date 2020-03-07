@@ -1,5 +1,13 @@
 name: Integration test
-on: [push, pull_request]
+on:
+  pull_request:
+    branches:
+      - master
+      - dev
+  push:
+    branches-ignore:
+      - master
+      - dev
 
 jobs:
   test:
@@ -8,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        nxf_ver: ["19.10.0", ""]
+        nxf_ver: ["20.01.0", ""]
     steps:
       - uses: actions/checkout@v2
 
@@ -18,4 +26,4 @@ jobs:
           sudo mv nextflow /usr/local/bin/
       - name: Run aradeepopsis on test images
         run: |
-          nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull -profile test,docker
+          nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull --summary_diagnostics --shiny false -profile test,docker
