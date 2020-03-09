@@ -12,4 +12,5 @@ dependencies:
   - conda-forge::r-shinythemes=1.1.2
   - conda-forge::r-shinycssloaders=0.3
   - conda-forge::r-slickr=0.4.9
+  - conda-forge::r-corrplot=0.84
   - r::r-radarchart=0.3.1

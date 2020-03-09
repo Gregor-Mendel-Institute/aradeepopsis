@@ -4,8 +4,9 @@ library(tidyverse)
 library(radarchart)
 library(shinycssloaders)
 library(shinythemes)
+library(corrplot)
 
-data <- read_csv("aradeepopsis_traits.csv")
+data <- read_csv("aradeepopsis_traits.csv") %>% na.omit() 
 imagenames <- data %>% select(file)
 dateformats <- c('%d-%m','%m-%d','%d-%m-%y','%m-%d-%y','%y-%m-%d','%y-%d-%m')
 
@@ -45,6 +46,7 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 				),
 				mainPanel(
 					tabsetPanel(id='tabset2',
+								tabPanel("Trait Correlation",value=0,plotOutput("correlations")),
 								tabPanel("Trait Histogram",value=1,plotOutput("histograms")),
 								tabPanel("Trait Jitterplot",value=2,plotOutput("jitter"))
 					)
@@ -109,6 +111,12 @@ server <- function(input, output, session) {
 				xlab(element_blank()) +
 				ylab("measurement") +
 				theme_bw()
+		})
+		output$correlations = renderPlot(width=400,{
+			data %>%
+				select(-file,-format) %>%
+				cor() %>%
+				corrplot(method="shade")
 		})
 		output$meta = renderTable(striped = TRUE,width="100px",{
 			filedata() %>% head(n=1)
