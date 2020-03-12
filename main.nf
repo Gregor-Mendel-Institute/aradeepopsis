@@ -248,7 +248,8 @@ for index, name in enumerate(originals.files):
     measure_traits(masks[index],
                    originals[index],
                    os.path.basename(name),
-                   label_names=${labels})
+                   label_names=${labels},
+                   ignore_senescence=${params.ignore_senescence.toString().capitalize()})
     draw_diagnostics(masks[index],
                      originals[index],
                      os.path.basename(name),
@@ -256,7 +257,8 @@ for index, name in enumerate(originals.files):
                      save_mask=${params.save_mask.toString().capitalize()},
                      save_rosette=${params.save_rosette.toString().capitalize()},
                      save_histogram=${params.save_histogram.toString().capitalize()},
-                     save_hull=${params.save_hull.toString().capitalize()})
+                     save_hull=${params.save_hull.toString().capitalize()},
+                     ignore_senescence=${params.ignore_senescence.toString().capitalize()})
 """
 }
 

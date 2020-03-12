@@ -55,15 +55,17 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,sing
     * `1` (rosette leaf)
     * `2` (rosette leaf, senescent leaf)
     * `3` (rosette leaf, senescent leaf, anthocyanin-rich leaf)
+* `--ignore_senescence`: ignore senescent leaf class for trait calculation when using model `2` and `3`. `default: true`
 * `--multiscale`: run multiscale inference which is slower but more accurate. `default: false`
 * `--outdir`: output path. `default: ./results`
 * `--chunksize`: number of images to process in per chunk. `default: 10`
 * `--save_overlay`: save a diagnostic image with the original image overlayed with the predicted mask. `default: true`
 * `--save_mask`: save the predicted mask to the output folder. `default: true`
-* `--save_original`: save the original image to the output folder. `default: true`
-* `--save_rosette`: save the original image cropped to the predicted mask to the output folder. `default: false`
-* `--save_hull`: save the convex hull of the predicted mask to the output folder. `default: false`
+* `--save_rosette`: save the original image cropped to the predicted mask to the output folder. `default: true`
+* `--save_hull`: save the convex hull of the predicted mask to the output folder. `default: true`
 * `--save_histogram`: save a color channel histogram of the cropped plant to the output folder. `default: false`
+* `--summary_diagnostics`: draw combined diagnostic images for each chunk. `default: false`
+* `--shiny`: launch shiny app after analysis has completed. `default: true`
 
 # References
 

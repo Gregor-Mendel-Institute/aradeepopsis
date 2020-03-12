@@ -4,8 +4,9 @@ library(tidyverse)
 library(radarchart)
 library(shinycssloaders)
 library(shinythemes)
+library(corrplot)
 
-data <- read_csv("aradeepopsis_traits.csv")
+data <- read_csv("aradeepopsis_traits.csv") %>% na.omit() 
 imagenames <- data %>% select(file)
 dateformats <- c('%d-%m','%m-%d','%d-%m-%y','%m-%d-%y','%y-%m-%d','%y-%d-%m')
 
@@ -27,6 +28,7 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 								tabPanel("Overlay",value=0,imageOutput("overlay")),
 								tabPanel("Mask",value=0,imageOutput("mask")),
 								tabPanel("Rosette",value=0,imageOutput("rosette")),
+								tabPanel("Convex Hull",value=0,imageOutput("hull")),
 								tabPanel("Leaf Classification",value=0,chartJSRadarOutput("radar", height = "200"))
 					),
 				),
@@ -45,6 +47,7 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 				),
 				mainPanel(
 					tabsetPanel(id='tabset2',
+								tabPanel("Trait Correlation",value=0,plotOutput("correlations")),
 								tabPanel("Trait Histogram",value=1,plotOutput("histograms")),
 								tabPanel("Trait Jitterplot",value=2,plotOutput("jitter"))
 					)
@@ -79,6 +82,9 @@ server <- function(input, output, session) {
 		output$mask <- renderImage({
 			list(src = glue::glue("diagnostics/single_pot/mask/{input$explorer_files}.png"),width=400,height=400)
 		}, deleteFile = FALSE)
+		output$hull <- renderImage({
+			list(src = glue::glue("diagnostics/single_pot/convex_hull/{input$explorer_files}.png"),width=400,height=400)
+		}, deleteFile = FALSE)
 		output$rosette <- renderImage({
 			list(src = glue::glue("diagnostics/single_pot/crop/{input$explorer_files}.jpeg"),width=400,height=400)
 		}, deleteFile = FALSE)
@@ -88,7 +94,7 @@ server <- function(input, output, session) {
 		output$radar = renderChartJSRadar({
 			data %>%
 				filter(file == input$explorer_files) %>%
-				select(one_of(c("rosette","anthocyanin","senescent"))) %>% 
+				select(one_of(c("rosette_area","anthocyanin_area","senescent_area"))) %>%
 				pivot_longer(everything(),names_to = "Label") %>% 
 				mutate(value=value/sum(value)*100) %>% 
 				chartJSRadar(.,maxScale = 100,scaleStartValue = 0,scaleStepWidth = 25,showLegend = F)
@@ -109,6 +115,12 @@ server <- function(input, output, session) {
 				xlab(element_blank()) +
 				ylab("measurement") +
 				theme_bw()
+		})
+		output$correlations = renderPlot({
+			data %>%
+				select(-file,-format) %>%
+				cor() %>%
+				corrplot(method="shade",tl.cex=0.5,tl.col="black",type="upper")
 		})
 		output$meta = renderTable(striped = TRUE,width="100px",{
 			filedata() %>% head(n=1)
