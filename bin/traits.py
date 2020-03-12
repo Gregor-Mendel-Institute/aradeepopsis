@@ -128,7 +128,7 @@ def draw_diagnostics(mask,
 
   if save_overlay:
     os.makedirs('overlay', exist_ok=True)
-    overlay = 0.4 * image + 0.6 * colored_mask
+    overlay = 0.6 * image + 0.4 * colored_mask
     imsave('overlay/%s.jpeg' % filename, overlay.astype(np.uint8))
 
   if save_hull:
