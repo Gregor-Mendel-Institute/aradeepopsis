@@ -21,6 +21,17 @@ def measure_traits(mask,
     file_name: String, the image filename.
     label_names: List, Names of labels
   """
+  def _split_channels(image):
+    """Splits an RGB image into single channels.
+
+    Args:
+      image: Array representing an RGB image
+    """
+    red_channel = image[:,:,0].astype(np.uint8)
+    green_channel = image[:,:,1].astype(np.uint8)
+    blue_channel = image[:,:,2].astype(np.uint8)
+    return {'red':red_channel,'green':green_channel,'blue':blue_channel}
+
   filename, filefmt = file_name.rsplit('.', 1)
 
   frame = {'file' : filename, 'format' : filefmt}
@@ -35,18 +46,28 @@ def measure_traits(mask,
             'extent',
             'solidity']
 
-  # iterate over label names and count pixels for each class 
+  # split image into red, green and blue channel
+  channels = _split_channels(image)
+
+  # create boolean mask that excludes background and senescent labelclasses
+  merged = (mask > 0) & (mask != 2)
+
+  # iterate over label names and count pixels for each labelclass
   for idx,labelclass in enumerate(label_names):
     count = np.count_nonzero(mask == idx)
-    frame[labelclass] = count
+    frame[labelclass + '_area'] = count
+    # get color channel information for each labelclass
+    for channel,values in channels.items():
+      frame[labelclass + '_' + channel + '_channel_mean'] = np.mean(values[mask == idx])
+      frame[labelclass + '_' + channel + '_channel_median'] = np.median(values[mask == idx])
 
-  for idx,band in enumerate(['red','green','blue']):
-    channel = image[:,:,idx]
-    frame[band + '_channel_mean'] = np.mean(channel[mask > 0])
-    frame[band + '_channel_median'] = np.median(channel[mask > 0])
-
-  # only consider non-senescent leaves for calculating region properties
-  merged = (mask > 0) & (mask != 2)
+  for channel,values in channels.items():
+    # get color channel information for plant region, regardless of labelclass
+    frame['all_classes_' + channel + '_channel_mean'] = np.mean(values[mask > 0])
+    frame['all_classes_' + channel + '_channel_median'] = np.median(values[mask > 0])
+    # get color channel information for plant region but ignore senescent regions
+    frame['non_senescent_' + channel + '_channel_mean'] = np.mean(values[merged])
+    frame['non_senescent_' + channel + '_channel_median'] = np.median(values[merged])
 
   properties = regionprops(merged.astype(np.uint8))
   for trait in traits:
