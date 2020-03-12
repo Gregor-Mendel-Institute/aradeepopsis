@@ -28,6 +28,7 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 								tabPanel("Overlay",value=0,imageOutput("overlay")),
 								tabPanel("Mask",value=0,imageOutput("mask")),
 								tabPanel("Rosette",value=0,imageOutput("rosette")),
+								tabPanel("Convex Hull",value=0,imageOutput("hull")),
 								tabPanel("Leaf Classification",value=0,chartJSRadarOutput("radar", height = "200"))
 					),
 				),
@@ -81,6 +82,9 @@ server <- function(input, output, session) {
 		output$mask <- renderImage({
 			list(src = glue::glue("diagnostics/single_pot/mask/{input$explorer_files}.png"),width=400,height=400)
 		}, deleteFile = FALSE)
+		output$hull <- renderImage({
+			list(src = glue::glue("diagnostics/single_pot/convex_hull/{input$explorer_files}.png"),width=400,height=400)
+		}, deleteFile = FALSE)
 		output$rosette <- renderImage({
 			list(src = glue::glue("diagnostics/single_pot/crop/{input$explorer_files}.jpeg"),width=400,height=400)
 		}, deleteFile = FALSE)
@@ -90,7 +94,7 @@ server <- function(input, output, session) {
 		output$radar = renderChartJSRadar({
 			data %>%
 				filter(file == input$explorer_files) %>%
-				select(one_of(c("rosette","anthocyanin","senescent"))) %>% 
+				select(one_of(c("rosette_area","anthocyanin_area","senescent_area"))) %>%
 				pivot_longer(everything(),names_to = "Label") %>% 
 				mutate(value=value/sum(value)*100) %>% 
 				chartJSRadar(.,maxScale = 100,scaleStartValue = 0,scaleStepWidth = 25,showLegend = F)
@@ -112,11 +116,11 @@ server <- function(input, output, session) {
 				ylab("measurement") +
 				theme_bw()
 		})
-		output$correlations = renderPlot(width=400,{
+		output$correlations = renderPlot({
 			data %>%
 				select(-file,-format) %>%
 				cor() %>%
-				corrplot(method="shade")
+				corrplot(method="shade",tl.cex=0.5,tl.col="black",type="upper")
 		})
 		output$meta = renderTable(striped = TRUE,width="100px",{
 			filedata() %>% head(n=1)

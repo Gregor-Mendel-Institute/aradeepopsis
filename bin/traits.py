@@ -133,7 +133,7 @@ def draw_diagnostics(mask,
 
   if save_hull:
     os.makedirs('convex_hull', exist_ok=True)
-    hull = convex_hull_image(mask)*255
+    hull = 0.5 * (mask*255) + 0.5 * (convex_hull_image(mask)*255)
     imsave('convex_hull/%s.png' % filename, hull.astype(np.uint8))
 
 def load_images():
