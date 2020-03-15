@@ -6,9 +6,11 @@ library(shinycssloaders)
 library(shinythemes)
 library(corrplot)
 
-data <- read_csv("aradeepopsis_traits.csv") %>% na.omit() 
+data <- read_csv("aradeepopsis_traits.csv")
+
 imagenames <- data %>% select(file)
 dateformats <- c('%d-%m','%m-%d','%d-%m-%y','%m-%d-%y','%y-%m-%d','%y-%d-%m')
+invalid <- sum(is.na(data$background_area))
 
 traitcount <- ncol(data) - 2 #filename and extension don't count
 imagecount <- nrow(data)
@@ -119,7 +121,7 @@ server <- function(input, output, session) {
 		output$correlations = renderPlot({
 			data %>%
 				select(-file,-format) %>%
-				cor() %>%
+				cor(use="complete.obs") %>%
 				corrplot(method="shade",tl.cex=0.5,tl.col="black",type="upper")
 		})
 		output$meta = renderTable(striped = TRUE,width="100px",{
@@ -153,7 +155,7 @@ server <- function(input, output, session) {
 		})
 
 		output$info = renderText({
-			glue::glue("Measured {traitcount} traits across {imagecount} rosettes")
+			glue::glue("Measured {traitcount} traits across {imagecount-invalid} rosettes ({invalid} failures)")
 		})
 		output$slickr <- renderSlickR({
 			
