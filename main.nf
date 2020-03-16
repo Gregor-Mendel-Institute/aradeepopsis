@@ -222,18 +222,26 @@ for index, sample in dataset:
 }
 
 process extract_traits {
-    publishDir "${params.outdir}/diagnostics/single_pot", mode: 'copy'
+    publishDir "${params.outdir}/diagnostics", mode: 'copy',
+        saveAs: { filename ->
+                if (filename.startsWith("mask_")) "mask/$filename"
+                else if (filename.startsWith("overlay_")) "overlay/$filename"
+                else if (filename.startsWith("crop_")) "crop/$filename"
+                else if (filename.startsWith("hull_")) "convex_hull/$filename"
+                else if (filename.startsWith("histogram_")) "histogram/$filename"
+                else null
+            }
 
     input:
         tuple val(index), path("original_images/*"), path("raw_masks/*") from ch_images_traits.join(ch_predictions)
 
     output:
         path('*.csv') into ch_results
-        tuple val(index), val('overlay'), path('overlay/*') into ch_overlays optional true
-        tuple val(index), val('histogram'), path('histogram/*') into ch_histogram optional true
-        tuple val(index), val('mask'), path('mask/*') into ch_masks optional true
-        tuple val(index), val('cropped'), path('crop/*') into ch_crops optional true
-        tuple val(index), val('hull'), path('convex_hull/*') into ch_hull optional true
+        tuple val(index), val('mask'), path('mask_*') into ch_masks optional true
+        tuple val(index), val('overlay'), path('overlay_*') into ch_overlays optional true
+        tuple val(index), val('histogram'), path('histogram_*') into ch_histogram optional true
+        tuple val(index), val('crop'), path('crop_*') into ch_crops optional true
+        tuple val(index), val('hull'), path('hull_*') into ch_hull optional true
 
     script:
 """
@@ -267,14 +275,13 @@ process draw_diagnostics {
         saveAs: { filename ->
                     if (filename.startsWith("mask_")) "summary/mask/$filename"
                     else if (filename.startsWith("overlay_")) "summary/overlay/$filename"
-                    else if (filename.startsWith("cropped_")) "summary/crop/$filename"
+                    else if (filename.startsWith("crop_")) "summary/crop/$filename"
                     else null
                 }
     input:
         tuple val(index), val(type), path(image) from ch_masks.concat(ch_overlays,ch_crops)
     output:
         path('*.jpeg')
-        val(true) into ch_done
     when:
         params.summary_diagnostics
 
@@ -308,7 +315,6 @@ process launch_shiny {
     cache false
 
     input:
-        val(launch) from ch_done.ifEmpty(true)
         path ch_resultfile
         path app from ch_shinyapp
     when:

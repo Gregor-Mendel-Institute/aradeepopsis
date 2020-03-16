@@ -112,38 +112,33 @@ def draw_diagnostics(mask,
   colored_mask = colormap[mask]
 
   if save_histogram:
-    os.makedirs('histogram', exist_ok=True)
     plt.figure(figsize=(2,4))
     for idx,band in enumerate(['red','green','blue']):
         plt.plot(np.bincount(image[:,:,idx][mask > 0]),color=band)
     plt.axis('off')
     plt.text(0,-20,filename)
-    plt.savefig('histogram/%s.png' % filename, bbox_inches='tight')
+    plt.savefig('histogram_%s.png' % filename, bbox_inches='tight')
     plt.close()
 
   if save_rosette:
-    os.makedirs('crop', exist_ok=True)
     crop = image * (mask > 0)[...,None]
-    imsave('crop/%s.jpeg' % filename, crop.astype(np.uint8))
+    imsave('crop_%s.jpeg' % filename, crop.astype(np.uint8))
 
   if save_mask:
-    os.makedirs('mask', exist_ok=True)
-    imsave('mask/%s.png' % filename, colored_mask.astype(np.uint8))
+    imsave('mask_%s.png' % filename, colored_mask.astype(np.uint8))
 
   if save_overlay:
-    os.makedirs('overlay', exist_ok=True)
     overlay = 0.6 * image + 0.4 * colored_mask
-    imsave('overlay/%s.jpeg' % filename, overlay.astype(np.uint8))
+    imsave('overlay_%s.jpeg' % filename, overlay.astype(np.uint8))
 
   if save_hull:
-    os.makedirs('convex_hull', exist_ok=True)
     if ignore_senescence:
       bool_mask = (mask > 0) & (mask != 2)
       hull = convex_hull_image(bool_mask)*255
     else:
       hull = convex_hull_image(mask)*255
     convex_hull = 0.6 * colored_mask + 0.4 * np.stack((hull,)*3, axis=-1)
-    imsave('convex_hull/%s.png' % filename, convex_hull.astype(np.uint8))
+    imsave('hull_%s.png' % filename, convex_hull.astype(np.uint8))
 
 def load_images():
   def _loader(f):

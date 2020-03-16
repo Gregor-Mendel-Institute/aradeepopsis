@@ -82,16 +82,16 @@ server <- function(input, output, session) {
 		updateSelectizeInput(session, "explorer_files", choices = c(imagenames), server = TRUE)
 
 		output$mask <- renderImage({
-			list(src = glue::glue("diagnostics/single_pot/mask/{input$explorer_files}.png"),width=400,height=400)
+			list(src = glue::glue("diagnostics/mask/mask_{input$explorer_files}.png"),width=400,height=400)
 		}, deleteFile = FALSE)
 		output$hull <- renderImage({
-			list(src = glue::glue("diagnostics/single_pot/convex_hull/{input$explorer_files}.png"),width=400,height=400)
+			list(src = glue::glue("diagnostics/convex_hull/hull_{input$explorer_files}.png"),width=400,height=400)
 		}, deleteFile = FALSE)
 		output$rosette <- renderImage({
-			list(src = glue::glue("diagnostics/single_pot/crop/{input$explorer_files}.jpeg"),width=400,height=400)
+			list(src = glue::glue("diagnostics/crop/crop_{input$explorer_files}.jpeg"),width=400,height=400)
 		}, deleteFile = FALSE)
 		output$overlay <- renderImage({
-			list(src = glue::glue("diagnostics/single_pot/overlay/{input$explorer_files}.jpeg"),width=400,height=400)
+			list(src = glue::glue("diagnostics/overlay/overlay_{input$explorer_files}.jpeg"),width=400,height=400)
 		}, deleteFile = FALSE)
 		output$radar = renderChartJSRadar({
 			data %>%
@@ -165,9 +165,9 @@ server <- function(input, output, session) {
 			
 			opts <- settings(slidesToShow = 6, slidesToScroll = 6)
 			
-			overlay <- slickR(glue::glue("diagnostics/single_pot/overlay/{chunks[[input$chunk]]}.jpeg"), height = 200) + opts
-			mask <- slickR(glue::glue("diagnostics/single_pot/mask/{chunks[[input$chunk]]}.png"), height = 200) + opts + settings(arrows = F)
-			crop <- slickR(glue::glue("diagnostics/single_pot/crop/{chunks[[input$chunk]]}.jpeg"), height = 200) + opts + settings(arrows = F)
+			overlay <- slickR(glue::glue("diagnostics/overlay/overlay_{chunks[[input$chunk]]}.jpeg"), height = 200) + opts
+			mask <- slickR(glue::glue("diagnostics/mask/mask_{chunks[[input$chunk]]}.png"), height = 200) + opts + settings(arrows = F)
+			crop <- slickR(glue::glue("diagnostics/crop/crop_{chunks[[input$chunk]]}.jpeg"), height = 200) + opts + settings(arrows = F)
 			names <- slickR(as.character(chunks[[input$chunk]]), slideType = 'p') + opts + settings(arrows = F)
 			overlay %synch% (crop %synch% (mask %synch% names))
 		})
