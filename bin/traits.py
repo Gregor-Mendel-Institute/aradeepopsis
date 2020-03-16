@@ -8,9 +8,11 @@ import matplotlib.pyplot as plt
 from skimage.measure import regionprops
 from skimage.io import imsave,imread,ImageCollection
 from skimage.morphology import convex_hull_image
+from skimage.transform import rescale
 
 def measure_traits(mask,
                    image,
+                   scale_ratio,
                    file_name,
                    label_names=['background','rosette'],
                    ignore_senescence=False):
@@ -19,6 +21,7 @@ def measure_traits(mask,
   Args:
     mask: Array representing the segmented mask.
     image: Array representing the original image.
+    scale_ratio: Float, scale factor of the downscaled image,
     file_name: String, the image filename.
     label_names: List, Names of labels.
     ignore_senescence: Boolean, ignore senescence label for trait calculation.
@@ -60,7 +63,7 @@ def measure_traits(mask,
   # iterate over label names and count pixels for each labelclass
   for idx,labelclass in enumerate(label_names):
     count = np.count_nonzero(mask == idx)
-    frame[labelclass + '_area'] = count
+    frame[labelclass + '_area'] = round(count*scale_ratio**2) if scale_ratio != 1.0 else count
     # get color channel information for each labelclass
     for channel,values in channels.items():
       frame[labelclass + '_' + channel + '_channel_mean'] = np.mean(values[mask == idx])
@@ -71,6 +74,10 @@ def measure_traits(mask,
     frame['plant_region_' + channel + '_channel_mean'] = np.mean(values[bool_mask])
     frame['plant_region_' + channel + '_channel_median'] = np.median(values[bool_mask])
 
+  # scale the mask up to the dimensions of the original image if it was downscaled
+  if scale_ratio != 1.0:
+    bool_mask = rescale(bool_mask, scale_ratio, preserve_range=True)
+
   properties = regionprops(bool_mask.astype(np.uint8))
   for trait in traits:
     try:
@@ -78,7 +85,7 @@ def measure_traits(mask,
     except IndexError:
       frame[trait] = 'NA'
 
-  # write pixel counts to tsv file
+  # write pixel counts to csv file
   with open('traits.csv', 'a') as counts:
     Writer = csv.DictWriter(counts, fieldnames=frame.keys(), dialect='unix', quoting=csv.QUOTE_NONE)
     if not counts.tell():

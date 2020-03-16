@@ -82,7 +82,7 @@ Channel
     .fromPath(params.images, checkIfExists: true)
     .buffer(size:params.chunksize, remainder: true)
     .map { chunk -> [chunk_idx++, chunk] }
-    .into { ch_images_records; ch_images_traits }
+    .set { ch_images_records }
 
 Channel
     .fromPath(model, glob: false, checkIfExists: true)
@@ -98,17 +98,20 @@ Channel
     .set {ch_shinyapp}
 
 process build_records {
+    stageInMode 'copy'
     input:
         tuple val(index), path('images/*') from ch_images_records
     output:
         tuple val(index), path('*.tfrecord') into ch_shards
-        path('*txt') into invalid_images optional true
+        tuple val(index), path('ratios.p'), path('images/*', includeInputs: true) into ch_images_traits
+        path('*.txt') into invalid_images optional true
     script:
 """
 #!/usr/bin/env python
 
 import logging
 import os
+import pickle
 
 import tensorflow as tf
 
@@ -121,6 +124,7 @@ images = tf.io.gfile.glob('images/*')
 
 count = len(images)
 invalid = 0
+scale_factors = {}
 
 with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
     for i in range(count):
@@ -136,27 +140,29 @@ with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
             continue
 
         width, height = image.shape[:2]
-
-        ratio = 1.0
         max_dimension = 602
-        
+        ratio = 1.0
+
         if height * width > max_dimension**2:
             logger.info('%s: dimensions %d x %d are too large,' % (filename, height, width))
             ratio = max(height,width)/max_dimension
             new_height = int(height/ratio)
             new_width = int(width/ratio)
-            logger.info('%s: resized to %d x %d (scale factor:%f)' % (filename, new_height, new_width,ratio))
-            image = tf.image.resize(image,
-                                                    size=[new_height,new_width],
-                                                    preserve_aspect_ratio=True)
+            logger.info('%s: resized to %d x %d (scale factor:%f)' % (filename, new_height, new_width, ratio))
+            image = tf.image.resize(image, size=[new_height,new_width], preserve_aspect_ratio=True)
             image_data = tf.image.encode_png(tf.cast(image, tf.uint8)).numpy()
-        
+            tf.io.write_file(os.path.join(f'images/{filename}'), image_data)
+
+        scale_factors[filename] = ratio
         record = create_record(image_data=image_data,
-                                                 filename=filename,
-                                                 height=height,
-                                                 width=width,
-                                                 ratio=ratio)
+                               filename=filename,
+                               height=height,
+                               width=width,
+                               ratio=ratio)
+
         writer.write(record.SerializeToString())
+
+pickle.dump(scale_factors, open("ratios.p", "wb"))
 """
 }
 
@@ -168,7 +174,7 @@ process run_predictions {
         path(model) from ch_model.collect()
         tuple val(index), path(shard) from ch_shards
     output:
-        tuple val(index), path('*png') into ch_predictions
+        tuple val(index), path('*.png') into ch_predictions
 
     script:
 """
@@ -206,16 +212,6 @@ for index, sample in dataset:
     filename = sample['filename'].numpy()[0].decode('utf-8')
     logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
     raw_segmentation = predict(sample['original'])[0][:, :, None]
-
-    ratio = sample['resize_factor'][0]
-
-    if ratio != 1.0 :
-        height = sample['height'][0]
-        width = sample['width'][0]
-        raw_segmentation = tf.image.resize(raw_segmentation,
-                                                                         size=[width,height],
-                                                                         method='nearest')
-
     output = tf.image.encode_png(tf.cast(raw_segmentation, tf.uint8))
     tf.io.write_file(filename.rsplit('.', 1)[0] + '.png',output)
 """
@@ -233,8 +229,7 @@ process extract_traits {
             }
 
     input:
-        tuple val(index), path("original_images/*"), path("raw_masks/*") from ch_images_traits.join(ch_predictions)
-
+        tuple val(index), path(ratios), path("original_images/*"), path("raw_masks/*") from ch_images_traits.join(ch_predictions)
     output:
         path('*.csv') into ch_results
         tuple val(index), val('mask'), path('mask_*') into ch_masks optional true
@@ -248,13 +243,18 @@ process extract_traits {
 #!/usr/bin/env python
 
 import os
+import pickle
+
 from traits import measure_traits, draw_diagnostics, load_images
+
+ratios = pickle.load(open('ratios.p',"rb"))
 
 masks, originals = load_images()
 
 for index, name in enumerate(originals.files):
     measure_traits(masks[index],
                    originals[index],
+                   ratios[os.path.basename(name)],
                    os.path.basename(name),
                    label_names=${labels},
                    ignore_senescence=${params.ignore_senescence.toString().capitalize()})
