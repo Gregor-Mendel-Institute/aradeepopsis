@@ -10,7 +10,7 @@ data <- read_csv("aradeepopsis_traits.csv")
 
 imagenames <- data %>% select(file)
 dateformats <- c('%d-%m','%m-%d','%d-%m-%y','%m-%d-%y','%y-%m-%d','%y-%d-%m')
-invalid <- sum(is.na(data$background_area))
+if (file.exists('invalid_images.txt')) invalid = length(read_lines('invalid_images.txt')) else invalid = 0
 
 traitcount <- ncol(data) - 2 #filename and extension don't count
 imagecount <- nrow(data)
@@ -39,19 +39,23 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 				sidebarPanel(
 					verbatimTextOutput("info"),
 					conditionalPanel(
+						condition="input.tabset2 == 0",
+						selectizeInput("correlations_type",label="Select Covariance method:", choices=c("complete.obs", "pairwise.complete.obs", "everything", "all.obs", "na.or.complete"))
+					),
+					conditionalPanel(
 						condition="input.tabset2 > 0",
 						selectizeInput("statistics_traits","Select Trait:", choices = colnames(data %>% select(-file,-format)), selected = "rosette"),
 						conditionalPanel(
 							condition="input.tabset2 == 2",
 							selectizeInput("statistics_files",label="Select Image:", choices=NULL)
-						)
+						),
 					)
 				),
 				mainPanel(
 					tabsetPanel(id='tabset2',
-								tabPanel("Trait Correlation",value=0,plotOutput("correlations")),
-								tabPanel("Trait Histogram",value=1,plotOutput("histograms")),
-								tabPanel("Trait Jitterplot",value=2,plotOutput("jitter"))
+								tabPanel("Trait Correlation",value=0,plotOutput("correlations") %>% withSpinner()),
+								tabPanel("Trait Histogram",value=1,plotOutput("histograms") %>% withSpinner()),
+								tabPanel("Trait Jitterplot",value=2,plotOutput("jitter") %>% withSpinner())
 					)
 				)
 		),
@@ -70,7 +74,7 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 				),
 				mainPanel(
 					tabsetPanel(id='tabset3',
-								tabPanel("Traits over time",value=0,plotOutput("timeline"))
+								tabPanel("Traits over time",value=0,plotOutput("timeline")%>% withSpinner())
 					)
 				)
 		)
@@ -101,14 +105,14 @@ server <- function(input, output, session) {
 				mutate(value=value/sum(value)*100) %>% 
 				chartJSRadar(.,maxScale = 100,scaleStartValue = 0,scaleStepWidth = 25,showLegend = F)
 		})
-		output$histograms = renderPlot(width=400,{
+		output$histograms = renderPlot(width=600,height=600,{
 			data %>%
 				select(file,input$statistics_traits) %>%
 				ggplot(aes_string(input$statistics_traits)) +
 				geom_histogram(bins = 100) +
 				theme_bw()
 		})
-		output$jitter = renderPlot(width=400,{
+		output$jitter = renderPlot(width=600,height=600,{
 			data %>%
 				select(file,input$statistics_traits) %>%
 				ggplot(aes_string(x=as.factor(input$statistics_traits),y=input$statistics_traits)) +
@@ -118,10 +122,10 @@ server <- function(input, output, session) {
 				ylab("measurement") +
 				theme_bw()
 		})
-		output$correlations = renderPlot({
+		output$correlations = renderPlot(width=600,height=600,{
 			data %>%
-				select(-file,-format) %>%
-				cor(use="complete.obs") %>%
+				select(-file,-format,-total_area) %>%
+				cor(use=input$correlations_type) %>%
 				corrplot(method="shade",tl.cex=0.5,tl.col="black",type="upper")
 		})
 		output$meta = renderTable(striped = TRUE,width="100px",{
@@ -155,7 +159,7 @@ server <- function(input, output, session) {
 		})
 
 		output$info = renderText({
-			glue::glue("Measured {traitcount} traits across {imagecount-invalid} rosettes ({invalid} failures)")
+			glue::glue("Measured {traitcount} traits across {imagecount-invalid} rosettes ({invalid} failure(s))")
 		})
 		output$slickr <- renderSlickR({
 			
