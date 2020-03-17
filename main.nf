@@ -296,17 +296,7 @@ montage * -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set labe
 
 ch_results
  .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true)
- .tap {ch_resultfile}
- .subscribe {
-    if(params.shiny) { 
-        log.info"""
-        Analysis complete!
-        Visit the shiny server running at ${"http://"+"hostname -i".execute().text.trim()+':44333'} to inspect the results.
-        Closing the browser window will terminate the pipeline.
-        """.stripIndent() 
-    } else { log.info "Analysis complete!" }
-    }
-
+ .set {ch_resultfile}
 
 process launch_shiny {
     tag "${'http://'+'hostname -i'.execute().text.trim()+':44333'}"
@@ -320,6 +310,10 @@ process launch_shiny {
     when:
         params.shiny
     script:
+    log.info"""
+    Visit the shiny server running at ${"http://"+"hostname -i".execute().text.trim()+':44333'} to inspect the results.
+    Closing the browser window will terminate the pipeline.
+    """.stripIndent()
 """
 R -e "shiny::runApp('${app}', port=44333, host='0.0.0.0')"
 """
