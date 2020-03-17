@@ -6,8 +6,9 @@ library(shinycssloaders)
 library(shinythemes)
 library(corrplot)
 
-data <- read_csv("aradeepopsis_traits.csv")
+addResourcePath("nextflow_report", getwd())
 
+data <- read_csv("aradeepopsis_traits.csv")
 imagenames <- data %>% select(file)
 dateformats <- c('%d-%m','%m-%d','%d-%m-%y','%m-%d-%y','%y-%m-%d','%y-%d-%m')
 if (file.exists('invalid_images.txt')) invalid = length(read_lines('invalid_images.txt')) else invalid = 0
@@ -26,7 +27,7 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 					selectizeInput("explorer_files",label="Select Image:", choices=NULL)
 				),
 				mainPanel(
-					tabsetPanel(id='tabset1',
+					tabsetPanel(id='tabset1',type='pills',
 								tabPanel("Overlay",value=0,imageOutput("overlay")),
 								tabPanel("Mask",value=0,imageOutput("mask")),
 								tabPanel("Rosette",value=0,imageOutput("rosette")),
@@ -52,7 +53,7 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 					)
 				),
 				mainPanel(
-					tabsetPanel(id='tabset2',
+					tabsetPanel(id='tabset2',type='pills',
 								tabPanel("Trait Correlation",value=0,plotOutput("correlations") %>% withSpinner()),
 								tabPanel("Trait Histogram",value=1,plotOutput("histograms") %>% withSpinner()),
 								tabPanel("Trait Jitterplot",value=2,plotOutput("jitter") %>% withSpinner())
@@ -73,11 +74,17 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 					selectizeInput("exp_traits","Select Trait:", choices = colnames(data %>% select(-file,-format)), selected = "rosette")
 				),
 				mainPanel(
-					tabsetPanel(id='tabset3',
+					tabsetPanel(id='tabset3',type='pills',
 								tabPanel("Traits over time",value=0,plotOutput("timeline")%>% withSpinner())
 					)
 				)
-		)
+		),
+		tabPanel("Nextflow Report",
+				tabsetPanel(id='tabset4',type='pills',
+					tabPanel("Execution Report",value=0,htmlOutput("nf_report")),
+					tabPanel("Timeline",value=0,htmlOutput("nf_timeline"))
+				)
+    	)
 )
 
 server <- function(input, output, session) {
@@ -174,6 +181,12 @@ server <- function(input, output, session) {
 			crop <- slickR(glue::glue("diagnostics/crop/crop_{chunks[[input$chunk]]}.jpeg"), height = 200) + opts + settings(arrows = F)
 			names <- slickR(as.character(chunks[[input$chunk]]), slideType = 'p') + opts + settings(arrows = F)
 			overlay %synch% (crop %synch% (mask %synch% names))
+		})
+		output$nf_report <- renderUI({
+			tags$iframe(seamless="seamless", src= "nf/execution_report.html", width="100%", height=1000)
+		})
+		output$nf_timeline <- renderUI({
+			tags$iframe(seamless="seamless", src= "nf/execution_timeline.html", width="100%", height=1000)
 		})
 		session$onSessionEnded(function() {
 			stopApp()
