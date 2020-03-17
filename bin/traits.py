@@ -35,13 +35,15 @@ def measure_traits(mask,
     red_channel = image[:,:,0].astype(np.uint8)
     green_channel = image[:,:,1].astype(np.uint8)
     blue_channel = image[:,:,2].astype(np.uint8)
+
     return {'red':red_channel,'green':green_channel,'blue':blue_channel}
 
   filename, filefmt = file_name.rsplit('.', 1)
 
   frame = {'file' : filename, 'format' : filefmt}
 
-  traits = ['filled_area',
+  traits = ['area',
+            'filled_area',
             'convex_area',
             'equivalent_diameter',
             'major_axis_length',
@@ -54,36 +56,39 @@ def measure_traits(mask,
   # split image into red, green and blue channel
   channels = _split_channels(image)
 
-  if ignore_senescence:
-    # create boolean mask that excludes background and senescent labelclasses
-    bool_mask = (mask > 0) & (mask != 2)
-  else:
-    bool_mask = (mask > 0)
-
-  # iterate over label names and count pixels for each labelclass
-  for idx,labelclass in enumerate(label_names):
-    count = np.count_nonzero(mask == idx)
-    frame[labelclass + '_area'] = round(count*scale_ratio**2) if scale_ratio != 1.0 else count
-    # get color channel information for each labelclass
-    for channel,values in channels.items():
-      frame[labelclass + '_' + channel + '_channel_mean'] = np.mean(values[mask == idx])
-      frame[labelclass + '_' + channel + '_channel_median'] = np.median(values[mask == idx])
+  # create boolean mask for the entire plant region (with or without senescence)
+  label_mask = create_bool_mask(mask, ignore_senescence)
 
   for channel,values in channels.items():
     # get color channel information for whole plant region
-    frame['plant_region_' + channel + '_channel_mean'] = np.mean(values[bool_mask])
-    frame['plant_region_' + channel + '_channel_median'] = np.median(values[bool_mask])
+    frame['plant_region_' + channel + '_channel_mean'] = np.mean(values[label_mask])
+    frame['plant_region_' + channel + '_channel_median'] = np.median(values[label_mask])
+    for idx,labelclass in enumerate(label_names):
+      # get color channel information for each labelclass
+      frame[labelclass + '_' + channel + '_channel_mean'] = np.mean(values[mask == idx])
+      frame[labelclass + '_' + channel + '_channel_median'] = np.median(values[mask == idx])
 
   # scale the mask up to the dimensions of the original image if it was downscaled
   if scale_ratio != 1.0:
-    bool_mask = rescale(bool_mask, scale_ratio, preserve_range=True)
+    mask = rescale(mask, scale_ratio, preserve_range=True, anti_aliasing=False, order=0)
+    label_mask = create_bool_mask(mask, ignore_senescence)
 
-  properties = regionprops(bool_mask.astype(np.uint8))
-  for trait in traits:
-    try:
-      frame[trait] = properties[0][trait]
-    except IndexError:
-      frame[trait] = 'NA'
+  frame['total_area'] = mask.size
+  frame['background_area'] = np.count_nonzero(mask==0)
+
+  for idx,labelclass in enumerate(label_names):
+    if idx == 0:
+      label = 'plant_region'
+    else:
+      label_mask = (mask == idx)
+      label = labelclass
+
+    properties = regionprops(label_mask.astype(np.uint8))
+    for trait in traits:
+      try:
+        frame[label + '_' + trait] = properties[0][trait]
+      except IndexError:
+        frame[label + '_' + trait] = 'NA'
 
   # write pixel counts to csv file
   with open('traits.csv', 'a') as counts:
@@ -139,11 +144,8 @@ def draw_diagnostics(mask,
     imsave('overlay_%s.jpeg' % filename, overlay.astype(np.uint8))
 
   if save_hull:
-    if ignore_senescence:
-      bool_mask = (mask > 0) & (mask != 2)
-      hull = convex_hull_image(bool_mask)*255
-    else:
-      hull = convex_hull_image(mask)*255
+    bool_mask = create_bool_mask(mask, ignore_senescence)
+    hull = convex_hull_image(bool_mask)*255
     convex_hull = 0.6 * colored_mask + 0.4 * np.stack((hull,)*3, axis=-1)
     imsave('hull_%s.png' % filename, convex_hull.astype(np.uint8))
 
@@ -154,3 +156,18 @@ def load_images():
   originals = ['original_images/' + os.path.basename(i).rsplit('.', 1)[0] + '.*' for i in masks.files]
   originals = ImageCollection(originals,load_func=_loader)
   return masks, originals
+
+def create_bool_mask(mask, ignore_class, class_label=2):
+  """Creates a boolean mask that excludes background and one additional class (optional).
+
+  Args:
+    mask: Array representing a mask with integer labels
+    ignore_class: Boolean, whether to exclude a class label.
+    class_label: Integer, class label to exclude.
+  """
+  if ignore_class:
+    bool_mask = (mask > 0) & (mask != class_label)
+  else:
+    bool_mask = (mask > 0)
+
+  return bool_mask
