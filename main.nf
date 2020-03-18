@@ -118,6 +118,7 @@ import tensorflow as tf
 from data_record import create_record
 
 logger = tf.get_logger()
+logger.propagate = False
 logger.setLevel('INFO')
 
 images = tf.io.gfile.glob('images/*')
@@ -188,6 +189,7 @@ from data_record import parse_record
 from frozen_graph import wrap_frozen_graph
 
 logger = tf.get_logger()
+logger.propagate = False
 logger.setLevel('INFO')
 
 with tf.io.gfile.GFile('${model}', "rb") as f:
