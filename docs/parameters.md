@@ -93,5 +93,5 @@ Launch a [Shiny](https://shiny.rstudio.com/) app in the last step of the pipelin
 >
 > # if using the container image
 > {docker|podman} run -v $(pwd):/mnt/shiny -p 44333:44333 beckerlab/aradeepopsis:latest R -e "shiny::runApp('/mnt/shiny/app.R', port=44333, host='0.0.0.0')"
-```
+> ```
 > The shiny app can then be opened with a browser by typing localhost:44333 in the address bar. It will terminate when the browser window is closed.
