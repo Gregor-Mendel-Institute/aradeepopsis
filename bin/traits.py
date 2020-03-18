@@ -88,7 +88,7 @@ def measure_traits(mask,
       try:
         frame[label + '_' + trait] = properties[0][trait]
       except IndexError:
-        frame[label + '_' + trait] = 0 if 'area' in label else 'NA'
+        frame[label + '_' + trait] = 0 if 'area' in trait else 'NA'
 
   # write pixel counts to csv file
   with open('traits.csv', 'a') as counts:

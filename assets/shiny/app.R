@@ -39,7 +39,7 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 					verbatimTextOutput("info"),
 					conditionalPanel(
 						condition="input.tabset2 == 0",
-						selectizeInput("correlations_type",label="Select Covariance method:", choices=c("complete.obs", "pairwise.complete.obs", "everything", "all.obs", "na.or.complete"))
+						selectizeInput("correlations_type",label="Select Covariance method:", choices=c("pairwise.complete.obs", "complete.obs", "everything", "all.obs", "na.or.complete"))
 					),
 					conditionalPanel(
 						condition="input.tabset2 > 0",
