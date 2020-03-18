@@ -139,7 +139,7 @@ with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
                 broken.write(f'{filename}\\n')
             continue
 
-        width, height = image.shape[:2]
+        height, width = image.shape[:2]
         max_dimension = 602
         ratio = 1.0
 
@@ -149,7 +149,7 @@ with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
             new_height = int(height/ratio)
             new_width = int(width/ratio)
             logger.info('%s: resized to %d x %d (scale factor:%f)' % (filename, new_height, new_width, ratio))
-            image = tf.image.resize(image, size=[new_height,new_width], preserve_aspect_ratio=True)
+            image = tf.image.resize(image, size=[new_height,new_width], preserve_aspect_ratio=False, antialias=True)
             image_data = tf.image.encode_png(tf.cast(image, tf.uint8)).numpy()
             tf.io.write_file(os.path.join(f'images/{filename}'), image_data)
 
