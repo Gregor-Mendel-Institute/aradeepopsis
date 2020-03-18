@@ -5,30 +5,34 @@
 
 # Introduction
 
-ara*deep*opsis is a software tool that enables plant researchers to non-invasively score plant growth, biomass accumulation and senescence from image data in a highly parallelized, high throughput, yet easy to use manner.
+araDeepopsis is a software tool that enables plant researchers to non-invasively score plant growth, biomass accumulation and senescence from image data in a highly parallelized, high throughput, yet easy to use manner.
 
 It is built upon the published, convolutional neural network (CNN) [DeepLabv3+](https://github.com/tensorflow/models/tree/master/research/deeplab)<sup>[[1]](#ref1)</sup> that serves the task of semantic image segmentation. A [pretrained checkpoint](http://download.tensorflow.org/models/deeplabv3_xception_2018_01_04.tar.gz) of this model has been trained upon using manually annotated top-view images of *Arabidopsis thaliana* plants of different ages.
 
 # How it works
 
-The pipeline is implemented using open source technology such as [`Nextflow`](https://www.nextflow.io/)<sup>[[2]](#ref2)</sup>, [`TensorFlow`](https://www.tensorflow.org/)<sup>[[3]](#ref3)</sup>, [`ImageMagick`](https://imagemagick.org), [`scikit-image`](https://scikit-image.org/)<sup>[[4]](#ref4)</sup> and [`shiny`](https://shiny.rstudio.com/)<sup>[[5]](#ref5)</sup>.
+The pipeline is implemented using open source software such as [`Nextflow`](https://www.nextflow.io/)<sup>[[2]](#ref2)</sup>, [`TensorFlow`](https://www.tensorflow.org/)<sup>[[3]](#ref3)</sup>, [`ImageMagick`](https://imagemagick.org), [`scikit-image`](https://scikit-image.org/)<sup>[[4]](#ref4)</sup> and [`shiny`](https://shiny.rstudio.com/)<sup>[[5]](#ref5)</sup>.
 
 Once the pipeline is fed with images of single plants, it converts the images into chunks of arbitrary size by saving the image data into an [IO-optimized binary file format](https://www.tensorflow.org/tutorials/load_data/tfrecord). These file records are then, in parallel, served to the deep learning model, allowing for pixel-by-pixel classification of the image data. The pipeline in turn extracts relevant phenotypic information such as:
 
 * plant area
 * degree of senescence and anthocyanin accumulation
 * color composition
-* a variety of morphometric traits that are informative about growth performance and behaviour
+* a variety of morphometric traits that are informative about growth performance and development
 
 The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a [Docker container](https://www.docker.com/resources/what-container) to resolve dependencies, ensuring a high level of reproducibility and portability. It is largely platform independent and scales from Personal Computers to High Performance Computing (HPC) infrastructure, allowing for time efficient analysis of hundreds of thousands of images within a day.
+
+> Note: To ensure reproducibility, it is recommended to use the provided [container image](https://hub.docker.com/r/beckerlab/aradeepopsis/).
 
 # Usage
 
 ## Setting up the pipeline
 
+> Note: Windows will users have to set up the [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) first.
+
 1. Install [`Nextflow`](https://www.nextflow.io/index.html#GetStarted)
 
-2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/), [`Docker`](https://docs.docker.com/install/) (recommended), [`podman`](https://podman.io/getting-started/installation) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html)
+2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/), [`Docker`](https://docs.docker.com/install/), [`podman`](https://podman.io/getting-started/installation) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html)
 
 3. Clone the repository: `git clone https://github.com/Gregor-Mendel-Institute/aradeepopsis`
 
@@ -49,23 +53,23 @@ module load nextflow/19.10.0
 nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,singularity
 ```
 
-## Additional parameters
+## Default [Parameters](docs/parameters.md)
 
-* `--model`: number of leaf classes to score. `default: 3`
-    * `1` (rosette leaf)
-    * `2` (rosette leaf, senescent leaf)
-    * `3` (rosette leaf, senescent leaf, anthocyanin-rich leaf)
-* `--ignore_senescence`: ignore senescent leaf class for trait calculation when using model `2` and `3`. `default: true`
-* `--multiscale`: run multiscale inference which is slower but more accurate. `default: false`
-* `--outdir`: output path. `default: ./results`
-* `--chunksize`: number of images to process in per chunk. `default: 10`
-* `--save_overlay`: save a diagnostic image with the original image overlayed with the predicted mask. `default: true`
-* `--save_mask`: save the predicted mask to the output folder. `default: true`
-* `--save_rosette`: save the original image cropped to the predicted mask to the output folder. `default: true`
-* `--save_hull`: save the convex hull of the predicted mask to the output folder. `default: true`
-* `--save_histogram`: save a color channel histogram of the cropped plant to the output folder. `default: false`
-* `--summary_diagnostics`: draw combined diagnostic images for each chunk. `default: false`
-* `--shiny`: launch shiny app after analysis has completed. `default: true`
+| Parameter | Default value | Type |
+| ------------- | ------------- | ------------- |
+| [`--model`](docs/parameters.md#--model)  | `3` | `<Integer>` |
+| [`--images`](docs/parameters.md#--images) | `true` | `<Boolean>` |
+| [`--multiscale`](docs/parameters.md#--multiscale)| `false` | `<Boolean>` |
+| [`--chunksize`](docs/parameters.md#--chunksize) | `10` | `<Integer>` |
+| [`--ignore_senescence`](docs/parameters.md#--ignore_senescence) | `true` | `<Boolean>` |
+| [`--outdir`](docs/parameters.md#--outdir) | `./results`  | `<Path>` |
+| [`--save_overlay`](docs/parameters.md#--save_overlay) | `true` | `<Boolean>` |
+| [`--save_mask`](docs/parameters.md#--save_mask)| `true` | `<Boolean>` |
+| [`--save_hull`](docs/parameters.md#--save_hull) | `true` | `<Boolean>` |
+| [`--save_histogram`](docs/parameters.md#--save_histogram) | `false` | `<Boolean>` |
+| [`--summary_diagnostics`](docs/parameters.md#--summary_diagnostics) | `false` | `<Boolean>` |
+| [`--shiny`](docs/parameters.md#--shiny) | `true` | `<Boolean>` |
+
 
 # References
 

@@ -64,15 +64,15 @@ ParameterChecks.checkParams(params)
 switch(params.model) {
     case 1:
         model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
-        labels = "['background','rosette']"
+        labels = "['class_background','class_norm']"
         break
     case 2:
         model = params.multiscale ? 'https://www.dropbox.com/s/9m4wy990ajv7cmg/2_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/s808kcq9jgiyko9/2_class_singlescale.pb?dl=1'
-        labels = "['background','rosette','senescent']"
+        labels = "['class_background','class_norm','class_senesc']"
         break
     case 3:
         model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
-        labels = "['background','rosette','senescent','anthocyanin']"
+        labels = "['class_background','class_norm','class_senesc','class_antho']"
         break
 }
 
@@ -82,7 +82,7 @@ Channel
     .fromPath(params.images, checkIfExists: true)
     .buffer(size:params.chunksize, remainder: true)
     .map { chunk -> [chunk_idx++, chunk] }
-    .into { ch_images_records; ch_images_traits }
+    .set { ch_images_records }
 
 Channel
     .fromPath(model, glob: false, checkIfExists: true)
@@ -98,29 +98,34 @@ Channel
     .set {ch_shinyapp}
 
 process build_records {
+    stageInMode 'copy'
     input:
         tuple val(index), path('images/*') from ch_images_records
     output:
         tuple val(index), path('*.tfrecord') into ch_shards
-        path('*txt') into invalid_images optional true
+        tuple val(index), path('ratios.p'), path('images/*', includeInputs: true) into ch_images_traits
+        path('*.txt') into invalid_images optional true
     script:
 """
 #!/usr/bin/env python
 
 import logging
 import os
+import pickle
 
 import tensorflow as tf
 
 from data_record import create_record
 
 logger = tf.get_logger()
+logger.propagate = False
 logger.setLevel('INFO')
 
 images = tf.io.gfile.glob('images/*')
 
 count = len(images)
 invalid = 0
+scale_factors = {}
 
 with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
     for i in range(count):
@@ -135,28 +140,30 @@ with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
                 broken.write(f'{filename}\\n')
             continue
 
-        width, height = image.shape[:2]
-
-        ratio = 1.0
+        height, width = image.shape[:2]
         max_dimension = 602
-        
+        ratio = 1.0
+
         if height * width > max_dimension**2:
             logger.info('%s: dimensions %d x %d are too large,' % (filename, height, width))
             ratio = max(height,width)/max_dimension
             new_height = int(height/ratio)
             new_width = int(width/ratio)
-            logger.info('%s: resized to %d x %d (scale factor:%f)' % (filename, new_height, new_width,ratio))
-            image = tf.image.resize(image,
-                                                    size=[new_height,new_width],
-                                                    preserve_aspect_ratio=True)
+            logger.info('%s: resized to %d x %d (scale factor:%f)' % (filename, new_height, new_width, ratio))
+            image = tf.image.resize(image, size=[new_height,new_width], preserve_aspect_ratio=False, antialias=True)
             image_data = tf.image.encode_png(tf.cast(image, tf.uint8)).numpy()
-        
+            tf.io.write_file(os.path.join(f'images/{filename}'), image_data)
+
+        scale_factors[filename] = ratio
         record = create_record(image_data=image_data,
-                                                 filename=filename,
-                                                 height=height,
-                                                 width=width,
-                                                 ratio=ratio)
+                               filename=filename,
+                               height=height,
+                               width=width,
+                               ratio=ratio)
+
         writer.write(record.SerializeToString())
+
+pickle.dump(scale_factors, open("ratios.p", "wb"))
 """
 }
 
@@ -168,7 +175,7 @@ process run_predictions {
         path(model) from ch_model.collect()
         tuple val(index), path(shard) from ch_shards
     output:
-        tuple val(index), path('*png') into ch_predictions
+        tuple val(index), path('*.png') into ch_predictions
 
     script:
 """
@@ -182,6 +189,7 @@ from data_record import parse_record
 from frozen_graph import wrap_frozen_graph
 
 logger = tf.get_logger()
+logger.propagate = False
 logger.setLevel('INFO')
 
 with tf.io.gfile.GFile('${model}', "rb") as f:
@@ -206,16 +214,6 @@ for index, sample in dataset:
     filename = sample['filename'].numpy()[0].decode('utf-8')
     logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
     raw_segmentation = predict(sample['original'])[0][:, :, None]
-
-    ratio = sample['resize_factor'][0]
-
-    if ratio != 1.0 :
-        height = sample['height'][0]
-        width = sample['width'][0]
-        raw_segmentation = tf.image.resize(raw_segmentation,
-                                                                         size=[width,height],
-                                                                         method='nearest')
-
     output = tf.image.encode_png(tf.cast(raw_segmentation, tf.uint8))
     tf.io.write_file(filename.rsplit('.', 1)[0] + '.png',output)
 """
@@ -233,8 +231,7 @@ process extract_traits {
             }
 
     input:
-        tuple val(index), path("original_images/*"), path("raw_masks/*") from ch_images_traits.join(ch_predictions)
-
+        tuple val(index), path(ratios), path("original_images/*"), path("raw_masks/*") from ch_images_traits.join(ch_predictions)
     output:
         path('*.csv') into ch_results
         tuple val(index), val('mask'), path('mask_*') into ch_masks optional true
@@ -248,13 +245,18 @@ process extract_traits {
 #!/usr/bin/env python
 
 import os
+import pickle
+
 from traits import measure_traits, draw_diagnostics, load_images
+
+ratios = pickle.load(open('ratios.p',"rb"))
 
 masks, originals = load_images()
 
 for index, name in enumerate(originals.files):
     measure_traits(masks[index],
                    originals[index],
+                   ratios[os.path.basename(name)],
                    os.path.basename(name),
                    label_names=${labels},
                    ignore_senescence=${params.ignore_senescence.toString().capitalize()})
@@ -296,17 +298,7 @@ montage * -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set labe
 
 ch_results
  .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true)
- .tap {ch_resultfile}
- .subscribe {
-    if(params.shiny) { 
-        log.info"""
-        Analysis complete!
-        Visit the shiny server running at ${"http://"+"hostname -i".execute().text.trim()+':44333'} to inspect the results.
-        Closing the browser window will terminate the pipeline.
-        """.stripIndent() 
-    } else { log.info "Analysis complete!" }
-    }
-
+ .set {ch_resultfile}
 
 process launch_shiny {
     tag "${'http://'+'hostname -i'.execute().text.trim()+':44333'}"
@@ -320,6 +312,10 @@ process launch_shiny {
     when:
         params.shiny
     script:
+    log.info"""
+    Visit the shiny server running at ${"http://"+"hostname -i".execute().text.trim()+':44333'} to inspect the results.
+    Closing the browser window will terminate the pipeline.
+    """.stripIndent()
 """
 R -e "shiny::runApp('${app}', port=44333, host='0.0.0.0')"
 """
