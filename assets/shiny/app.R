@@ -6,8 +6,6 @@ library(shinycssloaders)
 library(shinythemes)
 library(corrplot)
 
-addResourcePath("nextflow_report", getwd())
-
 data <- read_csv("aradeepopsis_traits.csv")
 imagenames <- data %>% select(file)
 dateformats <- c('%d-%m','%m-%d','%d-%m-%y','%m-%d-%y','%y-%m-%d','%y-%d-%m')
@@ -183,10 +181,10 @@ server <- function(input, output, session) {
 			overlay %synch% (crop %synch% (mask %synch% names))
 		})
 		output$nf_report <- renderUI({
-			tags$iframe(seamless="seamless", src= "nf/execution_report.html", width="100%", height=1000)
+			tags$iframe(seamless="seamless", src="execution_report.html", width="100%", height=1000)
 		})
 		output$nf_timeline <- renderUI({
-			tags$iframe(seamless="seamless", src= "nf/execution_timeline.html", width="100%", height=1000)
+			tags$iframe(seamless="seamless", src="execution_timeline.html", width="100%", height=1000)
 		})
 		session$onSessionEnded(function() {
 			stopApp()
