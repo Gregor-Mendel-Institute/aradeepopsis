@@ -11,7 +11,7 @@ data <- read_csv("aradeepopsis_traits.csv")
 imagenames <- data %>% select(file)
 dateformats <- c('%d-%m','%m-%d','%d-%m-%y','%m-%d-%y','%y-%m-%d','%y-%d-%m')
 invalid <- ifelse(file.exists('invalid_images.txt'),length(read_lines('invalid_images.txt')),0)
-traitcount <- ncol(data) - 2 #filename and extension don't count
+traitcount <- ncol(data) - 2 # exclude filename and suffix
 imagecount <- nrow(data)
 
 # Define UI
@@ -76,17 +76,22 @@ ui <- navbarPage(title="araDeepopsis", id="nav", theme = shinytheme("flatly"),
 								tabPanel("Traits over time",value=0,plotOutput("timeline")%>% withSpinner())
 					)
 				)
-		),
-		tabPanel("Nextflow Report",
-				tabsetPanel(id='tabset4',type='pills',
-					tabPanel("Execution Report",value=0,htmlOutput("nf_report")),
-					tabPanel("Timeline",value=0,htmlOutput("nf_timeline"))
-				)
-    	)
+		)
 )
 
 server <- function(input, output, session) {
-		#for large datasets it helps with performance if selection lists are done on the server-side
+		# nextflow report is only generated after the run has finished once, show the tab only for resumed runs
+		if (dir.exists("www")) {
+		appendTab("nav",
+			tabPanel("Nextflow Report",
+			tabsetPanel(id='tabset4',type='pills',
+				tabPanel("Execution Report",value=0,htmlOutput("nf_report")),
+				tabPanel("Timeline",value=0,htmlOutput("nf_timeline"))
+				)
+			)
+		)
+		}
+		# for large datasets it helps with performance if selection lists are done on the server-side
 		updateSelectizeInput(session, "statistics_files", choices = c(imagenames), server = TRUE)
 		updateSelectizeInput(session, "explorer_files", choices = c(imagenames), server = TRUE)
 
@@ -186,8 +191,6 @@ server <- function(input, output, session) {
 		output$nf_timeline <- renderUI({
 			tags$iframe(seamless="seamless", src="execution_timeline.html", width="100%", height=1000)
 		})
-		#if (!file.exists("www/execution_report.html") && !file.exists("www/execution_timeline.html")) hideTab("nav", "Nextflow Report")
-		if (!dir.exists("www")) hideTab("nav", "Nextflow Report")
 		session$onSessionEnded(function() {
 			stopApp()
 		})
