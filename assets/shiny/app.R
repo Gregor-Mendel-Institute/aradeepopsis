@@ -7,15 +7,15 @@ library(shinythemes)
 library(corrplot)
 
 data <- read_csv("aradeepopsis_traits.csv")
+
 imagenames <- data %>% select(file)
 dateformats <- c('%d-%m','%m-%d','%d-%m-%y','%m-%d-%y','%y-%m-%d','%y-%d-%m')
-if (file.exists('invalid_images.txt')) invalid = length(read_lines('invalid_images.txt')) else invalid = 0
-
+invalid <- ifelse(file.exists('invalid_images.txt'),length(read_lines('invalid_images.txt')),0)
 traitcount <- ncol(data) - 2 #filename and extension don't count
 imagecount <- nrow(data)
 
 # Define UI
-ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
+ui <- navbarPage(title="araDeepopsis", id="nav", theme = shinytheme("flatly"),
 		tabPanel("Rosette Carousel",
 				sliderInput("chunk", label = "Select chunk:", min = 1, max = ceiling(imagecount/60), value = 1, width = '100%', step = 1),
 				slickROutput("slickr",width='100%',height='400px') %>% withSpinner()
@@ -69,7 +69,7 @@ ui <- navbarPage(title="araDeepopsis", theme = shinytheme("flatly"),
 					),
 					varSelectizeInput("groupvar","Select column to group by", data = NULL),
 					actionButton("merge_data", "Merge data"),
-					selectizeInput("exp_traits","Select Trait:", choices = colnames(data %>% select(-file,-format)), selected = "rosette")
+					selectizeInput("exp_traits","Select Trait:", choices = colnames(data %>% select(-file,-format)), selected = "class_norm_area")
 				),
 				mainPanel(
 					tabsetPanel(id='tabset3',type='pills',
@@ -105,7 +105,7 @@ server <- function(input, output, session) {
 		output$radar = renderChartJSRadar({
 			data %>%
 				filter(file == input$explorer_files) %>%
-				select(one_of(c("rosette_area","anthocyanin_area","senescent_area"))) %>%
+				select(one_of(c("class_norm_area","class_antho_area","class_senesc_area"))) %>%
 				pivot_longer(everything(),names_to = "Label") %>% 
 				mutate(value=value/sum(value)*100) %>% 
 				chartJSRadar(.,maxScale = 100,scaleStartValue = 0,scaleStepWidth = 25,showLegend = F)
@@ -186,6 +186,8 @@ server <- function(input, output, session) {
 		output$nf_timeline <- renderUI({
 			tags$iframe(seamless="seamless", src="execution_timeline.html", width="100%", height=1000)
 		})
+		#if (!file.exists("www/execution_report.html") && !file.exists("www/execution_timeline.html")) hideTab("nav", "Nextflow Report")
+		if (!dir.exists("www")) hideTab("nav", "Nextflow Report")
 		session$onSessionEnded(function() {
 			stopApp()
 		})

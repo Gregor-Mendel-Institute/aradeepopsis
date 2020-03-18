@@ -20,9 +20,9 @@
 
 The pretrained model that is used for image segmentation. Currently, there are 3 available models that will classify pixels based on the leaf classes they were trained on:
 
-* `1`: trained on ground truth annotations for rosette leaves only
-* `2`: trained on ground truth annotations for rosette and senescent leaves
-* `3`: trained on ground truth annotations for rosette, anthocyanin-rich and senescent leaves
+* `1`: trained on ground truth annotations for ordinary leaves (class_norm) only
+* `2`: trained on ground truth annotations for ordinary (class_norm) and senescent (class_senesc) leaves
+* `3`: trained on ground truth annotations for ordinary (class_norm), and senescent (class_senesc) and anthocyanin-rich (class_antho) leaves
 
 ## --images <Path>
 

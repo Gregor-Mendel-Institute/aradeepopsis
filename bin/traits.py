@@ -14,7 +14,7 @@ def measure_traits(mask,
                    image,
                    scale_ratio,
                    file_name,
-                   label_names=['background','rosette'],
+                   label_names=['class_background','class_norm'],
                    ignore_senescence=False):
   """Calculates traits from plant rosette segmentations.
 
@@ -74,7 +74,7 @@ def measure_traits(mask,
     label_mask = create_bool_mask(mask, ignore_senescence)
 
   frame['total_area'] = mask.size
-  frame['background_area'] = np.count_nonzero(mask==0)
+  frame['class_background_area'] = np.count_nonzero(mask==0)
 
   for idx,labelclass in enumerate(label_names):
     if idx == 0:
