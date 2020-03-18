@@ -28,13 +28,13 @@ The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a
 
 ## Setting up the pipeline
 
+> Note: Windows will users have to set up the [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) first.
+
 1. Install [`Nextflow`](https://www.nextflow.io/index.html#GetStarted)
 
 2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/), [`Docker`](https://docs.docker.com/install/), [`podman`](https://podman.io/getting-started/installation) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html)
 
 3. Clone the repository: `git clone https://github.com/Gregor-Mendel-Institute/aradeepopsis`
-
-> Note: Windows will users have to set up the [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) first.
 
 ## Running the pipeline
 
@@ -67,7 +67,7 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,sing
 | [`--save_mask`](docs/parameters.md#--save_mask)| `true` | `<Boolean>` |
 | [`--save_hull`](docs/parameters.md#--save_hull) | `true` | `<Boolean>` |
 | [`--save_histogram`](docs/parameters.md#--save_histogram) | `false` | `<Boolean>` |
-| [`--summary_diagnostics`](docs/parameters.md#--summary_diagnostics) | `true` | `<Boolean>` |
+| [`--summary_diagnostics`](docs/parameters.md#--summary_diagnostics) | `false` | `<Boolean>` |
 | [`--shiny`](docs/parameters.md#--shiny) | `true` | `<Boolean>` |
 
 
