@@ -12,7 +12,6 @@
     * [`--save_mask`](#--save_mask)
     * [`--save_rosette`](#--save_rosette)
     * [`--save_hull`](#--save_hull)
-    * [`--save_histogram`](#--save_histogram)
     * [`--summary_diagnostics`](#--summary_diagnostics)
     * [`--shiny`](#--shiny)
 

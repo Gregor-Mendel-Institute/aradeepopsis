@@ -226,7 +226,6 @@ process extract_traits {
                 else if (filename.startsWith("overlay_")) "overlay/$filename"
                 else if (filename.startsWith("crop_")) "crop/$filename"
                 else if (filename.startsWith("hull_")) "convex_hull/$filename"
-                else if (filename.startsWith("histogram_")) "histogram/$filename"
                 else null
             }
 
@@ -236,7 +235,6 @@ process extract_traits {
         path('*.csv') into ch_results
         tuple val(index), val('mask'), path('mask_*') into ch_masks optional true
         tuple val(index), val('overlay'), path('overlay_*') into ch_overlays optional true
-        tuple val(index), val('histogram'), path('histogram_*') into ch_histogram optional true
         tuple val(index), val('crop'), path('crop_*') into ch_crops optional true
         tuple val(index), val('hull'), path('hull_*') into ch_hull optional true
 
@@ -266,7 +264,6 @@ for index, name in enumerate(originals.files):
                      save_overlay=${params.save_overlay.toString().capitalize()},
                      save_mask=${params.save_mask.toString().capitalize()},
                      save_rosette=${params.save_rosette.toString().capitalize()},
-                     save_histogram=${params.save_histogram.toString().capitalize()},
                      save_hull=${params.save_hull.toString().capitalize()},
                      ignore_senescence=${params.ignore_senescence.toString().capitalize()})
 """

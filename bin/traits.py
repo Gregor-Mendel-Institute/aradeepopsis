@@ -3,7 +3,6 @@
 import csv
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 
 from skimage.measure import regionprops
 from skimage.io import imsave,imread,ImageCollection
@@ -101,7 +100,6 @@ def measure_traits(mask,
     else:
       label = labelname
       label_mask = create_bool_mask(mask, label, ignore_senescence, value)
-    
 
     properties = regionprops(label_mask.astype(np.uint8))
     for trait in traitlist:
@@ -142,7 +140,6 @@ def draw_diagnostics(mask,
                      file_name,
                      save_rosette,
                      save_overlay,
-                     save_histogram,
                      save_mask,
                      save_hull,
                      ignore_senescence):
@@ -162,15 +159,6 @@ def draw_diagnostics(mask,
   colormap = np.array([[0,0,0],[31,158,137],[253,231,37],[72,40,120]])
 
   colored_mask = colormap[mask]
-
-  if save_histogram:
-    plt.figure(figsize=(2,4))
-    for idx,band in enumerate(['red','green','blue']):
-        plt.plot(np.bincount(image[:,:,idx][mask > 0]),color=band)
-    plt.axis('off')
-    plt.text(0,-20,filename)
-    plt.savefig('histogram_%s.png' % filename, bbox_inches='tight')
-    plt.close()
 
   if save_rosette:
     crop = image * (mask > 0)[...,None]

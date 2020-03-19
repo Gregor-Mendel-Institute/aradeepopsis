@@ -66,7 +66,6 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,sing
 | [`--save_overlay`](docs/parameters.md#--save_overlay) | `true` | `<Boolean>` |
 | [`--save_mask`](docs/parameters.md#--save_mask)| `true` | `<Boolean>` |
 | [`--save_hull`](docs/parameters.md#--save_hull) | `true` | `<Boolean>` |
-| [`--save_histogram`](docs/parameters.md#--save_histogram) | `false` | `<Boolean>` |
 | [`--summary_diagnostics`](docs/parameters.md#--summary_diagnostics) | `false` | `<Boolean>` |
 | [`--shiny`](docs/parameters.md#--shiny) | `true` | `<Boolean>` |
 
