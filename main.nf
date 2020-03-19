@@ -258,8 +258,8 @@ for index, name in enumerate(originals.files):
                    originals[index],
                    ratios[os.path.basename(name)],
                    os.path.basename(name),
-                   label_names=${labels},
-                   ignore_senescence=${params.ignore_senescence.toString().capitalize()})
+                   ignore_senescence=${params.ignore_senescence.toString().capitalize()},
+                   label_names=${labels})
     draw_diagnostics(masks[index],
                      originals[index],
                      os.path.basename(name),

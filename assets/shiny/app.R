@@ -85,8 +85,8 @@ server <- function(input, output, session) {
 			appendTab("nav",
 				tabPanel("Nextflow Report",
 					tabsetPanel(id='tabset4',type='pills',
-						tabPanel("Execution Report",value=0,htmlOutput("nf_report")),
-						tabPanel("Timeline",value=0,htmlOutput("nf_timeline"))
+						tabPanel("Execution Report",value=0,htmlOutput("nf_report") %>% withSpinner()),
+						tabPanel("Timeline",value=0,htmlOutput("nf_timeline") %>% withSpinner())
 					)
 				)
 			)
@@ -132,11 +132,11 @@ server <- function(input, output, session) {
 				ylab("measurement") +
 				theme_bw()
 		})
-		output$correlations <- renderPlot(width=600,height=600,{
+		output$correlations <- renderPlot(width=1000,height=1000,{
 			data %>%
 				select(-file,-format,-total_area) %>%
 				cor(use=input$correlations_type) %>%
-				corrplot(method="shade",tl.cex=0.5,tl.col="black",type="upper")
+				corrplot(method="shade",tl.cex=1.0,tl.col="black",type="upper")
 		})
 		output$meta <- renderTable(striped = TRUE,width="100px",{
 			filedata() %>% head(n=1)
