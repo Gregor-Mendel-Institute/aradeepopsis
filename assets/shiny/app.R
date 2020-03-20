@@ -5,6 +5,7 @@ library(radarchart)
 library(shinycssloaders)
 library(shinythemes)
 library(corrplot)
+library(jpeg)
 
 data <- read_csv("aradeepopsis_traits.csv")
 
@@ -28,8 +29,9 @@ ui <- navbarPage(title="araDeepopsis", id="nav", theme = shinytheme("flatly"),
 				tabsetPanel(id='tabset1',type='pills',
 					tabPanel("Overlay",value=0,imageOutput("overlay")),
 					tabPanel("Mask",value=0,imageOutput("mask")),
-					tabPanel("Rosette",value=0,imageOutput("rosette")),
 					tabPanel("Convex Hull",value=0,imageOutput("hull")),
+					tabPanel("Rosette",value=0,imageOutput("rosette")),
+					tabPanel("Color Channels",value=0,plotOutput("color") %>% withSpinner()),
 					tabPanel("Leaf Classification",value=0,chartJSRadarOutput("radar", height = "200") %>% withSpinner())
 				),
 			),
@@ -106,6 +108,23 @@ server <- function(input, output, session) {
 		})
 		output$overlay <- renderImage(deleteFile=FALSE,{
 			list(src = glue::glue("diagnostics/overlay/overlay_{input$explorer_files}.jpeg"),width=400,height=400)
+		})
+		output$color <- renderPlot({
+	    img <- readJPEG(glue::glue("diagnostics/crop/crop_{input$explorer_files}.jpeg"))
+
+	    r <- img[,,1] %>% as_tibble() %>% pivot_longer(everything()) %>% mutate(name=1)
+	    g <- img[,,2] %>% as_tibble() %>% pivot_longer(everything()) %>% mutate(name=2)
+	    b <- img[,,3] %>% as_tibble() %>% pivot_longer(everything()) %>% mutate(name=3)
+
+	    bind_rows(r,g,b) %>%
+	      mutate(channel=factor(name,labels=c('red','green','blue'))) %>%
+	      ggplot(aes(x=value*255,fill=channel),alpha=0.5,color="black") +
+	      geom_histogram(position="dodge",bins=30,col="black") +
+	      theme_bw() +
+	      facet_wrap(~channel,ncol=1) +
+	      scale_x_continuous(breaks=c(0,255),limits=c(1,255)) +
+	      xlab("pixel value") +
+	      theme(legend.position = "None")
 		})
 		output$radar = renderChartJSRadar({
 			data %>%

@@ -13,4 +13,5 @@ dependencies:
   - conda-forge::r-shinycssloaders=0.3
   - conda-forge::r-slickr=0.4.9
   - conda-forge::r-corrplot=0.84
+  - conda-forge::r-jpeg=0.1_8.1 
   - r::r-radarchart=0.3.1
