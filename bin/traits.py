@@ -105,7 +105,7 @@ def measure_traits(mask,
     for trait in traitlist:
       try:
         traits[f'{label}_{trait}'] = properties[0][trait]
-      except IndexError:
+      except (IndexError, ValueError):
         traits[f'{label}_{trait}'] = 0 if 'area' in trait else 'NA'
 
     return traits
