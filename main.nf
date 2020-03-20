@@ -309,7 +309,7 @@ process launch_shiny {
     when:
         params.shiny
     script:
-        log.info"""
+        log.error"""
         Visit the shiny server running at ${"http://"+"hostname -i".execute().text.trim()+':44333'} to inspect the results.
         Closing the browser window will terminate the pipeline.
         """.stripIndent()
