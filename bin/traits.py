@@ -196,7 +196,7 @@ def create_bool_mask(mask, label, ignore_senescence, value):
   Args:
     mask: Array representing a mask with integer labels
     ignore_senescence: Boolean, whether to exclude senescent class label.
-    value: Integer, pixel value to exclude. Defaults to 2 for senescence class.
+    value: Integer, pixel value to exclude.
     label: String, which label to return. 'plant_region' returns mask for whole plant.
   Returns:
     Array of type numpy.bool_

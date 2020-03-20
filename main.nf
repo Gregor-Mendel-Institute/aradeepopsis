@@ -106,65 +106,65 @@ process build_records {
         tuple val(index), path('ratios.p'), path('images/*', includeInputs: true) into ch_images_traits
         path('*.txt') into invalid_images optional true
     script:
-"""
-#!/usr/bin/env python
+        """
+        #!/usr/bin/env python
 
-import logging
-import os
-import pickle
+        import logging
+        import os
+        import pickle
 
-import tensorflow as tf
+        import tensorflow as tf
 
-from data_record import create_record
+        from data_record import create_record
 
-logger = tf.get_logger()
-logger.propagate = False
-logger.setLevel('INFO')
+        logger = tf.get_logger()
+        logger.propagate = False
+        logger.setLevel('INFO')
 
-images = tf.io.gfile.glob('images/*')
+        images = tf.io.gfile.glob('images/*')
 
-count = len(images)
-invalid = 0
-scale_factors = {}
+        count = len(images)
+        invalid = 0
+        scale_factors = {}
 
-with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
-    for i in range(count):
-        filename = os.path.basename(images[i])
-        image_data = tf.io.gfile.GFile(images[i], 'rb').read()
-        try:
-            image = tf.io.decode_image(image_data, channels=3)
-        except tf.errors.InvalidArgumentError:
-            logger.info("%s is either corrupted or not a supported image format" % filename)
-            invalid += 1
-            with open("invalid.txt", "a") as broken:
-                broken.write(f'{filename}\\n')
-            continue
+        with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
+            for i in range(count):
+                filename = os.path.basename(images[i])
+                image_data = tf.io.gfile.GFile(images[i], 'rb').read()
+                try:
+                    image = tf.io.decode_image(image_data, channels=3)
+                except tf.errors.InvalidArgumentError:
+                    logger.info("%s is either corrupted or not a supported image format" % filename)
+                    invalid += 1
+                    with open("invalid.txt", "a") as broken:
+                        broken.write(f'{filename}\\n')
+                    continue
 
-        height, width = image.shape[:2]
-        max_dimension = 602
-        ratio = 1.0
+                height, width = image.shape[:2]
+                max_dimension = 602
+                ratio = 1.0
 
-        if height * width > max_dimension**2:
-            logger.info('%s: dimensions %d x %d are too large,' % (filename, height, width))
-            ratio = max(height,width)/max_dimension
-            new_height = int(height/ratio)
-            new_width = int(width/ratio)
-            logger.info('%s: resized to %d x %d (scale factor:%f)' % (filename, new_height, new_width, ratio))
-            image = tf.image.resize(image, size=[new_height,new_width], preserve_aspect_ratio=False, antialias=True)
-            image_data = tf.image.encode_png(tf.cast(image, tf.uint8)).numpy()
-            tf.io.write_file(os.path.join(f'images/{filename}'), image_data)
+                if height * width > max_dimension**2:
+                    logger.info('%s: dimensions %d x %d are too large,' % (filename, height, width))
+                    ratio = max(height,width)/max_dimension
+                    new_height = int(height/ratio)
+                    new_width = int(width/ratio)
+                    logger.info('%s: resized to %d x %d (scale factor:%f)' % (filename, new_height, new_width, ratio))
+                    image = tf.image.resize(image, size=[new_height,new_width], preserve_aspect_ratio=False, antialias=True)
+                    image_data = tf.image.encode_png(tf.cast(image, tf.uint8)).numpy()
+                    tf.io.write_file(os.path.join(f'images/{filename}'), image_data)
 
-        scale_factors[filename] = ratio
-        record = create_record(image_data=image_data,
-                               filename=filename,
-                               height=height,
-                               width=width,
-                               ratio=ratio)
+                scale_factors[filename] = ratio
+                record = create_record(image_data=image_data,
+                                    filename=filename,
+                                    height=height,
+                                    width=width,
+                                    ratio=ratio)
 
-        writer.write(record.SerializeToString())
+                writer.write(record.SerializeToString())
 
-pickle.dump(scale_factors, open("ratios.p", "wb"))
-"""
+        pickle.dump(scale_factors, open("ratios.p", "wb"))
+        """
 }
 
 invalid_images
@@ -178,45 +178,45 @@ process run_predictions {
         tuple val(index), path('*.png') into ch_predictions
 
     script:
-"""
-#!/usr/bin/env python
+        """
+        #!/usr/bin/env python
 
-import logging
+        import logging
 
-import tensorflow as tf
+        import tensorflow as tf
 
-from data_record import parse_record
-from frozen_graph import wrap_frozen_graph
+        from data_record import parse_record
+        from frozen_graph import wrap_frozen_graph
 
-logger = tf.get_logger()
-logger.propagate = False
-logger.setLevel('INFO')
+        logger = tf.get_logger()
+        logger.propagate = False
+        logger.setLevel('INFO')
 
-with tf.io.gfile.GFile('${model}', "rb") as f:
-    graph_def = tf.compat.v1.GraphDef()
-    graph_def.ParseFromString(f.read())
+        with tf.io.gfile.GFile('${model}', "rb") as f:
+            graph_def = tf.compat.v1.GraphDef()
+            graph_def.ParseFromString(f.read())
 
-predict = wrap_frozen_graph(
-    graph_def,
-    inputs='ImageTensor:0',
-    outputs='SemanticPredictions:0')
+        predict = wrap_frozen_graph(
+            graph_def,
+            inputs='ImageTensor:0',
+            outputs='SemanticPredictions:0')
 
-dataset = (
-    tf.data.TFRecordDataset('${shard}')
-    .map(parse_record)
-    .batch(1)
-    .prefetch(1)
-    .enumerate(start=1))
+        dataset = (
+            tf.data.TFRecordDataset('${shard}')
+            .map(parse_record)
+            .batch(1)
+            .prefetch(1)
+            .enumerate(start=1))
 
-size = len(list(dataset))
+        size = len(list(dataset))
 
-for index, sample in dataset:
-    filename = sample['filename'].numpy()[0].decode('utf-8')
-    logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
-    raw_segmentation = predict(sample['original'])[0][:, :, None]
-    output = tf.image.encode_png(tf.cast(raw_segmentation, tf.uint8))
-    tf.io.write_file(filename.rsplit('.', 1)[0] + '.png',output)
-"""
+        for index, sample in dataset:
+            filename = sample['filename'].numpy()[0].decode('utf-8')
+            logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
+            raw_segmentation = predict(sample['original'])[0][:, :, None]
+            output = tf.image.encode_png(tf.cast(raw_segmentation, tf.uint8))
+            tf.io.write_file(filename.rsplit('.', 1)[0] + '.png',output)
+        """
 }
 
 process extract_traits {
@@ -239,34 +239,34 @@ process extract_traits {
         tuple val(index), val('hull'), path('hull_*') into ch_hull optional true
 
     script:
-"""
-#!/usr/bin/env python
+        """
+        #!/usr/bin/env python
 
-import os
-import pickle
+        import os
+        import pickle
 
-from traits import measure_traits, draw_diagnostics, load_images
+        from traits import measure_traits, draw_diagnostics, load_images
 
-ratios = pickle.load(open('ratios.p',"rb"))
+        ratios = pickle.load(open('ratios.p',"rb"))
 
-masks, originals = load_images()
+        masks, originals = load_images()
 
-for index, name in enumerate(originals.files):
-    measure_traits(masks[index],
-                   originals[index],
-                   ratios[os.path.basename(name)],
-                   os.path.basename(name),
-                   ignore_senescence=${params.ignore_senescence.toString().capitalize()},
-                   label_names=${labels})
-    draw_diagnostics(masks[index],
-                     originals[index],
-                     os.path.basename(name),
-                     save_overlay=${params.save_overlay.toString().capitalize()},
-                     save_mask=${params.save_mask.toString().capitalize()},
-                     save_rosette=${params.save_rosette.toString().capitalize()},
-                     save_hull=${params.save_hull.toString().capitalize()},
-                     ignore_senescence=${params.ignore_senescence.toString().capitalize()})
-"""
+        for index, name in enumerate(originals.files):
+            measure_traits(masks[index],
+                        originals[index],
+                        ratios[os.path.basename(name)],
+                        os.path.basename(name),
+                        ignore_senescence=${params.ignore_senescence.toString().capitalize()},
+                        label_names=${labels})
+            draw_diagnostics(masks[index],
+                            originals[index],
+                            os.path.basename(name),
+                            save_overlay=${params.save_overlay.toString().capitalize()},
+                            save_mask=${params.save_mask.toString().capitalize()},
+                            save_rosette=${params.save_rosette.toString().capitalize()},
+                            save_hull=${params.save_hull.toString().capitalize()},
+                            ignore_senescence=${params.ignore_senescence.toString().capitalize()})
+        """
 }
 
 process draw_diagnostics {
@@ -285,12 +285,12 @@ process draw_diagnostics {
         params.summary_diagnostics
 
     script:
-def polaroid = params.polaroid ? '+polaroid' : ''
-"""
-#!/usr/bin/env bash
+        def polaroid = params.polaroid ? '+polaroid' : ''
+        """
+        #!/usr/bin/env bash
 
-montage * -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%t' -fill white ${polaroid} "${type}_chunk_${index}.jpeg"
-"""
+        montage * -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%t' -fill white ${polaroid} "${type}_chunk_${index}.jpeg"
+        """
 }
 
 ch_results
@@ -309,11 +309,11 @@ process launch_shiny {
     when:
         params.shiny
     script:
-    log.info"""
-    Visit the shiny server running at ${"http://"+"hostname -i".execute().text.trim()+':44333'} to inspect the results.
-    Closing the browser window will terminate the pipeline.
-    """.stripIndent()
-"""
-R -e "shiny::runApp('${app}', port=44333, host='0.0.0.0')"
-"""
+        log.info"""
+        Visit the shiny server running at ${"http://"+"hostname -i".execute().text.trim()+':44333'} to inspect the results.
+        Closing the browser window will terminate the pipeline.
+        """.stripIndent()
+        """
+        R -e "shiny::runApp('${app}', port=44333, host='0.0.0.0')"
+        """
 }
