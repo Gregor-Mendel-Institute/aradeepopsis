@@ -5,6 +5,7 @@ library(radarchart)
 library(shinycssloaders)
 library(shinythemes)
 library(corrplot)
+library(jpeg)
 
 data <- read_csv("aradeepopsis_traits.csv")
 
@@ -28,8 +29,9 @@ ui <- navbarPage(title="araDeepopsis", id="nav", theme = shinytheme("flatly"),
 				tabsetPanel(id='tabset1',type='pills',
 					tabPanel("Overlay",value=0,imageOutput("overlay")),
 					tabPanel("Mask",value=0,imageOutput("mask")),
-					tabPanel("Rosette",value=0,imageOutput("rosette")),
 					tabPanel("Convex Hull",value=0,imageOutput("hull")),
+					tabPanel("Rosette",value=0,imageOutput("rosette")),
+					tabPanel("Color Channels",value=0,plotOutput("color") %>% withSpinner()),
 					tabPanel("Leaf Classification",value=0,chartJSRadarOutput("radar", height = "200") %>% withSpinner())
 				),
 			),
@@ -85,8 +87,8 @@ server <- function(input, output, session) {
 			appendTab("nav",
 				tabPanel("Nextflow Report",
 					tabsetPanel(id='tabset4',type='pills',
-						tabPanel("Execution Report",value=0,htmlOutput("nf_report")),
-						tabPanel("Timeline",value=0,htmlOutput("nf_timeline"))
+						tabPanel("Execution Report",value=0,htmlOutput("nf_report") %>% withSpinner()),
+						tabPanel("Timeline",value=0,htmlOutput("nf_timeline") %>% withSpinner())
 					)
 				)
 			)
@@ -106,6 +108,23 @@ server <- function(input, output, session) {
 		})
 		output$overlay <- renderImage(deleteFile=FALSE,{
 			list(src = glue::glue("diagnostics/overlay/overlay_{input$explorer_files}.jpeg"),width=400,height=400)
+		})
+		output$color <- renderPlot({
+	    img <- readJPEG(glue::glue("diagnostics/crop/crop_{input$explorer_files}.jpeg"))
+
+	    r <- img[,,1] %>% as_tibble() %>% pivot_longer(everything()) %>% mutate(name=1)
+	    g <- img[,,2] %>% as_tibble() %>% pivot_longer(everything()) %>% mutate(name=2)
+	    b <- img[,,3] %>% as_tibble() %>% pivot_longer(everything()) %>% mutate(name=3)
+
+	    bind_rows(r,g,b) %>%
+	      mutate(channel=factor(name,labels=c('red','green','blue'))) %>%
+	      ggplot(aes(x=value*255,fill=channel),alpha=0.5,color="black") +
+	      geom_histogram(position="dodge",bins=30,col="black") +
+	      theme_bw() +
+	      facet_wrap(~channel,ncol=1) +
+	      scale_x_continuous(breaks=c(0,255),limits=c(1,255)) +
+	      xlab("pixel value") +
+	      theme(legend.position = "None")
 		})
 		output$radar = renderChartJSRadar({
 			data %>%
@@ -132,11 +151,11 @@ server <- function(input, output, session) {
 				ylab("measurement") +
 				theme_bw()
 		})
-		output$correlations <- renderPlot(width=600,height=600,{
+		output$correlations <- renderPlot(width=1000,height=1000,{
 			data %>%
 				select(-file,-format,-total_area) %>%
 				cor(use=input$correlations_type) %>%
-				corrplot(method="shade",tl.cex=0.5,tl.col="black",type="upper")
+				corrplot(method="shade",tl.cex=1.0,tl.col="black",type="upper")
 		})
 		output$meta <- renderTable(striped = TRUE,width="100px",{
 			filedata() %>% head(n=1)
