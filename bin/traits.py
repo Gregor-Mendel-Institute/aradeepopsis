@@ -106,7 +106,8 @@ def measure_traits(mask,
       try:
         traits[f'{label}_{trait}'] = properties[0][trait]
       except (IndexError, ValueError):
-        traits[f'{label}_{trait}'] = 0 if 'area' in trait else 'NA'
+        traits[f'{label}_{trait}'] = 0 if 'area' in trait else np.nan
+    traits[f'{label}_aspect_ratio'] = traits[f'{label}_major_axis_length'] / traits[f'{label}_minor_axis_length']
 
     return traits
 

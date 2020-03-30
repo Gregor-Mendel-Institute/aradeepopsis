@@ -69,6 +69,10 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,sing
 | [`--summary_diagnostics`](docs/parameters.md#--summary_diagnostics) | `false` | `<Boolean>` |
 | [`--shiny`](docs/parameters.md#--shiny) | `true` | `<Boolean>` |
 
+## Pipeline [Output](docs/output.md)
+
+The pipeline computes a total of 78 morphometric and color-related traits from the analysed images.
+A description of all traits is available [here](docs/output.md#Trait-table).
 
 # References
 
