@@ -1,6 +1,6 @@
 # Output directory structure
 
-These files will be created in the directory specified with the `--outdir` parameter`
+These files will be created in the directory specified with the `--outdir` parameter
 
  * [app.R](#Shiny-app)
  * [aradeepopsis_traits.csv](#Trait-table)
@@ -20,9 +20,9 @@ These files will be created in the directory specified with the `--outdir` param
 
 The Shiny app that is automatically launched at the end of a pipeline run. It allows to interactively explore pipeline results.
 
-> Note that the shiny app can also be run manually as described [here](parameters.md#--shiny).
+![Shiny screenshot](img/shiny_screenshot.jpeg)
 
-![Shiny screenshot](img/shiny-screenshot.jpeg)
+> Note that the shiny app can also be run manually as described [here](parameters.md#--shiny).
 
 ## Trait table
 
@@ -44,7 +44,7 @@ Traits are calculated per class and within the plant region that, by default, in
 
 ### Color channel quantification
 
-These traits are based on the color channel information of the original plant images within the region of the segmented mask. Color Indices are calculated as described in [Del Valle et al. 2018](https://doi.org/10.1002/ece3.3804).
+These traits are based on the color channel information of the original plant images within the region of the segmented mask. Color indices are calculated as described in [Del Valle et al. 2018](https://doi.org/10.1002/ece3.3804).
 
 #### {class_norm|class_senesc|class_antho|plant_region}_{red|green|blue}_channel
 
