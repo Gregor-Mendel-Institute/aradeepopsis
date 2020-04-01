@@ -57,8 +57,8 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,sing
 
 | Parameter | Default value | Type |
 | ------------- | ------------- | ------------- |
-| [`--model`](docs/parameters.md#--model)  | `3` | `<Integer>` |
-| [`--images`](docs/parameters.md#--images) | `true` | `<Boolean>` |
+| [`--model`](docs/parameters.md#--model)  | `C` | `<Character>` |
+| [`--images`](docs/parameters.md#--images) | `None` | `<Path>` |
 | [`--multiscale`](docs/parameters.md#--multiscale)| `false` | `<Boolean>` |
 | [`--chunksize`](docs/parameters.md#--chunksize) | `10` | `<Integer>` |
 | [`--ignore_senescence`](docs/parameters.md#--ignore_senescence) | `true` | `<Boolean>` |

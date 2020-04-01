@@ -15,64 +15,64 @@
     * [`--summary_diagnostics`](#--summary_diagnostics)
     * [`--shiny`](#--shiny)
 
-## --model <Integer>
+## --model `<Character`
 
 The pretrained model that is used for image segmentation. Currently, there are 3 available models that will classify pixels based on the leaf classes they were trained on:
 
-* `1`: trained on ground truth annotations for ordinary leaves (class_norm) only
-* `2`: trained on ground truth annotations for ordinary (class_norm) and senescent (class_senesc) leaves
-* `3`: trained on ground truth annotations for ordinary (class_norm), and senescent (class_senesc) and anthocyanin-rich (class_antho) leaves
+* `A`: trained on ground truth annotations for ordinary leaves (class_norm) only
+* `B`: trained on ground truth annotations for ordinary (class_norm) and senescent (class_senesc) leaves
+* `C`: trained on ground truth annotations for ordinary (class_norm), and senescent (class_senesc) and anthocyanin-rich (class_antho) leaves
 
-## --images <Path>
+## --images `<Path>`
 
 Path to the images to be analysed. Supported image formats include PNG and JPEG.
 
 > Note that the path has to be enclosed in quotes and include a glob pattern that matches the images e.g. `--images '/path/to/images/*png'`
 
-## --multiscale <Boolean>
+## --multiscale `<Boolean>`
 
 Specifies whether the input image is scaled during model prediction. This yields higher accuracy at the cost of higher computational demand.
 
-## --chunksize <Integer>
+## --chunksize `<Integer>`
 
 The number of images in each chunk, determining the degree of parallelization.
 The smaller the chunksize, the more jobs will be spawned.
 
-## --ignore_senescence <Boolean>
+## --ignore_senescence `<Boolean>`
 
 Ignore senescent class when calculating morphometric traits, focussing on living tissue only.
 
-> Note that this only affects models `2` & `3` 
+> Note that this only affects models `B` & `C` 
 
-## --outdir <Integer>
+## --outdir `<Integer>`
 
 The directory that results will be saved to.
 
-## --save_overlay <Boolean>
+## --save_overlay `<Boolean>`
 
 Save overlays of the original images with the segmentation masks to the results directory.
 
-## --save_mask <Boolean>
+## --save_mask `<Boolean>`
 
 Save the segmentation masks to the results directory.
 
-## --save_rosette <Boolean>
+## --save_rosette `<Boolean>`
 
 Save rosette images that were cropped to the region of interest to the results directory.
 
-## --save_hull <Boolean>
+## --save_hull `<Boolean>`
 
 Save convex hull images to the results directory.
 
-## --summary_diagnostics <Boolean>
+## --summary_diagnostics `<Boolean>`
 
 Merge individual overlays, masks and rosette images into larger summaries that allow for quick inspection of results.
 
-## --shiny <Boolean>
+## --shiny `<Boolean>`
 
 Launch a [Shiny](https://shiny.rstudio.com/) app in the last step of the pipeline, allowing for interactive inspection of results. 
 
-## --shiny <Boolean>
+## --shiny `<Boolean>`
 
 Launch a [Shiny](https://shiny.rstudio.com/) app in the last step of the pipeline, allowing for interactive inspection of results. 
 
