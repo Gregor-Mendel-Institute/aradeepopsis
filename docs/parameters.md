@@ -15,7 +15,7 @@
     * [`--summary_diagnostics`](#--summary_diagnostics)
     * [`--shiny`](#--shiny)
 
-## --model `<Character`
+## --model `<Character>`
 
 The pretrained model that is used for image segmentation. Currently, there are 3 available models that will classify pixels based on the leaf classes they were trained on:
 
