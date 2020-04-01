@@ -1,3 +1,5 @@
+# ![araDeepopsis](assets/logo/logo.png)
+
 ![](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
 [![Docker](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20build/badge.svg)](https://hub.docker.com/r/beckerlab/aradeepopsis/)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.01.0-important.svg)](https://www.nextflow.io/)
