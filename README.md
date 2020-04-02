@@ -14,18 +14,31 @@ The code that was used for training as well as download links for the training d
 
 # How it works
 
+![Models](docs/img/pipeline_graph.png)
+
 The pipeline is implemented using open source software such as [`Nextflow`](https://www.nextflow.io/)<sup>[[2]](#ref2)</sup>, [`TensorFlow`](https://www.tensorflow.org/)<sup>[[3]](#ref3)</sup>, [`ImageMagick`](https://imagemagick.org), [`scikit-image`](https://scikit-image.org/)<sup>[[4]](#ref4)</sup> and [`shiny`](https://shiny.rstudio.com/)<sup>[[5]](#ref5)</sup>.
-
-Once the pipeline is fed with images of single plants, it converts the images into chunks of arbitrary size by saving the image data into an [IO-optimized binary file format](https://www.tensorflow.org/tutorials/load_data/tfrecord). These file records are then, in parallel, served to the deep learning model, allowing for pixel-by-pixel classification of the image data. The pipeline in turn extracts relevant phenotypic information such as:
-
-* plant area
-* degree of senescence and anthocyanin accumulation
-* color composition
-* a variety of morphometric traits that are informative about growth performance and development
 
 The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a [Docker container](https://www.docker.com/resources/what-container) to resolve dependencies, ensuring a high level of reproducibility and portability. It is largely platform independent and scales from Personal Computers to High Performance Computing (HPC) infrastructure, allowing for time efficient analysis of hundreds of thousands of images within a day.
 
 > Note: To ensure reproducibility, it is recommended to use the provided [container image](https://hub.docker.com/r/beckerlab/aradeepopsis/).
+
+Once the pipeline is fed with images of single plants, it converts the images into chunks of arbitrary size by saving the image data into an [IO-optimized binary file format](https://www.tensorflow.org/tutorials/load_data/tfrecord).
+
+These file records are then, in parallel, served to a deep learning model, allowing for pixel-by-pixel classification of the image data.
+
+Three distinct [models](docs/parameters.md#--model) are available and should be chosen according to the research interest.
+
+![Models](docs/img/example_models.png)
+
+Depending on the model of choice, the pipeline extracts relevant phenotypic information such as:
+
+* plant area (`model A/B/C`)
+* area of senescent/necrotic tissue (`model B/C`)
+* area of anthocyanin-rich tissue (`model C`)
+* color composition and color indices as described by [Del Valle et al. 2018](https://doi.org/10.1002/ece3.3804)<sup>[[6]](#ref6)</sup> for each class supported by the respective model
+* a variety of morphometric traits for each class supported by the respective model
+
+![Traits](docs/img/traits.png)
 
 # Usage
 
@@ -83,6 +96,8 @@ A description of all traits is available [here](docs/output.md#Trait-table).
 
 > <a name="ref3">[3]</a> **TensorFlow: Large-scale machine learning on heterogeneous systems.**<br />Martín Abadi, Ashish Agarwal, Paul Barham, Eugene Brevdo, Zhifeng Chen, Craig Citro, Greg S. Corrado, Andy Davis, Jeffrey Dean, Matthieu Devin, Sanjay Ghemawat, Ian Goodfellow, Andrew Harp, Geoffrey Irving, Michael Isard, Rafal Jozefowicz, Yangqing Jia,Lukasz Kaiser, Manjunath Kudlur, Josh Levenberg, Dan Mané, Mike Schuster, Rajat Monga, Sherry Moore, Derek Murray, Chris Olah, Jonathon Shlens, Benoit Steiner, Ilya Sutskever, Kunal Talwar, Paul Tucker, Vincent Vanhoucke, Vijay Vasudevan, Fernanda Viégas, Oriol Vinyals, Pete Warden, Martin Wattenberg, Martin Wicke, Yuan Yu, and Xiaoqiang Zheng, 2015
 
-> <a name="ref4">[4]</a> **scikit-image: Image processing in Python.**<br />Stéfan van der Walt, Johannes L. Schönberger, Juan Nunez-Iglesias, François Boulogne, Joshua D. Warner, Neil Yager, Emmanuelle Gouillart, Tony Yu and the scikit-image contributors. PeerJ 2:e453 (2014) 
+> <a name="ref4">[4]</a> **scikit-image: Image processing in Python.**<br />Stéfan van der Walt, Johannes L. Schönberger, Juan Nunez-Iglesias, François Boulogne, Joshua D. Warner, Neil Yager, Emmanuelle Gouillart, Tony Yu and the scikit-image contributors. PeerJ 2:e453 (2014)
 
 > <a name="ref5">[5]</a> **shiny: Easy web applications in R**<br />Rstudio Inc. (2014)
+
+> <a name="ref6">[6]</a> **Digital photography provides a fast, reliable, and noninvasive method to estimate anthocyanin pigment concentration in reproductive and vegetative plant tissues**<br />Del Valle JC, Gallardo-López A, Buide ML, Whittall JB, Narbona E, 2018. Ecol Evol. 8(6):3064–76.

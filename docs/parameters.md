@@ -23,6 +23,8 @@ The pretrained model that is used for image segmentation. Currently, there are 3
 * `B`: trained on ground truth annotations for ordinary (class_norm) and senescent (class_senesc) leaves
 * `C`: trained on ground truth annotations for ordinary (class_norm), and senescent (class_senesc) and anthocyanin-rich (class_antho) leaves
 
+![Models](img/example_models.png)
+
 ## --images
 
 Path to the images to be analysed. Supported image formats include PNG and JPEG.
