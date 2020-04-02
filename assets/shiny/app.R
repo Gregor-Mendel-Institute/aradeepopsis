@@ -23,10 +23,12 @@ library(shinythemes)
 library(corrplot)
 library(jpeg)
 
+# raise file upload limit to 20MB
+options(shiny.maxRequestSize=20*1024^2)
+
 data <- read_csv("aradeepopsis_traits.csv")
 
 imagenames <- data %>% select(file)
-dateformats <- c('%d-%m','%m-%d','%d-%m-%y','%m-%d-%y','%y-%m-%d','%y-%d-%m')
 invalid <- ifelse(file.exists('invalid_images.txt'),length(read_lines('invalid_images.txt')),0)
 traitcount <- ncol(data) - 2 # exclude filename and suffix
 imagecount <- nrow(data)
@@ -81,17 +83,19 @@ ui <- navbarPage(title="araDeepopsis", id="nav", theme = shinytheme("flatly"),
 				fileInput("metadata_table",label = "Select file"),
 				div(style = "overflow-x:scroll;", tableOutput("meta")),
 				varSelectizeInput("file","Select column containing the filename", data = NULL),
-				splitLayout(cellArgs = list(style = "overflow:visible;"),
-					varSelectizeInput("date","Select column containing the date", data = NULL),
-					selectizeInput("date_format","Select format",choices=NULL)
-				),
+				varSelectizeInput("date","Select column containing the timestamp", data = NULL),
+				textInput("date_format","Enter timestamp format",value="%y-%m-%d"),
 				varSelectizeInput("groupvar","Select column to group by", data = NULL),
-				actionButton("merge_data", "Merge data"),
-				selectizeInput("exp_traits","Select Trait:", choices = colnames(data %>% select(-file,-format)), selected = "class_norm_area")
+				actionButton("merge_data", "Analyze!"),
+				conditionalPanel(
+				  condition="input.tabset3 > 0",
+				  selectizeInput("exp_traits","Select Trait:", choices = colnames(data %>% select(-file,-format)), selected = "class_norm_area")
+				)
 			),
 			mainPanel(
 				tabsetPanel(id='tabset3',type='pills',
-							tabPanel("Traits over time",value=0,plotOutput("timeline") %>% withSpinner())
+							tabPanel("Leaf states over time",value=0,plotOutput("leafstates") %>% withSpinner()),
+							tabPanel("Traits over time",value=1,plotOutput("timeline") %>% withSpinner())
 				)
 			)
 		)
@@ -180,27 +184,63 @@ server <- function(input, output, session) {
 		filedata <- eventReactive(input$metadata_table,{
 			metafile <- input$metadata_table
 			req(metafile)
-			table <- read_csv(metafile$datapath)
+			table <- read_csv(metafile$datapath,col_types = cols(.default = "c"))
 			columns = colnames(table)
 			updateSelectizeInput(session, "file", choices = columns)
 			updateSelectizeInput(session, "date", choices = columns)
-			updateSelectizeInput(session, "date_format", choices = dateformats)
 			updateSelectizeInput(session, "groupvar", choices = columns)
 			table
 		})
 		joined <- eventReactive(input$merge_data,{
 			filedata() %>%
-				rename(file := !!input$file) %>% 
+				mutate(file := !!input$file) %>%
+				mutate(groupVar := as.factor(!!input$groupvar)) %>%
 				mutate_at(.,.vars=vars(file),.funs=~tools::file_path_sans_ext(basename(.))) %>% 
-				right_join(.,data) %>% 
-				mutate(date = !!input$date %>% lubridate::parse_date_time(.,orders = input$date_format)) %>% 
-				group_by(!!input$groupvar)
+				right_join(.,data, by="file") %>%
+				mutate(dateVar := !!input$date %>% lubridate::parse_date_time(.,orders = input$date_format))
 		})
 		output$timeline <- renderPlot({
-			joined() %>% ggplot(aes_string(x='date',y=input$exp_traits,colour=quo(as.factor(!!input$groupvar)))) +
-				stat_summary() +
-				scale_color_viridis_d() +
+			joined() %>%
+		    select(dateVar,groupVar,trait := !!input$exp_traits) %>%
+		    ggplot(aes(x=dateVar,y=trait,colour=groupVar)) +
+		    stat_summary(geom="line") +
+		    stat_summary(geom="pointrange") +
+				scale_color_viridis_d(option="A") +
+		    labs(x="time",y="trait value",colour=element_blank()) +
 				theme_bw()
+		})
+		output$leafstates <- renderPlot({
+		  joined() %>%
+		    select(file_name,groupVar,dateVar,matches("norm_area|antho_area|senesc_area")) %>%
+		    pivot_longer(starts_with("class_"),names_to = "state") %>%
+		    group_by(groupVar,dateVar,file_name) %>%
+		    mutate(relativeFrac=value/sum(value)) %>%
+		    ggplot(aes(x = dateVar, y = relativeFrac, colour=state)) +
+		    stat_summary(geom="line") +
+		    stat_summary(geom="pointrange") +
+		    scale_color_manual(values = c("class_norm_area" = rgb(31,158,137, maxColorValue = 255),
+		                                  "class_antho_area" = rgb(72,40,120, maxColorValue = 255),
+		                                  "class_senesc_area" =  rgb(253,231,37, maxColorValue = 255))) +
+		    scale_y_continuous(labels = scales::percent) +
+		    labs(x="time",y="% of plant area",colour=element_blank()) +
+		    theme_bw()
+		})
+		# show a description if Rosette Experiment is selected
+		observeEvent(input$nav,{
+			if(input$nav == "Rosette Experiment") {
+				showModal(
+					modalDialog(
+						title="Experimental feature!",
+						HTML("This feature is meant to add metadata to the pipeline result, allowing to visualize traits over time.<br>
+						It requires a table with metadata in csv format.<br>
+						Such metadata has to contain one row per input image and columns with the following information:<br>
+						- filename of the original image<br>
+						- timestamp when the image was recorded<br>
+						- <a href='https://rdrr.io/r/base/strptime.html'>format</a> of the timestamp<br>
+						- variable by which the result should be grouped (such as a genotype ID)")
+					)
+				)
+			}
 		})
 
 		output$info <- renderText({
