@@ -1,3 +1,5 @@
+# ![araDeepopsis](assets/logo/logo.png)
+
 ![](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
 [![Docker](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20build/badge.svg)](https://hub.docker.com/r/beckerlab/aradeepopsis/)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.01.0-important.svg)](https://www.nextflow.io/)
@@ -8,6 +10,7 @@
 araDeepopsis is a software tool that enables plant researchers to non-invasively score plant growth, biomass accumulation and senescence from image data in a highly parallelized, high throughput, yet easy to use manner.
 
 It is built upon the published, convolutional neural network (CNN) [DeepLabv3+](https://github.com/tensorflow/models/tree/master/research/deeplab)<sup>[[1]](#ref1)</sup> that serves the task of semantic image segmentation. A [pretrained checkpoint](http://download.tensorflow.org/models/deeplabv3_xception_2018_01_04.tar.gz) of this model has been trained upon using manually annotated top-view images of *Arabidopsis thaliana* plants of different ages.
+The code that was used for training as well as download links for the training datasets can be found [here](https://github.com/phue/models/tree/aradeepopsis_manuscript/research/deeplab).
 
 # How it works
 
@@ -34,14 +37,12 @@ The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a
 
 2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/), [`Docker`](https://docs.docker.com/install/), [`podman`](https://podman.io/getting-started/installation) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html)
 
-3. Clone the repository: `git clone https://github.com/Gregor-Mendel-Institute/aradeepopsis`
-
 ## Running the pipeline
 
 To run the pipeline you have to provide single-pot plant images:
 
 ```bash
-nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile {conda|docker|podman|singularity}
+nextflow run Gregor-Mendel-Institute/aradeepopsis --images 'path/to/images/*{png|jpg}' -profile {conda|docker|podman|singularity}
 ```
 
 ### Example to run on the CBE cluster using Singularity
@@ -50,15 +51,15 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile {conda|d
 module load singularity/3.4.1
 module load nextflow/19.10.0
 
-nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,singularity
+nextflow run Gregor-Mendel-Institute/aradeepopsis --images 'path/to/images/*{png|jpg}' -profile cbe,singularity
 ```
 
 ## Default [Parameters](docs/parameters.md)
 
 | Parameter | Default value | Type |
 | ------------- | ------------- | ------------- |
-| [`--model`](docs/parameters.md#--model)  | `3` | `<Integer>` |
-| [`--images`](docs/parameters.md#--images) | `true` | `<Boolean>` |
+| [`--model`](docs/parameters.md#--model)  | `C` | `<Character>` |
+| [`--images`](docs/parameters.md#--images) | `None` | `<Path>` |
 | [`--multiscale`](docs/parameters.md#--multiscale)| `false` | `<Boolean>` |
 | [`--chunksize`](docs/parameters.md#--chunksize) | `10` | `<Integer>` |
 | [`--ignore_senescence`](docs/parameters.md#--ignore_senescence) | `true` | `<Boolean>` |

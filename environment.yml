@@ -1,4 +1,4 @@
-name: aradeepopsis
+name: aradeepopsis-v1.0
 channels:
   - conda-forge
   - r
