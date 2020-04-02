@@ -36,14 +36,12 @@ The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a
 
 2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/), [`Docker`](https://docs.docker.com/install/), [`podman`](https://podman.io/getting-started/installation) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html)
 
-3. Clone the repository: `git clone https://github.com/Gregor-Mendel-Institute/aradeepopsis`
-
 ## Running the pipeline
 
 To run the pipeline you have to provide single-pot plant images:
 
 ```bash
-nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile {conda|docker|podman|singularity}
+nextflow run Gregor-Mendel-Institute/aradeepopsis --images 'path/to/images/*{png|jpg}' -profile {conda|docker|podman|singularity}
 ```
 
 ### Example to run on the CBE cluster using Singularity
@@ -52,7 +50,7 @@ nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile {conda|d
 module load singularity/3.4.1
 module load nextflow/19.10.0
 
-nextflow /path/to/main.nf --images 'path/to/images/*{png|jpg}' -profile cbe,singularity
+nextflow run Gregor-Mendel-Institute/aradeepopsis --images 'path/to/images/*{png|jpg}' -profile cbe,singularity
 ```
 
 ## Default [Parameters](docs/parameters.md)
