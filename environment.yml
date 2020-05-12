@@ -5,7 +5,6 @@ channels:
   - defaults
 dependencies:
   - anaconda::tensorflow-base=2.0.0
-  - conda-forge::pillow=7.0.0 # https://github.com/python-pillow/Pillow/pull/4528
   - conda-forge::scikit-image=0.16.2
   - conda-forge::imagemagick=7.0.9_27
   - conda-forge::r-tidyverse=1.3.0
