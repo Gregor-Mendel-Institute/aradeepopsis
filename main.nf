@@ -316,7 +316,6 @@ ch_results
  .set {ch_resultfile}
 
 process launch_shiny {
-    tag "${'http://'+'hostname -i'.execute().text.trim()+':44333'}"
     containerOptions { workflow.profile.contains('singularity') ? '' : '-p 44333:44333' }
     executor 'local'
     cache false
@@ -327,8 +326,9 @@ process launch_shiny {
     when:
         params.shiny
     script:
+        def ip = "uname".execute().text.trim() == "Darwin" ? "localhost" : "hostname -i".execute().text.trim()
         log.error"""
-        Visit the shiny server running at ${"http://"+"hostname -i".execute().text.trim()+':44333'} to inspect the results.
+        Visit the shiny server running at ${"http://"+ip+':44333'} to inspect the results.
         Closing the browser window will terminate the pipeline.
         """.stripIndent()
         """
