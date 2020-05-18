@@ -79,6 +79,31 @@ log.info """
 // validate parameters
 ParameterChecks.checkParams(params)
 
+log.info """
+=================================================================================
+Current user                          : $USER
+Current path                          : $PWD
+Pipeline directory                    : $baseDir
+Working directory                     : $workDir
+Current profile                       : ${workflow.profile}
+---------------------------------------------------------------------------------
+Output directory                      : ${params.outdir}
+---------------------------------------------------------------------------------
+--images                              : ${params.images}
+--model                               : ${params.model}
+--multiscale                          : ${params.multiscale}
+--chunksize                           : ${params.chunksize}
+--ignore_senescence                   : ${params.model == 'A' ? "not applicable for model A" : params.ignore_senescence}
+---------------------------------------------------------------------------------
+--shiny                               : ${params.shiny}
+--summary_diagnostics                 : ${params.summary_diagnostics}
+--save_mask                           : ${params.save_mask}
+--save_overlay                        : ${params.save_overlay}
+--save_rosette                        : ${params.save_rosette}
+--save_overlay                        : ${params.save_hull}
+=================================================================================
+""".stripIndent()
+
 switch(params.model) {
     case 'A':
         model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'

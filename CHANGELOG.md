@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+* added log message to show current parameter settings when starting a pipeline run
 * updated `scikit-image` `0.16.2` > `0.17.2`
 * updated `imagemagick` dependency `7.0.9_27` > `7.0.10_12`
 
