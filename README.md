@@ -44,11 +44,13 @@ Depending on the model of choice, the pipeline extracts relevant phenotypic info
 
 ## Setting up the pipeline
 
-> Note: Windows will users have to set up the [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) first.
+> Note: Windows users will have to set up the [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) first.
 
 1. Install [`Nextflow`](https://www.nextflow.io/index.html#GetStarted)
 
 2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/), [`Docker`](https://docs.docker.com/install/), [`podman`](https://podman.io/getting-started/installation) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html)
+
+> Note: To run the pipeline on MacOS with Docker, it is necessary to increase the allowed memory usage from the default setting of 2GB to 6GB (See the [Docker documentation](https://docs.docker.com/docker-for-mac/#resources) for instructions)
 
 ## Running the pipeline
 
