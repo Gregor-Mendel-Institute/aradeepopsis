@@ -63,8 +63,7 @@ nextflow run Gregor-Mendel-Institute/aradeepopsis --images 'path/to/images/*{png
 ### Example to run on the CBE cluster using Singularity
 
 ```bash
-module load singularity/3.4.1
-module load nextflow/19.10.0
+module load nextflow/20.01.0
 
 nextflow run Gregor-Mendel-Institute/aradeepopsis --images 'path/to/images/*{png|jpg}' -profile cbe,singularity
 ```
