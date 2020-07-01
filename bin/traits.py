@@ -181,14 +181,14 @@ def draw_diagnostics(mask,
   colored_mask = colormap[mask]
 
   if save_rosette:
-    crop = image * (mask > 0)[...,None]
+    crop = image[:,:,:3] * (mask > 0)[...,None]
     imsave('crop_%s.jpeg' % filename, crop.astype(np.uint8))
 
   if save_mask:
     imsave('mask_%s.png' % filename, colored_mask.astype(np.uint8))
 
   if save_overlay:
-    overlay = 0.6 * image + 0.4 * colored_mask
+    overlay = 0.6 * image[:,:,:3] + 0.4 * colored_mask
     imsave('overlay_%s.jpeg' % filename, overlay.astype(np.uint8))
 
   if save_hull:
