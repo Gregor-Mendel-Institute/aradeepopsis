@@ -74,6 +74,7 @@ nextflow run Gregor-Mendel-Institute/aradeepopsis --images 'path/to/images/*{png
 | ------------- | ------------- | ------------- |
 | [`--model`](docs/parameters.md#--model)  | `C` | `<Character>` |
 | [`--images`](docs/parameters.md#--images) | `None` | `<Path>` |
+| [`--masks`](docs/parameters.md#--masks) | `false` | `<Path>` |
 | [`--multiscale`](docs/parameters.md#--multiscale)| `false` | `<Boolean>` |
 | [`--chunksize`](docs/parameters.md#--chunksize) | `10` | `<Integer>` |
 | [`--ignore_senescence`](docs/parameters.md#--ignore_senescence) | `true` | `<Boolean>` |

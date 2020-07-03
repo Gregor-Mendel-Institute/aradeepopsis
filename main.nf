@@ -81,26 +81,27 @@ ParameterChecks.checkParams(params)
 
 log.info """
 =================================================================================
-Current user                          : $USER
-Current path                          : $PWD
-Pipeline directory                    : $baseDir
-Working directory                     : $workDir
-Current profile                       : ${workflow.profile}
----------------------------------------------------------------------------------
-Output directory                      : ${params.outdir}
----------------------------------------------------------------------------------
---images                              : ${params.images}
---model                               : ${params.model}
---multiscale                          : ${params.multiscale}
---chunksize                           : ${params.chunksize}
---ignore_senescence                   : ${params.model == 'A' ? "not applicable for model A" : params.ignore_senescence}
----------------------------------------------------------------------------------
---shiny                               : ${params.shiny}
---summary_diagnostics                 : ${params.summary_diagnostics}
---save_mask                           : ${params.save_mask}
---save_overlay                        : ${params.save_overlay}
---save_rosette                        : ${params.save_rosette}
---save_overlay                        : ${params.save_hull}
+Current user              : $USER
+Current path              : $PWD
+Pipeline directory        : $baseDir
+Working directory         : $workDir
+Current profile           : ${workflow.profile}
+
+Pipeline parameters
+=========================
+    --outdir              : ${params.outdir}
+    --images              : ${params.images}
+    --masks               : ${params.masks}
+    --chunksize           : ${params.chunksize}
+    --model               : ${params.masks ? 'ignored' : params.model}
+    --multiscale          : ${params.masks ? 'ignored' : params.multiscale}
+    --ignore_senescence   : ${params.masks || params.model == 'A' ? "ignored" : params.ignore_senescence}
+    --shiny               : ${params.shiny}
+    --summary_diagnostics : ${params.summary_diagnostics}
+    --save_mask           : ${params.save_mask}
+    --save_overlay        : ${params.save_overlay}
+    --save_rosette        : ${params.save_rosette}
+    --save_overlay        : ${params.save_hull}
 =================================================================================
 """.stripIndent()
 
@@ -123,9 +124,24 @@ def chunk_idx = 1
 
 Channel
     .fromPath(params.images, checkIfExists: true)
-    .buffer(size:params.chunksize, remainder: true)
-    .map { chunk -> [chunk_idx++, chunk] }
-    .set { ch_images_records }
+    .set {images}
+
+if ( params.masks ) {
+    Channel
+        .fromPath(params.masks, checkIfExists: true)
+        .cross(images) {it -> it.name}
+        .map { plant -> [mask:plant[0], image:plant[1]] }
+        .buffer(size:params.chunksize, remainder: true)
+        .map { chunk -> [chunk_idx++, chunk.image, chunk.mask, file('dummy')] }
+        .set { chunks }
+} else {
+    images
+        .buffer(size:params.chunksize, remainder: true)
+        .map { chunk -> [chunk_idx++, chunk] }
+        .set { chunks }
+}
+
+(ch_images, ch_pairs) = !params.masks ? [ chunks, Channel.empty() ] : [ Channel.empty(), chunks ]
 
 Channel
     .fromPath(model, glob: false, checkIfExists: true)
@@ -138,16 +154,19 @@ Channel
 Channel
     .fromPath("$baseDir/assets/shiny/app.R", checkIfExists: true)
     .collectFile(name: 'app.R', storeDir: "$params.outdir")
-    .set {ch_shinyapp}
+    .set { ch_shinyapp }
 
 process build_records {
     stageInMode 'copy'
     input:
-        tuple val(index), path('images/*') from ch_images_records
+        tuple val(index), path('images/*') from ch_images
     output:
         tuple val(index), path('*.tfrecord') into ch_shards
-        tuple val(index), path('ratios.p'), path('images/*', includeInputs: true) into ch_images_traits
+        tuple val(index), path('images/*', includeInputs: true) into ch_originals
+        tuple val(index), path('ratios.p') into ch_ratios
         path('*.txt') into invalid_images optional true
+    when:
+        !params.masks
     script:
         """
         #!/usr/bin/env python
@@ -219,7 +238,8 @@ process run_predictions {
         tuple val(index), path(shard) from ch_shards
     output:
         tuple val(index), path('*.png') into ch_predictions
-
+    when:
+        !params.masks
     script:
         """
         #!/usr/bin/env python
@@ -262,6 +282,8 @@ process run_predictions {
         """
 }
 
+ch_segmentations = params.masks ? ch_pairs : ch_originals.join(ch_predictions).join(ch_ratios)
+
 process extract_traits {
     publishDir "${params.outdir}/diagnostics", mode: 'copy',
         saveAs: { filename ->
@@ -273,7 +295,8 @@ process extract_traits {
             }
 
     input:
-        tuple val(index), path(ratios), path("original_images/*"), path("raw_masks/*") from ch_images_traits.join(ch_predictions)
+        tuple val(index), path("original_images/*"), path("raw_masks/*"), path(ratios) from ch_segmentations
+
     output:
         path('*.csv') into ch_results
         tuple val(index), val('mask'), path('mask_*') into ch_masks optional true
@@ -282,6 +305,7 @@ process extract_traits {
         tuple val(index), val('hull'), path('hull_*') into ch_hull optional true
 
     script:
+        def scale_ratios = ratios.name != 'ratios.p' ? "None" : "pickle.load(open('ratios.p','rb'))"
         """
         #!/usr/bin/env python
 
@@ -290,14 +314,13 @@ process extract_traits {
 
         from traits import measure_traits, draw_diagnostics, load_images
 
-        ratios = pickle.load(open('ratios.p',"rb"))
-
+        ratios = ${scale_ratios}
         masks, originals = load_images()
 
         for index, name in enumerate(originals.files):
             measure_traits(masks[index],
                         originals[index],
-                        ratios[os.path.basename(name)],
+                        ratios[os.path.basename(name)] if ratios is not None else 1.0,
                         os.path.basename(name),
                         ignore_senescence=${params.ignore_senescence.toString().capitalize()},
                         label_names=${labels})

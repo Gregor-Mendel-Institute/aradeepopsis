@@ -3,6 +3,7 @@
 * [Pipeline parameters](#main)
     * [`--model`](#--model)
     * [`--images`](#--images)
+    * [`--masks`](#--masks)
     * [`--multiscale`](#--multiscale)
     * [`--chunksize`](#--chunksize)
     * [`--ignore_senescence`](#--ignore_senescence)
@@ -25,15 +26,28 @@ The pretrained model that is used for image segmentation. Currently, there are 3
 
 ![Models](img/example_models.png)
 
+> Note that this parameter is ignored if `--masks` is set.
+
 ## --images
 
 Path to the images to be analysed. Supported image formats include PNG and JPEG.
 
 > Note that the path has to be enclosed in quotes and include a glob pattern that matches the images e.g. `--images '/path/to/images/*png'`
 
+## --masks
+
+Path to segmentation masks corresponding to the images supplied with `--images`.
+When this parameter is set, the pipeline will _not_ perform semantic segmentation using a trained model,
+it will only extract morphometric traits based on the user-supplied masks.
+
+> Note that the path has to be enclosed in quotes and include a glob pattern that matches the images e.g. `--masks '/path/to/masks/*png'`.
+> The filenames and dimensions for each pair of mask and image have to match!
+
 ## --multiscale
 
 Specifies whether the input image is scaled during model prediction. This yields higher accuracy at the cost of higher computational demand.
+
+> Note that this parameter is ignored if `--masks` is set.
 
 ## --chunksize
 
@@ -44,7 +58,7 @@ The smaller the chunksize, the more jobs will be spawned.
 
 Ignore senescent class when calculating morphometric traits, focussing on living tissue only.
 
-> Note that this only affects models `B` & `C` 
+> Note that this parameter only affects models `B` & `C` and will be ignored otherwise.
 
 ## --outdir
 
