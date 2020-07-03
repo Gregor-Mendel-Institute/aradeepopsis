@@ -8,7 +8,6 @@
     * [`--chunksize`](#--chunksize)
     * [`--ignore_senescence`](#--ignore_senescence)
     * [`--outdir`](#--outdir)
-* [Pipeline diagnostics](#diagnostics)
     * [`--save_overlay`](#--save_overlay)
     * [`--save_mask`](#--save_mask)
     * [`--save_rosette`](#--save_rosette)
@@ -18,6 +17,8 @@
 
 ## --model
 
+> Note that this parameter is ignored if `--masks` is set.
+
 The pretrained model that is used for image segmentation. Currently, there are 3 available models that will classify pixels based on the leaf classes they were trained on:
 
 * `A`: trained on ground truth annotations for ordinary leaves (class_norm) only
@@ -25,8 +26,6 @@ The pretrained model that is used for image segmentation. Currently, there are 3
 * `C`: trained on ground truth annotations for ordinary (class_norm), and senescent (class_senesc) and anthocyanin-rich (class_antho) leaves
 
 ![Models](img/example_models.png)
-
-> Note that this parameter is ignored if `--masks` is set.
 
 ## --images
 
@@ -45,9 +44,9 @@ it will only extract morphometric traits based on the user-supplied masks.
 
 ## --multiscale
 
-Specifies whether the input image is scaled during model prediction. This yields higher accuracy at the cost of higher computational demand.
-
 > Note that this parameter is ignored if `--masks` is set.
+
+Specifies whether the input image is scaled during model prediction. This yields higher accuracy at the cost of higher computational demand.
 
 ## --chunksize
 
@@ -56,9 +55,9 @@ The smaller the chunksize, the more jobs will be spawned.
 
 ## --ignore_senescence
 
-Ignore senescent class when calculating morphometric traits, focussing on living tissue only.
-
 > Note that this parameter only affects models `B` & `C` and will be ignored otherwise.
+
+Ignore senescent class when calculating morphometric traits, focussing on living tissue only.
 
 ## --outdir
 
