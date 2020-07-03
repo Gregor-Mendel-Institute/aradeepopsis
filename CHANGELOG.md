@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* added `--masks` parameter to skip semantic segmentation and run trait extraction using user-supplied masks
+* fixed an issue where the pipeline would crash if the input image contains an alpha channel
 * updated configuration for CBE cluster
 * added log message to show current parameter settings when starting a pipeline run
 * updated `scikit-image` `0.16.2` > `0.17.2`
