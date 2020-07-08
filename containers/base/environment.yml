@@ -1,0 +1,9 @@
+name: aradeepopsis-base-dev
+channels:
+  - conda-forge
+  - r
+  - defaults
+dependencies:
+  - anaconda::tensorflow-base=2.0.0
+  - conda-forge::scikit-image=0.17.2
+  - conda-forge::imagemagick=7.0.10_12

@@ -1,10 +1,10 @@
-name: Docker build
+name: Docker build (DPP dependencies)
 
 on:
   push:
     paths:
-      - 'Dockerfile'
-      - 'environment.yml'
+      - 'containers/addons/dpp/Dockerfile'
+      - 'containers/addons/dpp/environment.yml'
 
 jobs:
   build:
@@ -22,10 +22,10 @@ jobs:
 
       - name: Build image
         if: success()
-        run: docker build -t beckerlab/aradeepopsis:${IMAGE_TAG} .
+        run: docker build -t beckerlab/aradeepopsis-dpp:${IMAGE_TAG} containers/addons/dpp/
 
       - name: Push to Dockerhub
         if: success()
         uses: actions-hub/docker@master
         with:
-          args: push beckerlab/aradeepopsis:${IMAGE_TAG}
+          args: push beckerlab/aradeepopsis-dpp:${IMAGE_TAG}
