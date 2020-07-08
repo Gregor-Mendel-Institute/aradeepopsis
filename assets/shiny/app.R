@@ -34,7 +34,7 @@ traitcount <- ncol(data) - 2 # exclude filename and suffix
 imagecount <- nrow(data)
 
 # Define UI
-ui <- navbarPage(title="araDeepopsis", id="nav", theme = shinytheme("flatly"),
+ui <- navbarPage(title="aradeepopsis v1.2", id="nav", theme = shinytheme("flatly"),
 		tabPanel("Rosette Carousel",
 			sliderInput("chunk", label = "Select chunk:", min = 1, max = ceiling(imagecount/60), value = 1, width = '100%', step = 1),
 			slickROutput("slickr",width='100%',height='400px') %>% withSpinner()
@@ -98,7 +98,8 @@ ui <- navbarPage(title="araDeepopsis", id="nav", theme = shinytheme("flatly"),
 							tabPanel("Traits over time",value=1,plotOutput("timeline") %>% withSpinner())
 				)
 			)
-		)
+		),
+	tags$style(type = 'text/css', '.navbar .navbar-brand {font-variant: small-caps;}')
 )
 
 server <- function(input, output, session) {

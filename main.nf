@@ -94,7 +94,7 @@ Pipeline parameters
     --masks               : ${params.masks}
     --chunksize           : ${params.chunksize}
     --model               : ${params.masks ? 'ignored' : params.model}
-    --multiscale          : ${params.masks ? 'ignored' : params.multiscale}
+    --multiscale          : ${params.masks || params.model == 'DPP' ? 'ignored' : params.multiscale}
     --ignore_senescence   : ${params.masks || params.model == 'A' ? "ignored" : params.ignore_senescence}
     --shiny               : ${params.shiny}
     --summary_diagnostics : ${params.summary_diagnostics}
@@ -117,6 +117,15 @@ switch(params.model) {
     case 'C':
         model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
         labels = "['class_background','class_norm','class_senesc','class_antho']"
+        break
+    case 'DPP':
+        model = [
+                params.dpp + 'checkpoint',
+                params.dpp + 'tfhSaved.data-00000-of-00001',
+                params.dpp + 'tfhSaved.index',
+                params.dpp + 'tfhSaved.meta',
+                ]
+        labels = "['class_background','class_norm']"
         break
 }
 
@@ -146,10 +155,6 @@ if ( params.masks ) {
 Channel
     .fromPath(model, glob: false, checkIfExists: true)
     .set { ch_model }
-
-Channel
-    .fromPath("$baseDir/assets/color_legend/model_${params.model}.png", checkIfExists: true)
-    .collectFile(name: 'colorlegend.png', storeDir: "$params.outdir/diagnostics")
 
 Channel
     .fromPath("$baseDir/assets/shiny/app.R", checkIfExists: true)
@@ -232,54 +237,111 @@ process build_records {
 invalid_images
  .collectFile(name: 'invalid_images.txt', storeDir: params.outdir)
 
-process run_predictions {
-    input:
-        path(model) from ch_model.collect()
-        tuple val(index), path(shard) from ch_shards
-    output:
-        tuple val(index), path('*.png') into ch_predictions
-    when:
-        !params.masks
-    script:
-        """
-        #!/usr/bin/env python
+if (params.model == "DPP") {
 
-        import logging
+    process run_predictions_DPP {
+        input:
+            path("vegetation-segmentation/*") from ch_model.collect()
+            tuple val(index), path(shard) from ch_shards
+        output:
+            tuple val(index), path('*.png') into ch_predictions
+        when:
+            !params.masks
+        script:
+            """
+            #!/usr/bin/env python
 
-        import tensorflow as tf
+            import numpy as np
+            import tensorflow as tf
+            import deepplantphenomics as dpp
 
-        from data_record import parse_record
-        from frozen_graph import wrap_frozen_graph
+            from cv2 import imwrite
+            from data_record import parse_record
 
-        logger = tf.get_logger()
-        logger.propagate = False
-        logger.setLevel('INFO')
+            pretrainedDPP = dpp.networks.vegetationSegmentationNetwork(8)
 
-        with tf.io.gfile.GFile('${model}', "rb") as f:
-            graph_def = tf.compat.v1.GraphDef()
-            graph_def.ParseFromString(f.read())
+            def checkpoint_override(net, checkpoint_path, num_classes):
+                if num_classes != 2:
+                    net.model.set_num_segmentation_classes(num_classes)
+                net.model._add_layers_to_graph()
+                saver = tf.compat.v1.train.Saver()
+                saver.restore(net.model._session, tf.train.latest_checkpoint(checkpoint_path))
 
-        predict = wrap_frozen_graph(
-            graph_def,
-            inputs='ImageTensor:0',
-            outputs='SemanticPredictions:0')
+            with pretrainedDPP.model._graph.as_default():
+                checkpoint_override(pretrainedDPP,'vegetation-segmentation/', 2)
+                dataset = (
+                tf.data.TFRecordDataset('${shard}')
+                .map(parse_record)
+                .batch(1)
+                .prefetch(1))
 
-        dataset = (
-            tf.data.TFRecordDataset('${shard}')
-            .map(parse_record)
-            .batch(1)
-            .prefetch(1)
-            .enumerate(start=1))
+                samples = tf.compat.v1.data.make_one_shot_iterator(dataset).get_next()
 
-        size = len(list(dataset))
+                for i in samples:
+                    img, filename = tf.cast(samples['original'],tf.float32),  samples['filename']
+                    raw = pretrainedDPP.model.forward_pass(img, deterministic=True)
+                    try:
+                        prediction, name = pretrainedDPP.model._session.run([raw,filename])
+                        seg = np.interp(prediction, (prediction.min(), prediction.max()), (0, 1))
+                        mask = (np.squeeze(seg) > 0.5).astype(np.uint8)
+                        name = name[0].decode('utf-8').rsplit('.', 1)[0]
+                        imwrite(f'{name}.png', mask)
+                    except tf.errors.OutOfRangeError:
+                        pass
+            """
+    }
 
-        for index, sample in dataset:
-            filename = sample['filename'].numpy()[0].decode('utf-8')
-            logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
-            raw_segmentation = predict(sample['original'])[0][:, :, None]
-            output = tf.image.encode_png(tf.cast(raw_segmentation, tf.uint8))
-            tf.io.write_file(filename.rsplit('.', 1)[0] + '.png',output)
-        """
+} else {
+
+    process run_predictions {
+        input:
+            path(model) from ch_model.collect()
+            tuple val(index), path(shard) from ch_shards
+        output:
+            tuple val(index), path('*.png') into ch_predictions
+        when:
+            !params.masks
+        script:
+            """
+            #!/usr/bin/env python
+
+            import logging
+
+            import tensorflow as tf
+
+            from data_record import parse_record
+            from frozen_graph import wrap_frozen_graph
+
+            logger = tf.get_logger()
+            logger.propagate = False
+            logger.setLevel('INFO')
+
+            with tf.io.gfile.GFile('${model}', "rb") as f:
+                graph_def = tf.compat.v1.GraphDef()
+                graph_def.ParseFromString(f.read())
+
+            predict = wrap_frozen_graph(
+                graph_def,
+                inputs='ImageTensor:0',
+                outputs='SemanticPredictions:0')
+
+            dataset = (
+                tf.data.TFRecordDataset('${shard}')
+                .map(parse_record)
+                .batch(1)
+                .prefetch(1)
+                .enumerate(start=1))
+
+            size = len(list(dataset))
+
+            for index, sample in dataset:
+                filename = sample['filename'].numpy()[0].decode('utf-8')
+                logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
+                raw_segmentation = predict(sample['original'])[0][:, :, None]
+                output = tf.image.encode_png(tf.cast(raw_segmentation, tf.uint8))
+                tf.io.write_file(filename.rsplit('.', 1)[0] + '.png',output)
+            """
+    }
 }
 
 ch_segmentations = params.masks ? ch_pairs : ch_originals.join(ch_predictions).join(ch_ratios)
