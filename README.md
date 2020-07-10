@@ -42,7 +42,7 @@ Depending on the model of choice, the pipeline extracts relevant phenotypic info
 
 # Extensibility
 
-The pipeline has a modular character, also allowing the use of [custom models](docs/parameters.md#custom-models) obtained from the [Deep Plant Phenomics](https://github.com/p2irc/deepplantphenomics)<sup>[[7]](#ref7) framework for the semantic segmentation step.
+The pipeline has a modular character, also allowing the use of [custom models](docs/parameters.md#custom-models) obtained from the [Deep Plant Phenomics](https://github.com/p2irc/deepplantphenomics)<sup>[[7]](#ref7)</sup> framework for the semantic segmentation step.
 
 In addition, it is also possible to [feed](docs/parameters.md#--masks) the pipeline with segmentation masks obtained by other methods, while still making use the automated trait extraction and visualization capabilities of the pipeline.
 

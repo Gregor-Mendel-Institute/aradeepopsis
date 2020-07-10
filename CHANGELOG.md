@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* added `--ignore_label` parameter to exclude a segmentation class for trait calculation.
+* added `--label_spec` parameter to allow for mapping of segmentation classes to pixel values of user-supplied segmentation masks. This is a requirement for the `--masks` parameter now.
+* updated base.config to avoid out-of-memory issues when running with `--multiscale`
+* added Dockerfile + Conda environment for DPP v2.1.0
+* factored out Shiny dependencies into separate container (should be easier to deploy as a hosted Shiny app now)
+* added `--model 'DPP'` and `--dpp_checkpoint` to allow for custom segmentation models, trained using the [Deep Plant Phenomics](https://github.com/p2irc/deepplantphenomics) framework
 * added `--masks` parameter to skip semantic segmentation and run trait extraction using user-supplied masks
 * fixed an issue where the pipeline would crash if the input image contains an alpha channel
 * updated configuration for CBE cluster
