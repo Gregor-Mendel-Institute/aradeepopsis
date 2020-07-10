@@ -89,43 +89,50 @@ Current profile           : ${workflow.profile}
 
 Pipeline parameters
 =========================
+    --model               : ${params.masks ? '-' : params.model}
     --outdir              : ${params.outdir}
     --images              : ${params.images}
-    --masks               : ${params.masks}
     --chunksize           : ${params.chunksize}
-    --model               : ${params.masks ? 'ignored' : params.model}
-    --multiscale          : ${params.masks || params.model == 'DPP' ? 'ignored' : params.multiscale}
-    --ignore_senescence   : ${params.masks || params.model == 'A' ? "ignored" : params.ignore_senescence}
     --shiny               : ${params.shiny}
+    --multiscale          : ${params.masks || params.model == 'DPP' ? '-' : params.multiscale}
+    --ignore_senescence   : ${params.masks || params.model == 'A' ? "-" : params.ignore_senescence}
     --summary_diagnostics : ${params.summary_diagnostics}
     --save_mask           : ${params.save_mask}
     --save_overlay        : ${params.save_overlay}
     --save_rosette        : ${params.save_rosette}
     --save_overlay        : ${params.save_hull}
+    --masks               : ${params.masks}
+    --dpp_checkpoint      : ${params.model == 'DPP' ? params.dpp_checkpoint : '-'}
+    --ignore_label        : ${params.model in ['A','B','C'] ? "-" : params.ignore_label}
+    --label_spec          : ${params.label_spec ? params.label_spec : '-'}
 =================================================================================
 """.stripIndent()
 
 switch(params.model) {
     case 'A':
         model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
-        labels = "['class_background','class_norm']"
+        labels = "class_background=0, class_norm=1"
+        ignore_label = "None"
         break
     case 'B':
         model = params.multiscale ? 'https://www.dropbox.com/s/9m4wy990ajv7cmg/2_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/s808kcq9jgiyko9/2_class_singlescale.pb?dl=1'
-        labels = "['class_background','class_norm','class_senesc']"
+        labels = "class_background=0, class_norm=1, class_senesc=2"
+        ignore_label = params.ignore_senescence ? "2" : "None"
         break
     case 'C':
         model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
-        labels = "['class_background','class_norm','class_senesc','class_antho']"
+        labels = "class_background=0, class_norm=1, class_senesc=2, class_antho=3"
+        ignore_label = params.ignore_senescence ? "2" : "None"
         break
     case 'DPP':
         model = [
-                params.dpp + 'checkpoint',
-                params.dpp + 'tfhSaved.data-00000-of-00001',
-                params.dpp + 'tfhSaved.index',
-                params.dpp + 'tfhSaved.meta',
+                params.dpp_checkpoint  + 'checkpoint',
+                params.dpp_checkpoint  + 'tfhSaved.data-00000-of-00001',
+                params.dpp_checkpoint  + 'tfhSaved.index',
+                params.dpp_checkpoint  + 'tfhSaved.meta',
                 ]
-        labels = "['class_background','class_norm']"
+        labels = !params.label_spec ? "class_background=0,class_norm=1" : params.label_spec
+        ignore_label = !params.ignore_label ? 'None' : params.ignore_label
         break
 }
 
@@ -140,12 +147,23 @@ if ( params.masks ) {
         .fromPath(params.masks, checkIfExists: true)
         .cross(images) {it -> it.name}
         .map { plant -> [mask:plant[0], image:plant[1]] }
-        .buffer(size:params.chunksize, remainder: true)
+        .buffer(size: params.chunksize, remainder: true)
         .map { chunk -> [chunk_idx++, chunk.image, chunk.mask, file('dummy')] }
         .set { chunks }
+
+    if (!params.label_spec) {
+        log.info """
+        ERROR! The --masks parameter requires a comma-separated list of class names and their corresponding pixel values have to be provided.
+        Example: --label_spec 'class_background=0, class_norm=255' (quotation marks are required!)
+        """.stripIndent()
+        exit(1)
+    }
+
+    labels = params.label_spec
+    ignore_label = !params.ignore_label ? 'None' : params.ignore_label
 } else {
     images
-        .buffer(size:params.chunksize, remainder: true)
+        .buffer(size: (params.model == 'DPP' ? 5 : params.chunksize), remainder: true)
         .map { chunk -> [chunk_idx++, chunk] }
         .set { chunks }
 }
@@ -238,7 +256,6 @@ invalid_images
  .collectFile(name: 'invalid_images.txt', storeDir: params.outdir)
 
 if (params.model == "DPP") {
-
     process run_predictions_DPP {
         input:
             path("vegetation-segmentation/*") from ch_model.collect()
@@ -251,12 +268,18 @@ if (params.model == "DPP") {
             """
             #!/usr/bin/env python
 
+            import logging
+
             import numpy as np
             import tensorflow as tf
             import deepplantphenomics as dpp
 
             from cv2 import imwrite
             from data_record import parse_record
+
+            logger = tf.get_logger()
+            logger.propagate = False
+            logger.setLevel('INFO')
 
             pretrainedDPP = dpp.networks.vegetationSegmentationNetwork(8)
 
@@ -282,6 +305,7 @@ if (params.model == "DPP") {
                     raw = pretrainedDPP.model.forward_pass(img, deterministic=True)
                     try:
                         prediction, name = pretrainedDPP.model._session.run([raw,filename])
+                        logger.info("Running prediction on image %s" % name)
                         seg = np.interp(prediction, (prediction.min(), prediction.max()), (0, 1))
                         mask = (np.squeeze(seg) > 0.5).astype(np.uint8)
                         name = name[0].decode('utf-8').rsplit('.', 1)[0]
@@ -292,7 +316,6 @@ if (params.model == "DPP") {
     }
 
 } else {
-
     process run_predictions {
         input:
             path(model) from ch_model.collect()
@@ -368,11 +391,13 @@ process extract_traits {
 
     script:
         def scale_ratios = ratios.name != 'ratios.p' ? "None" : "pickle.load(open('ratios.p','rb'))"
+        def cmap = params.warhol ? "random.sample([(250,140,130), (119,204,98), (240,216,72), (82,128,199), (242,58,58)], 4)" : '[(0,0,0),(31,158,137),(253,231,37),(72,40,120)]'
         """
         #!/usr/bin/env python
 
         import os
         import pickle
+        import random
 
         from traits import measure_traits, draw_diagnostics, load_images
 
@@ -384,8 +409,8 @@ process extract_traits {
                         originals[index],
                         ratios[os.path.basename(name)] if ratios is not None else 1.0,
                         os.path.basename(name),
-                        ignore_senescence=${params.ignore_senescence.toString().capitalize()},
-                        label_names=${labels})
+                        ignore_label=${ignore_label},
+                        labels=dict(${labels}))
             draw_diagnostics(masks[index],
                             originals[index],
                             os.path.basename(name),
@@ -393,7 +418,9 @@ process extract_traits {
                             save_mask=${params.save_mask.toString().capitalize()},
                             save_rosette=${params.save_rosette.toString().capitalize()},
                             save_hull=${params.save_hull.toString().capitalize()},
-                            ignore_senescence=${params.ignore_senescence.toString().capitalize()})
+                            ignore_label=${ignore_label},
+                            labels=dict(${labels}),
+                            colormap=${cmap})
         """
 }
 

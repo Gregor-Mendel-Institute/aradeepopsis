@@ -19,6 +19,7 @@ along with araDeepopsis.  If not, see <https://www.gnu.org/licenses/>.
 class ParameterChecks {
   static void checkParams(params) {
     assert params.images, "ERROR! Images in png or jpeg format have to be provided!"
+    assert params.masks == false || params.masks instanceof String, "ERROR! masks parameter has to be a valid glob pattern to (grayscale) segmentation masks"
     assert params.chunksize instanceof Integer, "ERROR! chunksize parameter has to be an integer!"
     assert params.model in ['A','B','C','DPP'], "ERROR! model parameter must be either A, B, C or DPP!"
     assert params.multiscale instanceof Boolean, "ERROR! multiscale parameter must be set to either false (off) or true (on)"
@@ -30,5 +31,8 @@ class ParameterChecks {
     assert params.polaroid instanceof Boolean, "ERROR! polaroid parameter must be set to either false (off) or true (on)"
     assert params.summary_diagnostics instanceof Boolean, "ERROR! summary_diagnostics parameter must be set to either false (off) or true (on)"
     assert params.shiny instanceof Boolean, "ERROR! shiny parameter must be set to either false (off) or true (on)"
+    assert params.ignore_label == false || params.ignore_label in 1..255, "ERROR! ignore_label parameter must either be false or an Integer between 1 and 255"
+    assert params.label_spec == false || params.label_spec.contains('='), "ERROR! label_spec parameter must either be false or a quoted(!) comma-separated list of key=value pairs"
+    assert params.dpp_checkpoint instanceof String, "ERROR! dpp parameter has to be a valid path containing a pretrained DPP checkpoint"
   }
 }
