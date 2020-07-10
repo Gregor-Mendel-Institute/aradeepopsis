@@ -1,12 +1,14 @@
 # Table of contents
 
 * [Pipeline parameters](#main)
-    * [`--model`](#--model)
     * [`--images`](#--images)
+    * [`--model`](#--model)
     * [`--masks`](#--masks)
+    * [`--label_spec`](#--label_spec)
     * [`--multiscale`](#--multiscale)
     * [`--chunksize`](#--chunksize)
     * [`--ignore_senescence`](#--ignore_senescence)
+    * [`--ignore_label`](#--ignore_label)
     * [`--outdir`](#--outdir)
     * [`--save_overlay`](#--save_overlay)
     * [`--save_mask`](#--save_mask)
@@ -15,36 +17,63 @@
     * [`--summary_diagnostics`](#--summary_diagnostics)
     * [`--shiny`](#--shiny)
 
-## --model
-
-> Note that this parameter is ignored if `--masks` is set.
-
-The pretrained model that is used for image segmentation. Currently, there are 3 available models that will classify pixels based on the leaf classes they were trained on:
-
-* `A`: trained on ground truth annotations for ordinary leaves (class_norm) only
-* `B`: trained on ground truth annotations for ordinary (class_norm) and senescent (class_senesc) leaves
-* `C`: trained on ground truth annotations for ordinary (class_norm), and senescent (class_senesc) and anthocyanin-rich (class_antho) leaves
-
-![Models](img/example_models.png)
-
 ## --images
 
 Path to the images to be analysed. Supported image formats include PNG and JPEG.
 
 > Note that the path has to be enclosed in quotes and include a glob pattern that matches the images e.g. `--images '/path/to/images/*png'`
 
+## --model
+
+> Note that this parameter is ignored if `--masks` is set.
+
+The pretrained model that is used for image segmentation to produce segmentation masks that are subsequently used to extract morphometric and colorimetric traits.
+
+### Pretrained models for semantic segmentation of leaf classes based on DeepLabv3+
+
+Currently, there are 3 available models that will classify pixels based on the leaf classes they were trained on.
+
+* `--model 'A'`: trained on ground truth annotations for ordinary leaves (class_norm) only
+* `--model 'B'`: trained on ground truth annotations for ordinary (class_norm) and senescent (class_senesc) leaves
+* `--model 'C'`: trained on ground truth annotations for ordinary (class_norm), and senescent (class_senesc) and anthocyanin-rich (class_antho) leaves
+
+![Models](img/example_models.png)
+
+### Custom models
+
+The pipeline can also use models that were trained with [Deep Plant Phenomics](https://github.com/p2irc/deepplantphenomics) to obtain segmentation masks that are then used for trait extraction further downstream in the pipeline.
+
+* `--model 'DPP'`: uses the pretrained [checkpoint](https://github.com/p2irc/deepplantphenomics/tree/2.1.0/deepplantphenomics/network_states/vegetation-segmentation-network) of the [Vegetation Segmentation](https://deep-plant-phenomics.readthedocs.io/en/latest/Tools/#vegetation-segmentation-network) model provided by DPP
+
+> Note that custom training checkpoints can be specified with the `--dpp_checkpoint` parameter.
+> Currently, only 2-class models are supported.
+
 ## --masks
 
-Path to segmentation masks corresponding to the images supplied with `--images`.
-When this parameter is set, the pipeline will _not_ perform semantic segmentation using a trained model,
+Path to grayscale segmentation masks corresponding to the images supplied with `--images`.
+When this parameter is set, the pipeline **will not** perform semantic segmentation using a trained model,
 it will only extract morphometric traits based on the user-supplied masks.
 
 > Note that the path has to be enclosed in quotes and include a glob pattern that matches the images e.g. `--masks '/path/to/masks/*png'`.
-> The filenames and dimensions for each pair of mask and image have to match!
+
+### --label_spec
+
+> Note that this parameter is _required_ if `--masks` is set and _ignored_ otherwise.
+
+Specifies a comma-separated list Key=value pairs of segmentation classes and their corresponding pixel values.
+Key is an arbitrary name and value is the corresponding grayscale pixel value in the supplied segmentation masks.
+
+> Note that the value of the background class has to be zero and the list has to be inclosed in quotes, e.g
+> `--label_spec 'class_background=0,class_norm=255'` 
+
+### --ignore_label
+
+If using custom models or supplying already segmented masks, it can be desirable to ignore certain segmentation classes.
+Similar to `--ignore_senescence`, setting this parameter to the pixel value of the class to be ignored, will exclude those pixels from the calculation of morphometric traits.
 
 ## --multiscale
 
-> Note that this parameter is ignored if `--masks` is set.
+> Note that this parameter is _ignored_ if `--masks` is set.
 
 Specifies whether the input image is scaled during model prediction. This yields higher accuracy at the cost of higher computational demand.
 
@@ -55,9 +84,10 @@ The smaller the chunksize, the more jobs will be spawned.
 
 ## --ignore_senescence
 
-> Note that this parameter only affects models `B` & `C` and will be ignored otherwise.
+> Note that this parameter only affects models `B` & `C` and will be _ignored_ otherwise.
 
 Ignore senescent class when calculating morphometric traits, focussing on living tissue only.
+
 
 ## --outdir
 
