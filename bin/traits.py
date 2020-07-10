@@ -240,7 +240,7 @@ def create_bool_mask(mask, label, ignore_label):
     Array of type numpy.bool_
   """
   if label == 'plant_region':
-    bool_mask = (mask > 0) if ignore_label is not None else (mask > 0) & (mask != ignore_label)
+    bool_mask = (mask > 0) if ignore_label is None else (mask > 0) & (mask != ignore_label)
   else:
     bool_mask = (mask == ignore_label)
 
