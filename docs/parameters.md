@@ -25,7 +25,7 @@ Path to the images to be analysed. Supported image formats include PNG and JPEG.
 
 ## --model
 
-> Note that this parameter is ignored if `--masks` is set.
+> Note that this parameter is _ignored_ if `--masks` is set.
 
 The pretrained model that is used for image segmentation to produce segmentation masks that are subsequently used to extract morphometric and colorimetric traits.
 
@@ -41,7 +41,7 @@ Currently, there are 3 available models that will classify pixels based on the l
 
 ### Custom models
 
-The pipeline can also use models that were trained with [Deep Plant Phenomics](https://github.com/p2irc/deepplantphenomics) to obtain segmentation masks that are then used for trait extraction further downstream in the pipeline.
+The pipeline can also use models that were trained with [Deep Plant Phenomics](https://github.com/p2irc/deepplantphenomics) to obtain segmentation masks that can then be used for trait extraction further downstream in the pipeline.
 
 * `--model 'DPP'`: uses the pretrained [checkpoint](https://github.com/p2irc/deepplantphenomics/tree/2.1.0/deepplantphenomics/network_states/vegetation-segmentation-network) of the [Vegetation Segmentation](https://deep-plant-phenomics.readthedocs.io/en/latest/Tools/#vegetation-segmentation-network) model provided by DPP
 
@@ -60,10 +60,10 @@ it will only extract morphometric traits based on the user-supplied masks.
 
 > Note that this parameter is _required_ if `--masks` is set and _ignored_ otherwise.
 
-Specifies a comma-separated list Key=value pairs of segmentation classes and their corresponding pixel values.
+Specifies a comma-separated list of `key=value` pairs of segmentation classes and their corresponding pixel values.
 Key is an arbitrary name and value is the corresponding grayscale pixel value in the supplied segmentation masks.
 
-> Note that the value of the background class has to be zero and the list has to be inclosed in quotes, e.g
+> Note that the value of the background class has to be zero and the list has to be enclosed in quotes, e.g
 > `--label_spec 'class_background=0,class_norm=255'` 
 
 ### --ignore_label
@@ -87,7 +87,6 @@ The smaller the chunksize, the more jobs will be spawned.
 > Note that this parameter only affects models `B` & `C` and will be _ignored_ otherwise.
 
 Ignore senescent class when calculating morphometric traits, focussing on living tissue only.
-
 
 ## --outdir
 
