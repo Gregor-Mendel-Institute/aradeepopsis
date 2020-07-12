@@ -163,7 +163,7 @@ if ( params.masks ) {
     ignore_label = !params.ignore_label ? 'None' : params.ignore_label
 } else {
     images
-        .buffer(size: (params.model == 'DPP' ? 5 : params.chunksize), remainder: true)
+        .buffer(size: params.chunksize, remainder: true)
         .map { chunk -> [chunk_idx++, chunk] }
         .set { chunks }
 }
@@ -304,12 +304,13 @@ if (params.model == "DPP") {
                     img, filename = tf.cast(samples['original'],tf.float32),  samples['filename']
                     raw = pretrainedDPP.model.forward_pass(img, deterministic=True)
                     try:
-                        prediction, name = pretrainedDPP.model._session.run([raw,filename])
-                        logger.info("Running prediction on image %s" % name)
-                        seg = np.interp(prediction, (prediction.min(), prediction.max()), (0, 1))
-                        mask = (np.squeeze(seg) > 0.5).astype(np.uint8)
-                        name = name[0].decode('utf-8').rsplit('.', 1)[0]
-                        imwrite(f'{name}.png', mask)
+                        while True:
+                            prediction, name = pretrainedDPP.model._session.run([raw,filename])
+                            logger.info("Running prediction on image %s" % name)
+                            seg = np.interp(prediction, (prediction.min(), prediction.max()), (0, 1))
+                            mask = (np.squeeze(seg) > 0.5).astype(np.uint8)
+                            name = name[0].decode('utf-8').rsplit('.', 1)[0]
+                            imwrite(f'{name}.png', mask)
                     except tf.errors.OutOfRangeError:
                         pass
             """
