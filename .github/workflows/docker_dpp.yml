@@ -5,7 +5,6 @@ on:
     paths:
       - 'containers/addons/dpp/Dockerfile'
       - 'containers/addons/dpp/environment.yml'
-  pull_request:
   release:
     types: [published]
 

@@ -5,7 +5,6 @@ on:
     paths:
       - 'containers/shiny/Dockerfile'
       - 'containers/shiny/environment.yml'
-  pull_request:
   release:
     types: [published]
 
