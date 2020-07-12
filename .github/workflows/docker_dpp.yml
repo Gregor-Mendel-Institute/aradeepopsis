@@ -5,27 +5,30 @@ on:
     paths:
       - 'containers/addons/dpp/Dockerfile'
       - 'containers/addons/dpp/environment.yml'
+  release:
+    types: [published]
 
 jobs:
-  build:
+  push_to_registry:
+    name: Push Docker image to GitHub Packages
     runs-on: ubuntu-latest
-    
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Login to docker hub
-        if: success()
-        uses: actions-hub/docker/login@master
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USER }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build image
-        if: success()
-        run: docker build -t beckerlab/aradeepopsis-dpp:${IMAGE_TAG} containers/addons/dpp/
-
-      - name: Push to Dockerhub
-        if: success()
-        uses: actions-hub/docker@master
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v1
         with:
-          args: push beckerlab/aradeepopsis-dpp:${IMAGE_TAG}
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: beckerlab/aradeepopsis-dpp
+          path: containers/addons/dpp
+          tag_with_ref: true
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: gregor-mendel-institute/aradeepopsis/aradeepopsis-dpp
+          path: containers/addons/dpp
+          tag_with_ref: true
