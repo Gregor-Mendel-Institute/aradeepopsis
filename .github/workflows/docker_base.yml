@@ -1,10 +1,11 @@
-name: Docker package (Base dependencies)
+name: Docker build (Base dependencies)
 
 on:
   push:
     paths:
       - 'containers/base/Dockerfile'
       - 'containers/base/environment.yml'
+  pull_request:
   release:
     types: [published]
 
