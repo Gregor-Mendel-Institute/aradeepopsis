@@ -1,4 +1,4 @@
-name: Docker build (Shiny dependencies)
+name: Docker Container (Shiny)
 
 on:
   push:

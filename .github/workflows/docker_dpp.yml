@@ -1,4 +1,4 @@
-name: Docker build (DPP dependencies)
+name: Docker Container (DPP)
 
 on:
   push:
