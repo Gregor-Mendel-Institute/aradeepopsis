@@ -21,7 +21,6 @@ import os
 import numpy as np
 
 from skimage.measure import regionprops
-from skimage.color import label2rgb
 from skimage.io import imsave, imread, ImageCollection
 from skimage.morphology import convex_hull_image
 from skimage.transform import rescale
@@ -179,7 +178,7 @@ def draw_diagnostics(mask,
                      save_hull,
                      ignore_label,
                      labels,
-                     colormap):
+                     colormap=None):
   """Saves diagnostic images to disk.
 
   Args:
@@ -192,11 +191,23 @@ def draw_diagnostics(mask,
     save_hull: Boolean, save the convex hull to disk.
     ignore_label: Integer, pixel value of label to ignore for trait calculation.
     labels: Dict, Key=value pairs of labelname and (grayscale) pixel value.
-    colormap: List, a list of RGB color tuples
+    colormap: List, RGB colormap to use for visualization.
   """
   filename, filefmt = file_name.rsplit('.', 1)
 
-  colored_mask = label2rgb(label=mask, colors=colormap, bg_label=-1)
+  if isinstance(colormap, list):
+    cmap = np.array(colormap)
+    if cmap.sum() == 2236:
+      np.random.shuffle(cmap)
+  else:
+    # fallback to default
+    cmap = np.array([[0,0,0],[31,158,137],[253,231,37],[72,40,120]])
+
+  if len(labels) < max(labels.values()):
+    for l, v in enumerate(labels.values()):
+      mask[mask == v] = l
+
+  colored_mask = cmap[mask]
 
   if save_rosette:
     crop = image[:,:,:3] * (mask > 0)[...,None]

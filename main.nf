@@ -111,17 +111,17 @@ Pipeline parameters
 switch(params.model) {
     case 'A':
         model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
-        labels = "class_background=0, class_norm=1"
+        labels = "class_background=0,class_norm=1"
         ignore_label = "None"
         break
     case 'B':
         model = params.multiscale ? 'https://www.dropbox.com/s/9m4wy990ajv7cmg/2_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/s808kcq9jgiyko9/2_class_singlescale.pb?dl=1'
-        labels = "class_background=0, class_norm=1, class_senesc=2"
+        labels = "class_background=0,class_norm=1,class_senesc=2"
         ignore_label = params.ignore_senescence ? "2" : "None"
         break
     case 'C':
         model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
-        labels = "class_background=0, class_norm=1, class_senesc=2, class_antho=3"
+        labels = "class_background=0,class_norm=1,class_senesc=2,class_antho=3"
         ignore_label = params.ignore_senescence ? "2" : "None"
         break
     case 'DPP':
@@ -154,7 +154,7 @@ if ( params.masks ) {
     if (!params.label_spec) {
         log.info """
         ERROR! The --masks parameter requires a comma-separated list of class names and their corresponding pixel values have to be provided.
-        Example: --label_spec 'class_background=0, class_norm=255' (quotation marks are required!)
+        Example: --label_spec 'class_background=0,class_norm=255' (quotation marks are required!)
         """.stripIndent()
         exit(1)
     }
@@ -392,13 +392,12 @@ process extract_traits {
 
     script:
         def scale_ratios = ratios.name != 'ratios.p' ? "None" : "pickle.load(open('ratios.p','rb'))"
-        def cmap = params.warhol ? "random.sample([(250,140,130), (119,204,98), (240,216,72), (82,128,199), (242,58,58)], 4)" : '[(0,0,0),(31,158,137),(253,231,37),(72,40,120)]'
+        def cmap = params.warhol ? "[[250,140,130],[119,204,98],[240,216,72],[82,128,199],[242,58,58]]" : "None"
         """
         #!/usr/bin/env python
 
         import os
         import pickle
-        import random
 
         from traits import measure_traits, draw_diagnostics, load_images
 
@@ -461,6 +460,7 @@ process launch_shiny {
     input:
         path ch_resultfile
         path app from ch_shinyapp
+        env LABELS from labels
     when:
         params.shiny
     script:
