@@ -392,13 +392,12 @@ process extract_traits {
 
     script:
         def scale_ratios = ratios.name != 'ratios.p' ? "None" : "pickle.load(open('ratios.p','rb'))"
-        def cmap = params.warhol ? "random.sample([(250,140,130), (119,204,98), (240,216,72), (82,128,199), (242,58,58)], 4)" : '[(0,0,0),(31,158,137),(253,231,37),(72,40,120)]'
+        def cmap = params.warhol ? "[[250,140,130],[119,204,98],[240,216,72],[82,128,199],[242,58,58]]" : "None"
         """
         #!/usr/bin/env python
 
         import os
         import pickle
-        import random
 
         from traits import measure_traits, draw_diagnostics, load_images
 
