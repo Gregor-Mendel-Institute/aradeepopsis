@@ -5,8 +5,6 @@ on:
     paths:
       - 'containers/shiny/Dockerfile'
       - 'containers/shiny/environment.yml'
-  release:
-    types: [published]
 
 jobs:
   push_to_registry:

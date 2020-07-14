@@ -5,8 +5,6 @@ on:
     paths:
       - 'containers/addons/dpp/Dockerfile'
       - 'containers/addons/dpp/environment.yml'
-  release:
-    types: [published]
 
 jobs:
   push_to_registry:
