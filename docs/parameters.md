@@ -29,7 +29,8 @@ Path to the images to be analysed. Supported image formats include PNG and JPEG.
 
 The pretrained model that is used for image segmentation to produce segmentation masks that are subsequently used to extract morphometric and colorimetric traits.
 
-### Pretrained models for semantic segmentation of leaf classes based on DeepLabv3+
+### Pretrained models for semantic segmentation of leaf classes based on DeepLabv3+ [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3946618.svg)](https://doi.org/10.5281/zenodo.3946618)
+
 
 Currently, there are 3 available models that will classify pixels based on the leaf classes they were trained on.
 
