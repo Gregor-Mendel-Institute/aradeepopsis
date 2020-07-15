@@ -1,8 +1,11 @@
 # ![araDeepopsis](assets/logo/logo.png)
 
 ![Docker Container (Base)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(Base)/badge.svg?branch=master)
+![Docker Size (Base)](https://img.shields.io/docker/image-size/beckerlab/aradeepopsis-base)
 ![Docker Container (Shiny)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(Shiny)/badge.svg?branch=master)
+![Docker Size (Shiny)](https://img.shields.io/docker/image-size/beckerlab/aradeepopsis-shiny)
 ![Docker Docker (DPP)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(DPP)/badge.svg?branch=master)
+![Docker Size (DPP)](https://img.shields.io/docker/image-size/beckerlab/aradeepopsis-dpp)
 
 ![](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.01.0-important.svg)](https://www.nextflow.io/)
