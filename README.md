@@ -1,7 +1,10 @@
 # ![araDeepopsis](assets/logo/logo.png)
 
+![Docker Container (Base)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(Base)/badge.svg?branch=master)
+![Docker Container (Shiny)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(Shiny)/badge.svg?branch=master)
+![Docker Docker (DPP)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(DPP)/badge.svg?branch=master)
+
 ![](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
-[![Docker](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20build/badge.svg)](https://hub.docker.com/r/beckerlab/aradeepopsis/)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.01.0-important.svg)](https://www.nextflow.io/)
 [![conda](https://img.shields.io/badge/install%20with-conda-brightgreen.svg)](https://conda.io/)
 
@@ -40,7 +43,17 @@ Depending on the model of choice, the pipeline extracts relevant phenotypic info
 
 ![Traits](docs/img/traits.png)
 
+# Extensibility
+
+The pipeline has a modular character, also allowing the use of [custom models](docs/parameters.md#custom-models) obtained from the [Deep Plant Phenomics](https://github.com/p2irc/deepplantphenomics)<sup>[[7]](#ref7)</sup> framework for the semantic segmentation step.
+
+In addition, it is also possible to [feed](docs/parameters.md#--masks) the pipeline with segmentation masks obtained by other methods, while still making use the automated trait extraction and visualization capabilities of the pipeline.
+
 # Usage
+
+## Hardware requirements
+
+Running the pipeline with the provided models requires at least 6GB of memory for singlescale inference, and at least 12GB for [`--multiscale`](docs/parameters.md#--multiscale).
 
 ## Setting up the pipeline
 
@@ -63,8 +76,7 @@ nextflow run Gregor-Mendel-Institute/aradeepopsis --images 'path/to/images/*{png
 ### Example to run on the CBE cluster using Singularity
 
 ```bash
-module load singularity/3.4.1
-module load nextflow/19.10.0
+module load nextflow/20.01.0
 
 nextflow run Gregor-Mendel-Institute/aradeepopsis --images 'path/to/images/*{png|jpg}' -profile cbe,singularity
 ```
@@ -75,6 +87,7 @@ nextflow run Gregor-Mendel-Institute/aradeepopsis --images 'path/to/images/*{png
 | ------------- | ------------- | ------------- |
 | [`--model`](docs/parameters.md#--model)  | `C` | `<Character>` |
 | [`--images`](docs/parameters.md#--images) | `None` | `<Path>` |
+| [`--masks`](docs/parameters.md#--masks) | `false` | `<Path>` |
 | [`--multiscale`](docs/parameters.md#--multiscale)| `false` | `<Boolean>` |
 | [`--chunksize`](docs/parameters.md#--chunksize) | `10` | `<Integer>` |
 | [`--ignore_senescence`](docs/parameters.md#--ignore_senescence) | `true` | `<Boolean>` |
@@ -103,3 +116,5 @@ A description of all traits is available [here](docs/output.md#Trait-table).
 > <a name="ref5">[5]</a> **shiny: Easy web applications in R**<br />Rstudio Inc. (2014)
 
 > <a name="ref6">[6]</a> **Digital photography provides a fast, reliable, and noninvasive method to estimate anthocyanin pigment concentration in reproductive and vegetative plant tissues**<br />Del Valle JC, Gallardo-López A, Buide ML, Whittall JB, Narbona E, 2018. Ecol Evol. 8(6):3064–76.
+
+> <a name="ref7">[7]</a> **Deep Plant Phenomics: A Deep Learning Platform for Complex Plant Phenotyping Tasks**<br />Ubbens JR, Stavness I. Front Plant Sci. 2017 Jul 7;8:1190.

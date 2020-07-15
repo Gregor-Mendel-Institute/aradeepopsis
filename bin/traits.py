@@ -21,7 +21,7 @@ import os
 import numpy as np
 
 from skimage.measure import regionprops
-from skimage.io import imsave,imread,ImageCollection
+from skimage.io import imsave, imread, ImageCollection
 from skimage.morphology import convex_hull_image
 from skimage.transform import rescale
 
@@ -29,8 +29,8 @@ def measure_traits(mask,
                    image,
                    scale_ratio,
                    file_name,
-                   ignore_senescence,
-                   label_names):
+                   ignore_label,
+                   labels):
   """Calculates traits from plant rosette segmentations.
 
   Args:
@@ -38,8 +38,8 @@ def measure_traits(mask,
     image: Array representing the original image.
     scale_ratio: Float, scale factor of the downscaled image.
     file_name: String, the image filename.
-    ignore_senescence: Boolean, ignore senescence label for trait calculation.
-    label_names: List, Names of labels.
+    ignore_label: Integer, pixel value of label to ignore for trait calculation.
+    labels: Dict, Key=value pairs of labelname and (grayscale) pixel value.
   """
   def _split_channels(image):
     """Splits an RGB image into single channels.
@@ -55,20 +55,32 @@ def measure_traits(mask,
 
     return {'red_channel':red,'green_channel':green,'blue_channel':blue}
 
-  def _calculate_color_indices(channel_values, mask, labelname, ignore_senescence, value):
+  def _check_mask_dimensions(image, mask, filename):
+    """Validates image and corresponding mask dimensions. Raises error in case of mismatch.
+
+    Args:
+      image: Array representing an RGB image
+      mask: Array representing a segmentation mask
+    """
+    if len(mask.shape) > 2:
+      raise SystemExit(f'ERROR: Mask {filename} appears to contain color channels, only grayscale masks are supported!')
+    elif image.shape[:2] != mask.shape:
+      raise SystemExit(f'ERROR: Could not process image {filename}. Dimensions of image and mask have to match!')
+
+  def _calculate_color_indices(channel_values, mask, label_name, ignore_label):
     """Calculates color channel indices within a segmented mask following Del Valle et al. (2018).
 
     Args:
       channel_values: Dict, contains 2D-arrays of red, green and blue channel intensities
       mask: Array representing a segmentation mask.
-      labelname: String, name of label class.
-      ignore_senescence: Boolean, ignore senescence label for trait calculation.
+      label_name: String, name of label class.
+      ignore_label: Integer, pixel value of label to ignore for trait calculation.
       value: Integer, pixel value of label class.
     Returns:
       Dictionary of values
     """
     stats = {}
-    label_mask = create_bool_mask(mask, labelname, ignore_senescence, value)
+    label_mask = create_bool_mask(mask, label_name, ignore_label)
     for channel,values in channels.items():
       stats[channel] = np.mean(values[label_mask])
     stats['chroma_ratio'] = stats['green_channel'] / ((stats['blue_channel'] + stats['red_channel']) / 2)
@@ -77,18 +89,18 @@ def measure_traits(mask,
     stats['green_strength'] = stats['green_channel'] / (stats['red_channel'] + stats['green_channel'] + stats['blue_channel'])
     stats['blue_green_ratio'] = stats['blue_channel'] / stats['green_channel']
 
-    return {f'{labelname}_{k}': v for k, v in stats.items()}
+    return {f'{label_name}_{k}': v for k, v in stats.items()}
 
-  def _calculate_morphometry(mask, labelname, value, scale_ratio, ignore_senescence):
+  def _calculate_morphometry(mask, label_name, value, scale_ratio, ignore_label):
     """Calculates morphometric traits using scikit-image.
 
     Args:
       mask: Array representing a segmentation mask.
       channel_values: Dict, contains 2D-arrays of red, green and blue channel intensities
-      labelname: String, name of label class.
+      label_name: String, name of label class.
       value: Integer, pixel value of label class.
       scale_ratio: Float, scale factor of a previously downscaled image.
-      ignore_senescence: Boolean, ignore senescence label for trait calculation.
+      ignore_label: Integer, pixel value of label to ignore for trait calculation.
     Returns:
       Dictionary of values
     """
@@ -112,10 +124,10 @@ def measure_traits(mask,
       traits['total_area'] = mask.size
       traits['class_background_area'] = np.count_nonzero(mask == value)
       label = 'plant_region'
-      label_mask = create_bool_mask(mask, label, ignore_senescence, 2)
+      label_mask = create_bool_mask(mask, label, ignore_label)
     else:
-      label = labelname
-      label_mask = create_bool_mask(mask, label, ignore_senescence, value)
+      label = label_name
+      label_mask = create_bool_mask(mask, label, value)
 
     properties = regionprops(label_mask.astype(np.uint8))
     for trait in traitlist:
@@ -130,6 +142,8 @@ def measure_traits(mask,
 
     return traits
 
+  _check_mask_dimensions(image, mask, file_name)
+
   filename, filefmt = file_name.rsplit('.', 1)
 
   frame = {'file' : filename, 'format' : filefmt}
@@ -138,15 +152,15 @@ def measure_traits(mask,
   channels = _split_channels(image)
 
   # get color channel information for whole plant region
-  frame.update(_calculate_color_indices(channels, mask, 'plant_region', ignore_senescence, 2))
+  frame.update(_calculate_color_indices(channels, mask, 'plant_region', ignore_label))
 
-  for value,label in enumerate(label_names):
+  for label, value in labels.items():
     # get morphometric traits
-    frame.update(_calculate_morphometry(mask, label, value, scale_ratio, ignore_senescence))
+    frame.update(_calculate_morphometry(mask, label, value, scale_ratio, ignore_label))
     # get color channel information for each class except background
     if value == 0:
       continue
-    frame.update(_calculate_color_indices(channels, mask, label, ignore_senescence, value))
+    frame.update(_calculate_color_indices(channels, mask, label, value))
 
   # write pixel counts to csv file
   with open('traits.csv', 'a') as counts:
@@ -162,7 +176,9 @@ def draw_diagnostics(mask,
                      save_overlay,
                      save_mask,
                      save_hull,
-                     ignore_senescence):
+                     ignore_label,
+                     labels,
+                     colormap=None):
   """Saves diagnostic images to disk.
 
   Args:
@@ -173,26 +189,39 @@ def draw_diagnostics(mask,
     save_mask: Boolean, save the prediction to disk.
     save_overlay: Boolean, save the superimposed image and mask to disk.
     save_hull: Boolean, save the convex hull to disk.
-    ignore_senescence: Boolean, ignore senescence label for convex hull calculation.
+    ignore_label: Integer, pixel value of label to ignore for trait calculation.
+    labels: Dict, Key=value pairs of labelname and (grayscale) pixel value.
+    colormap: List, RGB colormap to use for visualization.
   """
   filename, filefmt = file_name.rsplit('.', 1)
-  colormap = np.array([[0,0,0],[31,158,137],[253,231,37],[72,40,120]])
 
-  colored_mask = colormap[mask]
+  if isinstance(colormap, list):
+    cmap = np.array(colormap)
+    if cmap.sum() == 2236:
+      np.random.shuffle(cmap)
+  else:
+    # fallback to default
+    cmap = np.array([[0,0,0],[31,158,137],[253,231,37],[72,40,120]])
+
+  if len(labels) < max(labels.values()):
+    for l, v in enumerate(labels.values()):
+      mask[mask == v] = l
+
+  colored_mask = cmap[mask]
 
   if save_rosette:
-    crop = image * (mask > 0)[...,None]
+    crop = image[:,:,:3] * (mask > 0)[...,None]
     imsave('crop_%s.jpeg' % filename, crop.astype(np.uint8))
 
   if save_mask:
     imsave('mask_%s.png' % filename, colored_mask.astype(np.uint8))
 
   if save_overlay:
-    overlay = 0.6 * image + 0.4 * colored_mask
+    overlay = 0.6 * image[:,:,:3] + 0.4 * colored_mask
     imsave('overlay_%s.jpeg' % filename, overlay.astype(np.uint8))
 
   if save_hull:
-    bool_mask = create_bool_mask(mask, 'plant_region', ignore_senescence, 2)
+    bool_mask = create_bool_mask(mask, 'plant_region', ignore_label)
     hull = convex_hull_image(bool_mask)*255
     convex_hull = 0.6 * colored_mask + 0.4 * np.stack((hull,)*3, axis=-1)
     imsave('hull_%s.png' % filename, convex_hull.astype(np.uint8))
@@ -204,26 +233,26 @@ def load_images():
   """
   def _loader(f):
     return imread(f).astype(np.uint8)
+
   masks = ImageCollection('raw_masks/*',load_func=_loader)
   originals = ['original_images/' + os.path.basename(i).rsplit('.', 1)[0] + '.*' for i in masks.files]
   originals = ImageCollection(originals,load_func=_loader)
 
   return masks, originals
 
-def create_bool_mask(mask, label, ignore_senescence, value):
+def create_bool_mask(mask, label, ignore_label):
   """Creates a boolean mask for plant region or individual class.
 
   Args:
     mask: Array representing a mask with integer labels
-    ignore_senescence: Boolean, whether to exclude senescent class label.
-    value: Integer, pixel value to exclude.
+    ignore_label: Integer, pixel value of label to exclude.
     label: String, which label to return. 'plant_region' returns mask for whole plant.
   Returns:
     Array of type numpy.bool_
   """
   if label == 'plant_region':
-    bool_mask = (mask > 0) if not ignore_senescence else (mask > 0) & (mask != value)
+    bool_mask = (mask > 0) if ignore_label is None else (mask > 0) & (mask != ignore_label)
   else:
-    bool_mask = (mask == value)
+    bool_mask = (mask == ignore_label)
 
   return bool_mask

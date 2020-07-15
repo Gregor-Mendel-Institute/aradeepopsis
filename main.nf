@@ -79,18 +79,60 @@ log.info """
 // validate parameters
 ParameterChecks.checkParams(params)
 
+log.info """
+=================================================================================
+Current user              : $USER
+Current path              : $PWD
+Pipeline directory        : $baseDir
+Working directory         : $workDir
+Current profile           : ${workflow.profile}
+
+Pipeline parameters
+=========================
+    --model               : ${params.masks ? '-' : params.model}
+    --outdir              : ${params.outdir}
+    --images              : ${params.images}
+    --chunksize           : ${params.chunksize}
+    --shiny               : ${params.shiny}
+    --multiscale          : ${params.masks || params.model == 'DPP' ? '-' : params.multiscale}
+    --ignore_senescence   : ${params.masks || params.model == 'A' ? "-" : params.ignore_senescence}
+    --summary_diagnostics : ${params.summary_diagnostics}
+    --save_mask           : ${params.save_mask}
+    --save_overlay        : ${params.save_overlay}
+    --save_rosette        : ${params.save_rosette}
+    --save_overlay        : ${params.save_hull}
+    --masks               : ${params.masks}
+    --dpp_checkpoint      : ${params.model == 'DPP' ? params.dpp_checkpoint : '-'}
+    --ignore_label        : ${params.model in ['A','B','C'] ? "-" : params.ignore_label}
+    --label_spec          : ${params.label_spec ? params.label_spec : '-'}
+=================================================================================
+""".stripIndent()
+
 switch(params.model) {
     case 'A':
         model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
-        labels = "['class_background','class_norm']"
+        labels = "class_background=0,class_norm=1"
+        ignore_label = "None"
         break
     case 'B':
         model = params.multiscale ? 'https://www.dropbox.com/s/9m4wy990ajv7cmg/2_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/s808kcq9jgiyko9/2_class_singlescale.pb?dl=1'
-        labels = "['class_background','class_norm','class_senesc']"
+        labels = "class_background=0,class_norm=1,class_senesc=2"
+        ignore_label = params.ignore_senescence ? "2" : "None"
         break
     case 'C':
         model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
-        labels = "['class_background','class_norm','class_senesc','class_antho']"
+        labels = "class_background=0,class_norm=1,class_senesc=2,class_antho=3"
+        ignore_label = params.ignore_senescence ? "2" : "None"
+        break
+    case 'DPP':
+        model = [
+                params.dpp_checkpoint  + 'checkpoint',
+                params.dpp_checkpoint  + 'tfhSaved.data-00000-of-00001',
+                params.dpp_checkpoint  + 'tfhSaved.index',
+                params.dpp_checkpoint  + 'tfhSaved.meta',
+                ]
+        labels = !params.label_spec ? "class_background=0,class_norm=1" : params.label_spec
+        ignore_label = !params.ignore_label ? 'None' : params.ignore_label
         break
 }
 
@@ -98,31 +140,56 @@ def chunk_idx = 1
 
 Channel
     .fromPath(params.images, checkIfExists: true)
-    .buffer(size:params.chunksize, remainder: true)
-    .map { chunk -> [chunk_idx++, chunk] }
-    .set { ch_images_records }
+    .set {images}
+
+if ( params.masks ) {
+    Channel
+        .fromPath(params.masks, checkIfExists: true)
+        .cross(images) {it -> it.name}
+        .map { plant -> [mask:plant[0], image:plant[1]] }
+        .buffer(size: params.chunksize, remainder: true)
+        .map { chunk -> [chunk_idx++, chunk.image, chunk.mask, file('dummy')] }
+        .set { chunks }
+
+    if (!params.label_spec) {
+        log.info """
+        ERROR! The --masks parameter requires a comma-separated list of class names and their corresponding pixel values have to be provided.
+        Example: --label_spec 'class_background=0,class_norm=255' (quotation marks are required!)
+        """.stripIndent()
+        exit(1)
+    }
+
+    labels = params.label_spec
+    ignore_label = !params.ignore_label ? 'None' : params.ignore_label
+} else {
+    images
+        .buffer(size: params.chunksize, remainder: true)
+        .map { chunk -> [chunk_idx++, chunk] }
+        .set { chunks }
+}
+
+(ch_images, ch_pairs) = !params.masks ? [ chunks, Channel.empty() ] : [ Channel.empty(), chunks ]
 
 Channel
     .fromPath(model, glob: false, checkIfExists: true)
     .set { ch_model }
 
 Channel
-    .fromPath("$baseDir/assets/color_legend/model_${params.model}.png", checkIfExists: true)
-    .collectFile(name: 'colorlegend.png', storeDir: "$params.outdir/diagnostics")
-
-Channel
     .fromPath("$baseDir/assets/shiny/app.R", checkIfExists: true)
     .collectFile(name: 'app.R', storeDir: "$params.outdir")
-    .set {ch_shinyapp}
+    .set { ch_shinyapp }
 
 process build_records {
     stageInMode 'copy'
     input:
-        tuple val(index), path('images/*') from ch_images_records
+        tuple val(index), path('images/*') from ch_images
     output:
         tuple val(index), path('*.tfrecord') into ch_shards
-        tuple val(index), path('ratios.p'), path('images/*', includeInputs: true) into ch_images_traits
+        tuple val(index), path('images/*', includeInputs: true) into ch_originals
+        tuple val(index), path('ratios.p') into ch_ratios
         path('*.txt') into invalid_images optional true
+    when:
+        !params.masks
     script:
         """
         #!/usr/bin/env python
@@ -188,54 +255,120 @@ process build_records {
 invalid_images
  .collectFile(name: 'invalid_images.txt', storeDir: params.outdir)
 
-process run_predictions {
-    input:
-        path(model) from ch_model.collect()
-        tuple val(index), path(shard) from ch_shards
-    output:
-        tuple val(index), path('*.png') into ch_predictions
+if (params.model == "DPP") {
+    process run_predictions_DPP {
+        input:
+            path("vegetation-segmentation/*") from ch_model.collect()
+            tuple val(index), path(shard) from ch_shards
+        output:
+            tuple val(index), path('*.png') into ch_predictions
+        when:
+            !params.masks
+        script:
+            """
+            #!/usr/bin/env python
 
-    script:
-        """
-        #!/usr/bin/env python
+            import logging
 
-        import logging
+            import numpy as np
+            import tensorflow as tf
+            import deepplantphenomics as dpp
 
-        import tensorflow as tf
+            from cv2 import imwrite
+            from data_record import parse_record
 
-        from data_record import parse_record
-        from frozen_graph import wrap_frozen_graph
+            logger = tf.get_logger()
+            logger.propagate = False
+            logger.setLevel('INFO')
 
-        logger = tf.get_logger()
-        logger.propagate = False
-        logger.setLevel('INFO')
+            pretrainedDPP = dpp.networks.vegetationSegmentationNetwork(8)
 
-        with tf.io.gfile.GFile('${model}', "rb") as f:
-            graph_def = tf.compat.v1.GraphDef()
-            graph_def.ParseFromString(f.read())
+            def checkpoint_override(net, checkpoint_path, num_classes):
+                if num_classes != 2:
+                    net.model.set_num_segmentation_classes(num_classes)
+                net.model._add_layers_to_graph()
+                saver = tf.compat.v1.train.Saver()
+                saver.restore(net.model._session, tf.train.latest_checkpoint(checkpoint_path))
 
-        predict = wrap_frozen_graph(
-            graph_def,
-            inputs='ImageTensor:0',
-            outputs='SemanticPredictions:0')
+            with pretrainedDPP.model._graph.as_default():
+                checkpoint_override(pretrainedDPP,'vegetation-segmentation/', 2)
+                dataset = (
+                tf.data.TFRecordDataset('${shard}')
+                .map(parse_record)
+                .batch(1)
+                .prefetch(1))
 
-        dataset = (
-            tf.data.TFRecordDataset('${shard}')
-            .map(parse_record)
-            .batch(1)
-            .prefetch(1)
-            .enumerate(start=1))
+                samples = tf.compat.v1.data.make_one_shot_iterator(dataset).get_next()
 
-        size = len(list(dataset))
+                for i in samples:
+                    img, filename = tf.cast(samples['original'],tf.float32),  samples['filename']
+                    raw = pretrainedDPP.model.forward_pass(img, deterministic=True)
+                    try:
+                        while True:
+                            prediction, name = pretrainedDPP.model._session.run([raw,filename])
+                            logger.info("Running prediction on image %s" % name)
+                            seg = np.interp(prediction, (prediction.min(), prediction.max()), (0, 1))
+                            mask = (np.squeeze(seg) > 0.5).astype(np.uint8)
+                            name = name[0].decode('utf-8').rsplit('.', 1)[0]
+                            imwrite(f'{name}.png', mask)
+                    except tf.errors.OutOfRangeError:
+                        pass
+            """
+    }
 
-        for index, sample in dataset:
-            filename = sample['filename'].numpy()[0].decode('utf-8')
-            logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
-            raw_segmentation = predict(sample['original'])[0][:, :, None]
-            output = tf.image.encode_png(tf.cast(raw_segmentation, tf.uint8))
-            tf.io.write_file(filename.rsplit('.', 1)[0] + '.png',output)
-        """
+} else {
+    process run_predictions {
+        input:
+            path(model) from ch_model.collect()
+            tuple val(index), path(shard) from ch_shards
+        output:
+            tuple val(index), path('*.png') into ch_predictions
+        when:
+            !params.masks
+        script:
+            """
+            #!/usr/bin/env python
+
+            import logging
+
+            import tensorflow as tf
+
+            from data_record import parse_record
+            from frozen_graph import wrap_frozen_graph
+
+            logger = tf.get_logger()
+            logger.propagate = False
+            logger.setLevel('INFO')
+
+            with tf.io.gfile.GFile('${model}', "rb") as f:
+                graph_def = tf.compat.v1.GraphDef()
+                graph_def.ParseFromString(f.read())
+
+            predict = wrap_frozen_graph(
+                graph_def,
+                inputs='ImageTensor:0',
+                outputs='SemanticPredictions:0')
+
+            dataset = (
+                tf.data.TFRecordDataset('${shard}')
+                .map(parse_record)
+                .batch(1)
+                .prefetch(1)
+                .enumerate(start=1))
+
+            size = len(list(dataset))
+
+            for index, sample in dataset:
+                filename = sample['filename'].numpy()[0].decode('utf-8')
+                logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
+                raw_segmentation = predict(sample['original'])[0][:, :, None]
+                output = tf.image.encode_png(tf.cast(raw_segmentation, tf.uint8))
+                tf.io.write_file(filename.rsplit('.', 1)[0] + '.png',output)
+            """
+    }
 }
+
+ch_segmentations = params.masks ? ch_pairs : ch_originals.join(ch_predictions).join(ch_ratios)
 
 process extract_traits {
     publishDir "${params.outdir}/diagnostics", mode: 'copy',
@@ -248,7 +381,8 @@ process extract_traits {
             }
 
     input:
-        tuple val(index), path(ratios), path("original_images/*"), path("raw_masks/*") from ch_images_traits.join(ch_predictions)
+        tuple val(index), path("original_images/*"), path("raw_masks/*"), path(ratios) from ch_segmentations
+
     output:
         path('*.csv') into ch_results
         tuple val(index), val('mask'), path('mask_*') into ch_masks optional true
@@ -257,6 +391,8 @@ process extract_traits {
         tuple val(index), val('hull'), path('hull_*') into ch_hull optional true
 
     script:
+        def scale_ratios = ratios.name != 'ratios.p' ? "None" : "pickle.load(open('ratios.p','rb'))"
+        def cmap = params.warhol ? "[[250,140,130],[119,204,98],[240,216,72],[82,128,199],[242,58,58]]" : "None"
         """
         #!/usr/bin/env python
 
@@ -265,17 +401,16 @@ process extract_traits {
 
         from traits import measure_traits, draw_diagnostics, load_images
 
-        ratios = pickle.load(open('ratios.p',"rb"))
-
+        ratios = ${scale_ratios}
         masks, originals = load_images()
 
         for index, name in enumerate(originals.files):
             measure_traits(masks[index],
                         originals[index],
-                        ratios[os.path.basename(name)],
+                        ratios[os.path.basename(name)] if ratios is not None else 1.0,
                         os.path.basename(name),
-                        ignore_senescence=${params.ignore_senescence.toString().capitalize()},
-                        label_names=${labels})
+                        ignore_label=${ignore_label},
+                        labels=dict(${labels}))
             draw_diagnostics(masks[index],
                             originals[index],
                             os.path.basename(name),
@@ -283,7 +418,9 @@ process extract_traits {
                             save_mask=${params.save_mask.toString().capitalize()},
                             save_rosette=${params.save_rosette.toString().capitalize()},
                             save_hull=${params.save_hull.toString().capitalize()},
-                            ignore_senescence=${params.ignore_senescence.toString().capitalize()})
+                            ignore_label=${ignore_label},
+                            labels=dict(${labels}),
+                            colormap=${cmap})
         """
 }
 
@@ -323,6 +460,7 @@ process launch_shiny {
     input:
         path ch_resultfile
         path app from ch_shinyapp
+        env LABELS from labels
     when:
         params.shiny
     script:
@@ -334,4 +472,15 @@ process launch_shiny {
         """
         R -e "shiny::runApp('${app}', port=44333, host='0.0.0.0')"
         """
+}
+
+workflow.onError {
+    if (workflow.exitStatus == 137) {
+        log.error """
+        ####################
+        ERROR: Out of memory
+        ####################
+        The current pipeline configuration requires at least ${params.multiscale ? '12GB' : '6GB'} of RAM.
+        """.stripIndent()
+    }
 }

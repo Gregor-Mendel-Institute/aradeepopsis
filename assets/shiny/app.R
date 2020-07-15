@@ -28,13 +28,19 @@ options(shiny.maxRequestSize=20*1024^2)
 
 data <- read_csv("aradeepopsis_traits.csv")
 
+labels <- Sys.getenv(c("LABELS"),"class_background=0,class_norm=1,class_senesc=2,class_antho=3") %>% 
+  str_replace_all(.,"=[:digit:]+","") %>% 
+  str_split(.,",") %>% 
+  unlist() %>% 
+  tail(-1)
+
 imagenames <- data %>% select(file)
 invalid <- ifelse(file.exists('invalid_images.txt'),length(read_lines('invalid_images.txt')),0)
 traitcount <- ncol(data) - 2 # exclude filename and suffix
 imagecount <- nrow(data)
 
 # Define UI
-ui <- navbarPage(title="araDeepopsis", id="nav", theme = shinytheme("flatly"),
+ui <- navbarPage(title="aradeepopsis", id="nav", theme = shinytheme("flatly"),
 		tabPanel("Rosette Carousel",
 			sliderInput("chunk", label = "Select chunk:", min = 1, max = ceiling(imagecount/60), value = 1, width = '100%', step = 1),
 			slickROutput("slickr",width='100%',height='400px') %>% withSpinner()
@@ -89,7 +95,7 @@ ui <- navbarPage(title="araDeepopsis", id="nav", theme = shinytheme("flatly"),
 				actionButton("merge_data", "Analyze!"),
 				conditionalPanel(
 				  condition="input.tabset3 > 0",
-				  selectizeInput("exp_traits","Select Trait:", choices = colnames(data %>% select(-file,-format)), selected = "class_norm_area")
+				  selectizeInput("exp_traits","Select Trait:", choices = colnames(data %>% select(-file,-format)), selected = glue::glue("{labels[1]}_area"))
 				)
 			),
 			mainPanel(
@@ -98,7 +104,8 @@ ui <- navbarPage(title="araDeepopsis", id="nav", theme = shinytheme("flatly"),
 							tabPanel("Traits over time",value=1,plotOutput("timeline") %>% withSpinner())
 				)
 			)
-		)
+		),
+	tags$style(type = 'text/css', '.navbar .navbar-brand {font-variant: small-caps;}')
 )
 
 server <- function(input, output, session) {
@@ -149,7 +156,7 @@ server <- function(input, output, session) {
 		output$radar = renderChartJSRadar({
 			data %>%
 				filter(file == input$explorer_files) %>%
-				select(one_of(c("class_norm_area","class_antho_area","class_senesc_area"))) %>%
+				select(any_of(glue::glue("{labels}_area"))) %>%
 				pivot_longer(everything(),names_to = "Label") %>% 
 				mutate(value=value/sum(value)*100) %>% 
 				chartJSRadar(.,maxScale = 100,scaleStartValue = 0,scaleStepWidth = 25,showLegend = F)
