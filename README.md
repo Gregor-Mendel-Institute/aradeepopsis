@@ -1,19 +1,27 @@
 # ![araDeepopsis](assets/logo/logo.png)
 
-![Docker Container (Base)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(Base)/badge.svg?branch=master)
-![Docker Container (Shiny)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(Shiny)/badge.svg?branch=master)
-![Docker Docker (DPP)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(DPP)/badge.svg?branch=master)
-
-![](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
+![Latest Release](https://img.shields.io/github/v/release/Gregor-Mendel-Institute/aradeepopsis?sort=semver)
+![License](https://img.shields.io/github/license/Gregor-Mendel-Institute/aradeepopsis)
+[![DOI](https://zenodo.org/badge/240287274.svg)](https://zenodo.org/badge/latestdoi/240287274)  
+![CI](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.01.0-important.svg)](https://www.nextflow.io/)
 [![conda](https://img.shields.io/badge/install%20with-conda-brightgreen.svg)](https://conda.io/)
+
+| Container  | Image size  | Pulls | Latest version  | 
+| :---: | :---: | :---: | :---: |
+| ![Docker Container (Base)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(Base)/badge.svg?branch=master) | ![Docker Size (Base)](https://img.shields.io/docker/image-size/beckerlab/aradeepopsis-base?sort=semver) | ![Pulls](https://img.shields.io/docker/pulls/beckerlab/aradeepopsis-base) | ![Image Tag](https://img.shields.io/docker/v/beckerlab/aradeepopsis-base?sort=semver) |
+| ![Docker Container (Shiny)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(Shiny)/badge.svg?branch=master)  | ![Docker Size (Shiny)](https://img.shields.io/docker/image-size/beckerlab/aradeepopsis-shiny?sort=semver) | ![Pulls](https://img.shields.io/docker/pulls/beckerlab/aradeepopsis-shiny) | ![Image Tag](https://img.shields.io/docker/v/beckerlab/aradeepopsis-shiny?sort=semver) |
+| ![Docker Docker (DPP)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(DPP)/badge.svg?branch=master) | ![Docker Size (DPP)](https://img.shields.io/docker/image-size/beckerlab/aradeepopsis-dpp?sort=semver) | ![Pulls](https://img.shields.io/docker/pulls/beckerlab/aradeepopsis-dpp) | ![Image Tag](https://img.shields.io/docker/v/beckerlab/aradeepopsis-base?sort=semver) |
+
 
 # Introduction
 
 araDeepopsis is a software tool that enables plant researchers to non-invasively score plant growth, biomass accumulation and senescence from image data in a highly parallelized, high throughput, yet easy to use manner.
 
 It is built upon the published, convolutional neural network (CNN) [DeepLabv3+](https://github.com/tensorflow/models/tree/master/research/deeplab)<sup>[[1]](#ref1)</sup> that serves the task of semantic image segmentation. A [pretrained checkpoint](http://download.tensorflow.org/models/deeplabv3_xception_2018_01_04.tar.gz) of this model has been trained upon using manually annotated top-view images of *Arabidopsis thaliana* plants of different ages.
-The code that was used for training as well as download links for the training datasets can be found [here](https://github.com/phue/models/tree/aradeepopsis_manuscript/research/deeplab).
+The code that was used for training can be found [here](https://github.com/phue/models/tree/aradeepopsis_manuscript/research/deeplab). The different models are available here [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3946618.svg)](https://doi.org/10.5281/zenodo.3946618)
+
+The training and validation datasets including ground truth annotations are available at [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3946393.svg)](https://doi.org/10.5281/zenodo.3946393)
 
 # How it works
 
@@ -23,13 +31,13 @@ The pipeline is implemented using open source software such as [`Nextflow`](http
 
 The pipeline uses either a [conda environment](https://conda.io/en/latest/) or a [Docker container](https://www.docker.com/resources/what-container) to resolve dependencies, ensuring a high level of reproducibility and portability. It is largely platform independent and scales from Personal Computers to High Performance Computing (HPC) infrastructure, allowing for time efficient analysis of hundreds of thousands of images within a day.
 
-> Note: To ensure reproducibility, it is recommended to use the provided [container image](https://hub.docker.com/r/beckerlab/aradeepopsis/).
+> Note: To ensure reproducibility, container-based profiles are recommended over conda.
 
 Once the pipeline is fed with images of single plants, it converts the images into chunks of arbitrary size by saving the image data into an [IO-optimized binary file format](https://www.tensorflow.org/tutorials/load_data/tfrecord).
 
 These file records are then, in parallel, served to a deep learning model, allowing for pixel-by-pixel classification of the image data.
 
-Three distinct [models](docs/parameters.md#--model) are available and should be chosen according to the research interest.
+Three distinct [models](docs/parameters.md#--model) are [available](https://doi.org/10.5281/zenodo.3946618) and should be chosen according to the research interest.
 
 ![Models](docs/img/example_models.png)
 
