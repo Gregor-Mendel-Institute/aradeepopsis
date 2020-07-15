@@ -4,6 +4,7 @@
 ![Docker Container (Shiny)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(Shiny)/badge.svg?branch=master)
 ![Docker Docker (DPP)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(DPP)/badge.svg?branch=master)
 
+[![DOI](https://zenodo.org/badge/240287274.svg)](https://zenodo.org/badge/latestdoi/240287274)
 ![](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.01.0-important.svg)](https://www.nextflow.io/)
 [![conda](https://img.shields.io/badge/install%20with-conda-brightgreen.svg)](https://conda.io/)
