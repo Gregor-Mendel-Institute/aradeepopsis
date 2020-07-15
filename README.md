@@ -19,7 +19,8 @@
 araDeepopsis is a software tool that enables plant researchers to non-invasively score plant growth, biomass accumulation and senescence from image data in a highly parallelized, high throughput, yet easy to use manner.
 
 It is built upon the published, convolutional neural network (CNN) [DeepLabv3+](https://github.com/tensorflow/models/tree/master/research/deeplab)<sup>[[1]](#ref1)</sup> that serves the task of semantic image segmentation. A [pretrained checkpoint](http://download.tensorflow.org/models/deeplabv3_xception_2018_01_04.tar.gz) of this model has been trained upon using manually annotated top-view images of *Arabidopsis thaliana* plants of different ages.
-The code that was used for training can be found [here](https://github.com/phue/models/tree/aradeepopsis_manuscript/research/deeplab).
+The code that was used for training can be found [here](https://github.com/phue/models/tree/aradeepopsis_manuscript/research/deeplab). The different models are available here [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3946618.svg)](https://doi.org/10.5281/zenodo.3946618)
+
 The training and validation datasets including ground truth annotations are available at [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3946393.svg)](https://doi.org/10.5281/zenodo.3946393)
 
 # How it works
@@ -36,7 +37,7 @@ Once the pipeline is fed with images of single plants, it converts the images in
 
 These file records are then, in parallel, served to a deep learning model, allowing for pixel-by-pixel classification of the image data.
 
-Three distinct [models](docs/parameters.md#--model) are available and should be chosen according to the research interest.
+Three distinct [models](docs/parameters.md#--model) are [available](https://doi.org/10.5281/zenodo.3946618) and should be chosen according to the research interest.
 
 ![Models](docs/img/example_models.png)
 
