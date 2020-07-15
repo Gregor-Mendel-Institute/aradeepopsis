@@ -51,6 +51,10 @@ In addition, it is also possible to [feed](docs/parameters.md#--masks) the pipel
 
 # Usage
 
+## Hardware requirements
+
+Running the pipeline with the provided models requires at least 6GB of memory for singlescale inference, and at least 12GB for [`--multiscale`](docs/parameters.md#--multiscale).
+
 ## Setting up the pipeline
 
 > Note: Windows users will have to set up the [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) first.
