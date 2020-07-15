@@ -1,4 +1,4 @@
-name: aradeepopsis-shiny-dev
+name: aradeepopsis-shiny-v1.2
 channels:
   - conda-forge
   - r
