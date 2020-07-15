@@ -473,3 +473,14 @@ process launch_shiny {
         R -e "shiny::runApp('${app}', port=44333, host='0.0.0.0')"
         """
 }
+
+workflow.onError {
+    if (workflow.exitStatus == 137) {
+        log.error """
+        ####################
+        ERROR: Out of memory
+        ####################
+        The current pipeline configuration requires at least ${params.multiscale ? '12GB' : '6GB'} of RAM.
+        """.stripIndent()
+    }
+}
