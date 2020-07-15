@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* updated `shiny` dependency `1.4.0` > `1.5.0`
+* added a more informative log message if pipeline fails on systems with insufficient memory
 * added `--ignore_label` parameter to exclude a segmentation class for trait calculation.
 * added `--label_spec` parameter to allow for mapping of segmentation classes to pixel values of user-supplied segmentation masks. This is a requirement for the `--masks` parameter now.
 * updated base.config to avoid out-of-memory issues when running with `--multiscale`
@@ -13,7 +15,7 @@
 * updated configuration for CBE cluster
 * added log message to show current parameter settings when starting a pipeline run
 * updated `scikit-image` `0.16.2` > `0.17.2`
-* updated `imagemagick` dependency `7.0.9_27` > `7.0.10_12`
+* updated `imagemagick` dependency `7.0.9_27` > `7.0.10_23`
 
 ## [v1.1](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v1.1) - 2020-05-13
 
