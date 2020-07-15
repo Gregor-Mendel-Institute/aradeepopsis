@@ -1,12 +1,10 @@
-name: Docker build (Base dependencies)
+name: Docker Container (Base)
 
 on:
   push:
     paths:
       - 'containers/base/Dockerfile'
       - 'containers/base/environment.yml'
-  release:
-    types: [published]
 
 jobs:
   push_to_registry:

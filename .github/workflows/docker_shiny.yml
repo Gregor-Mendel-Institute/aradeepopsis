@@ -1,12 +1,10 @@
-name: Docker build (Shiny dependencies)
+name: Docker Container (Shiny)
 
 on:
   push:
     paths:
       - 'containers/shiny/Dockerfile'
       - 'containers/shiny/environment.yml'
-  release:
-    types: [published]
 
 jobs:
   push_to_registry:
