@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [v1.2](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v1.2) - 2020-07-15
 
 * updated `shiny` dependency `1.4.0` > `1.5.0`
 * added a more informative log message if pipeline fails on systems with insufficient memory
