@@ -46,7 +46,24 @@ The pipeline can also use models that were trained with [Deep Plant Phenomics](h
 * `--model 'DPP'`: uses the pretrained [checkpoint](https://github.com/p2irc/deepplantphenomics/tree/2.1.0/deepplantphenomics/network_states/vegetation-segmentation-network) of the [Vegetation Segmentation](https://deep-plant-phenomics.readthedocs.io/en/latest/Tools/#vegetation-segmentation-network) model provided by DPP
 
 > Note that custom training checkpoints can be specified with the `--dpp_checkpoint` parameter.
-> Currently, only 2-class models are supported.
+> Currently, only 2-class models (background and plant) are supported.
+
+### --ignore_label
+
+If using custom models or supplying already segmented masks, it can be desirable to ignore certain segmentation classes.
+Similar to `--ignore_senescence`, setting this parameter to the pixel value of the class to be ignored, will exclude those pixels from the calculation of morphometric traits.
+
+### --ignore_senescence
+
+> Note that this parameter only affects models `B` & `C` and will be _ignored_ otherwise.
+
+Ignore senescent class when calculating morphometric traits, focussing on living tissue only.
+
+### --multiscale
+
+> Note that this parameter is _ignored_ if `--masks` is set.
+
+Specifies whether the input image is scaled during model prediction. This yields higher accuracy at the cost of higher computational demand.
 
 ## --masks
 
@@ -66,27 +83,10 @@ Key is an arbitrary name and value is the corresponding grayscale pixel value in
 > Note that the value of the background class has to be zero and the list has to be enclosed in quotes, e.g
 > `--label_spec 'class_background=0,class_norm=255'` 
 
-### --ignore_label
-
-If using custom models or supplying already segmented masks, it can be desirable to ignore certain segmentation classes.
-Similar to `--ignore_senescence`, setting this parameter to the pixel value of the class to be ignored, will exclude those pixels from the calculation of morphometric traits.
-
-## --multiscale
-
-> Note that this parameter is _ignored_ if `--masks` is set.
-
-Specifies whether the input image is scaled during model prediction. This yields higher accuracy at the cost of higher computational demand.
-
 ## --chunksize
 
 The number of images in each chunk, determining the degree of parallelization.
 The smaller the chunksize, the more jobs will be spawned.
-
-## --ignore_senescence
-
-> Note that this parameter only affects models `B` & `C` and will be _ignored_ otherwise.
-
-Ignore senescent class when calculating morphometric traits, focussing on living tissue only.
 
 ## --outdir
 
@@ -114,7 +114,7 @@ Merge individual overlays, masks and rosette images into larger summaries that a
 
 ## --shiny
 
-Launch a [Shiny](https://shiny.rstudio.com/) app in the last step of the pipeline, allowing for interactive inspection of results. 
+Launch a [Shiny](https://shiny.rstudio.com/) app as the last step of the pipeline, allowing for interactive inspection of results. 
 
 > Note that the app will run on the host where the main Nextflow process is running.
 > If you are running the pipeline on a remote server, it has to expose port 44333 to the network.
@@ -133,4 +133,4 @@ Launch a [Shiny](https://shiny.rstudio.com/) app in the last step of the pipelin
 > # if using the container image
 > {docker|podman} run -v $(pwd):/mnt/shiny -p 44333:44333 beckerlab/aradeepopsis-shiny:1.2 R -e "shiny::runApp('/mnt/shiny/app.R', port=44333, host='0.0.0.0')"
 > ```
-> The shiny app can then be opened with a browser by typing localhost:44333 in the address bar. It will terminate when the browser window is closed.
+> The shiny app can then be opened in a browser by typing localhost:44333 in the address bar. It will terminate when the browser window is closed.
