@@ -34,6 +34,8 @@ labels <- Sys.getenv(c("LABELS"),"class_background=0,class_norm=1,class_senesc=2
   unlist() %>% 
   tail(-1)
 
+num_labels <- data %>% select(any_of(glue::glue("{labels}_area"))) %>% ncol()
+
 imagenames <- data %>% select(file)
 invalid <- ifelse(file.exists('invalid_images.txt'),length(read_lines('invalid_images.txt')),0)
 traitcount <- ncol(data) - 2 # exclude filename and suffix
@@ -56,7 +58,7 @@ ui <- navbarPage(title="aradeepopsis", id="nav", theme = shinytheme("flatly"),
 					tabPanel("Convex Hull",value=0,imageOutput("hull")),
 					tabPanel("Rosette",value=0,imageOutput("rosette")),
 					tabPanel("Color Channels",value=0,plotOutput("color") %>% withSpinner()),
-					tabPanel("Leaf Classification",value=0,chartJSRadarOutput("radar", height = "200") %>% withSpinner())
+					tabPanel("Leaf Classification",value=1,chartJSRadarOutput("radar", height = "200") %>% withSpinner())
 				),
 			),
 		),
@@ -109,6 +111,8 @@ ui <- navbarPage(title="aradeepopsis", id="nav", theme = shinytheme("flatly"),
 )
 
 server <- function(input, output, session) {
+		# hide radarchart if there is only one class
+		if (num_labels < 2) { hideTab(inputId = "tabset1", target = "1") }
 		# nextflow report is only generated after the run has finished once, show the tab only for resumed runs
 		if (dir.exists("www")) {
 			appendTab("nav",
