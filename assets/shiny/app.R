@@ -26,7 +26,7 @@ library(jpeg)
 # raise file upload limit to 20MB
 options(shiny.maxRequestSize=20*1024^2)
 
-data <- read_csv("aradeepopsis_traits.csv")
+data <- read_csv("aradeepopsis_traits.csv") %>% arrange(file)
 
 labels <- Sys.getenv(c("LABELS"),"class_background=0,class_norm=1,class_senesc=2,class_antho=3") %>% 
   str_replace_all(.,"=[:digit:]+","") %>% 
