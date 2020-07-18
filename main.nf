@@ -27,7 +27,7 @@ along with araDeepopsis.  If not, see <https://www.gnu.org/licenses/>.
  Patrick Hüther <patrick.huether@gmi.oeaw.ac.at>
 ----------------------------------------------------------------------------------------
 */
-
+nextflow.preview.dsl=2
 log.info """
 
 #################################################################################
@@ -75,6 +75,7 @@ log.info """
                         ┴ ┴┴└─┴ ┴═╩╝╚═╝╚═╝╩  └─┘┴  └─┘┴└─┘
                         
 """
+
 
 // validate parameters
 ParameterChecks.checkParams(params)
@@ -149,7 +150,7 @@ if ( params.masks ) {
         .map { plant -> [mask:plant[0], image:plant[1]] }
         .buffer(size: params.chunksize, remainder: true)
         .map { chunk -> [chunk_idx++, chunk.image, chunk.mask, file('dummy')] }
-        .set { chunks }
+        .set { ch_images }
 
     if (!params.label_spec) {
         log.info """
@@ -165,10 +166,8 @@ if ( params.masks ) {
     images
         .buffer(size: params.chunksize, remainder: true)
         .map { chunk -> [chunk_idx++, chunk] }
-        .set { chunks }
+        .set { ch_images }
 }
-
-(ch_images, ch_pairs) = !params.masks ? [ chunks, Channel.empty() ] : [ Channel.empty(), chunks ]
 
 Channel
     .fromPath(model, glob: false, checkIfExists: true)
@@ -179,299 +178,53 @@ Channel
     .collectFile(name: 'app.R', storeDir: "$params.outdir")
     .set { ch_shinyapp }
 
-process build_records {
-    stageInMode 'copy'
-    input:
-        tuple val(index), path('images/*') from ch_images
-    output:
-        tuple val(index), path('*.tfrecord') into ch_shards
-        tuple val(index), path('images/*', includeInputs: true) into ch_originals
-        tuple val(index), path('ratios.p') into ch_ratios
-        path('*.txt') into invalid_images optional true
-    when:
-        !params.masks
-    script:
-        """
-        #!/usr/bin/env python
+workflow {
+    if (!params.masks) {
 
-        import logging
-        import os
-        import pickle
+        include build_records from './modules/buildRecords'
+        build_records(ch_images)
 
-        import tensorflow as tf
+        if (params.model == 'DPP') {
 
-        from data_record import create_record
+            include run_predictions_DPP as run_predictions from './modules/runPredictionsDPP'
+            run_predictions(ch_model.collect(), build_records.out.ch_shards)
 
-        logger = tf.get_logger()
-        logger.propagate = False
-        logger.setLevel('INFO')
+        } else {
 
-        images = tf.io.gfile.glob('images/*')
+            include run_predictions as run_predictions from './modules/runPredictions'
+            run_predictions(ch_model, build_records.out.ch_shards)
 
-        count = len(images)
-        invalid = 0
-        scale_factors = {}
+        }
 
-        with tf.io.TFRecordWriter('chunk.tfrecord') as writer:
-            for i in range(count):
-                filename = os.path.basename(images[i])
-                image_data = tf.io.gfile.GFile(images[i], 'rb').read()
-                try:
-                    image = tf.io.decode_image(image_data, channels=3)
-                except tf.errors.InvalidArgumentError:
-                    logger.info("%s is either corrupted or not a supported image format" % filename)
-                    invalid += 1
-                    with open("invalid.txt", "a") as broken:
-                        broken.write(f'{filename}\\n')
-                    continue
+        build_records.out.ch_originals
+            .join(run_predictions.out.ch_predictions)
+            .join(build_records.out.ch_ratios)
+            .set {ch_segmentations}
 
-                height, width = image.shape[:2]
-                max_dimension = 602
-                ratio = 1.0
-
-                if height * width > max_dimension**2:
-                    logger.info('%s: dimensions %d x %d are too large,' % (filename, height, width))
-                    ratio = max(height,width)/max_dimension
-                    new_height = int(height/ratio)
-                    new_width = int(width/ratio)
-                    logger.info('%s: resized to %d x %d (scale factor:%f)' % (filename, new_height, new_width, ratio))
-                    image = tf.image.resize(image, size=[new_height,new_width], preserve_aspect_ratio=False, antialias=True)
-                    image_data = tf.image.encode_png(tf.cast(image, tf.uint8)).numpy()
-                    tf.io.write_file(os.path.join(f'images/{filename}'), image_data)
-
-                scale_factors[filename] = ratio
-                record = create_record(image_data=image_data,
-                                    filename=filename,
-                                    height=height,
-                                    width=width,
-                                    ratio=ratio)
-
-                writer.write(record.SerializeToString())
-
-        pickle.dump(scale_factors, open("ratios.p", "wb"))
-        """
-}
-
-invalid_images
- .collectFile(name: 'invalid_images.txt', storeDir: params.outdir)
-
-if (params.model == "DPP") {
-    process run_predictions_DPP {
-        input:
-            path("vegetation-segmentation/*") from ch_model.collect()
-            tuple val(index), path(shard) from ch_shards
-        output:
-            tuple val(index), path('*.png') into ch_predictions
-        when:
-            !params.masks
-        script:
-            """
-            #!/usr/bin/env python
-
-            import logging
-
-            import numpy as np
-            import tensorflow as tf
-            import deepplantphenomics as dpp
-
-            from cv2 import imwrite
-            from data_record import parse_record
-
-            logger = tf.get_logger()
-            logger.propagate = False
-            logger.setLevel('INFO')
-
-            pretrainedDPP = dpp.networks.vegetationSegmentationNetwork(8)
-
-            def checkpoint_override(net, checkpoint_path, num_classes):
-                if num_classes != 2:
-                    net.model.set_num_segmentation_classes(num_classes)
-                net.model._add_layers_to_graph()
-                saver = tf.compat.v1.train.Saver()
-                saver.restore(net.model._session, tf.train.latest_checkpoint(checkpoint_path))
-
-            with pretrainedDPP.model._graph.as_default():
-                checkpoint_override(pretrainedDPP,'vegetation-segmentation/', 2)
-                dataset = (
-                tf.data.TFRecordDataset('${shard}')
-                .map(parse_record)
-                .batch(1)
-                .prefetch(1))
-
-                samples = tf.compat.v1.data.make_one_shot_iterator(dataset).get_next()
-
-                for i in samples:
-                    img, filename = tf.cast(samples['original'],tf.float32),  samples['filename']
-                    raw = pretrainedDPP.model.forward_pass(img, deterministic=True)
-                    try:
-                        while True:
-                            prediction, name = pretrainedDPP.model._session.run([raw,filename])
-                            logger.info("Running prediction on image %s" % name)
-                            seg = np.interp(prediction, (prediction.min(), prediction.max()), (0, 1))
-                            mask = (np.squeeze(seg) > 0.5).astype(np.uint8)
-                            name = name[0].decode('utf-8').rsplit('.', 1)[0]
-                            imwrite(f'{name}.png', mask)
-                    except tf.errors.OutOfRangeError:
-                        pass
-            """
     }
 
-} else {
-    process run_predictions {
-        input:
-            path(model) from ch_model.collect()
-            tuple val(index), path(shard) from ch_shards
-        output:
-            tuple val(index), path('*.png') into ch_predictions
-        when:
-            !params.masks
-        script:
-            """
-            #!/usr/bin/env python
+    include extract_traits from './modules/extractTraits'
+    extract_traits(params.masks ? ch_images : ch_segmentations, labels, ignore_label)
 
-            import logging
+    extract_traits.out.ch_results
+        .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true)
+        .set {ch_resultfile}
 
-            import tensorflow as tf
+    if (params.summary_diagnostics) {
 
-            from data_record import parse_record
-            from frozen_graph import wrap_frozen_graph
+        extract_traits.out.ch_masks
+            .concat(extract_traits.out.ch_overlays, extract_traits.out.ch_crops)
+            .set { ch_diagnostics }
 
-            logger = tf.get_logger()
-            logger.propagate = False
-            logger.setLevel('INFO')
-
-            with tf.io.gfile.GFile('${model}', "rb") as f:
-                graph_def = tf.compat.v1.GraphDef()
-                graph_def.ParseFromString(f.read())
-
-            predict = wrap_frozen_graph(
-                graph_def,
-                inputs='ImageTensor:0',
-                outputs='SemanticPredictions:0')
-
-            dataset = (
-                tf.data.TFRecordDataset('${shard}')
-                .map(parse_record)
-                .batch(1)
-                .prefetch(1)
-                .enumerate(start=1))
-
-            size = len(list(dataset))
-
-            for index, sample in dataset:
-                filename = sample['filename'].numpy()[0].decode('utf-8')
-                logger.info("Running prediction on image %s (%d/%d)" % (filename,index,size))
-                raw_segmentation = predict(sample['original'])[0][:, :, None]
-                output = tf.image.encode_png(tf.cast(raw_segmentation, tf.uint8))
-                tf.io.write_file(filename.rsplit('.', 1)[0] + '.png',output)
-            """
+        include draw_diagnostics from './modules/drawDiagnostics'
+        draw_diagnostics(ch_diagnostics)
     }
-}
+    if (params.shiny) {
 
-ch_segmentations = params.masks ? ch_pairs : ch_originals.join(ch_predictions).join(ch_ratios)
-
-process extract_traits {
-    publishDir "${params.outdir}/diagnostics", mode: 'copy',
-        saveAs: { filename ->
-                if (filename.startsWith("mask_")) "mask/$filename"
-                else if (filename.startsWith("overlay_")) "overlay/$filename"
-                else if (filename.startsWith("crop_")) "crop/$filename"
-                else if (filename.startsWith("hull_")) "convex_hull/$filename"
-                else null
-            }
-
-    input:
-        tuple val(index), path("original_images/*"), path("raw_masks/*"), path(ratios) from ch_segmentations
-
-    output:
-        path('*.csv') into ch_results
-        tuple val(index), val('mask'), path('mask_*') into ch_masks optional true
-        tuple val(index), val('overlay'), path('overlay_*') into ch_overlays optional true
-        tuple val(index), val('crop'), path('crop_*') into ch_crops optional true
-        tuple val(index), val('hull'), path('hull_*') into ch_hull optional true
-
-    script:
-        def scale_ratios = ratios.name != 'ratios.p' ? "None" : "pickle.load(open('ratios.p','rb'))"
-        def cmap = params.warhol ? "[[250,140,130],[119,204,98],[240,216,72],[82,128,199],[242,58,58]]" : "None"
-        """
-        #!/usr/bin/env python
-
-        import os
-        import pickle
-
-        from traits import measure_traits, draw_diagnostics, load_images
-
-        ratios = ${scale_ratios}
-        masks, originals = load_images()
-
-        for index, name in enumerate(originals.files):
-            measure_traits(masks[index],
-                        originals[index],
-                        ratios[os.path.basename(name)] if ratios is not None else 1.0,
-                        os.path.basename(name),
-                        ignore_label=${ignore_label},
-                        labels=dict(${labels}))
-            draw_diagnostics(masks[index],
-                            originals[index],
-                            os.path.basename(name),
-                            save_overlay=${params.save_overlay.toString().capitalize()},
-                            save_mask=${params.save_mask.toString().capitalize()},
-                            save_rosette=${params.save_rosette.toString().capitalize()},
-                            save_hull=${params.save_hull.toString().capitalize()},
-                            ignore_label=${ignore_label},
-                            labels=dict(${labels}),
-                            colormap=${cmap})
-        """
-}
-
-process draw_diagnostics {
-    publishDir "${params.outdir}/diagnostics", mode: 'copy',
-        saveAs: { filename ->
-                    if (filename.startsWith("mask_")) "summary/mask/$filename"
-                    else if (filename.startsWith("overlay_")) "summary/overlay/$filename"
-                    else if (filename.startsWith("crop_")) "summary/crop/$filename"
-                    else null
-                }
-    input:
-        tuple val(index), val(type), path(image) from ch_masks.concat(ch_overlays,ch_crops)
-    output:
-        path('*.jpeg')
-    when:
-        params.summary_diagnostics
-
-    script:
-        def polaroid = params.polaroid ? '+polaroid' : ''
-        """
-        #!/usr/bin/env bash
-
-        montage * -background 'black' -font Ubuntu-Condensed -geometry 200x200 -set label '%t' -fill white ${polaroid} "${type}_chunk_${index}.jpeg"
-        """
-}
-
-ch_results
- .collectFile(name: 'aradeepopsis_traits.csv', storeDir: params.outdir, keepHeader: true)
- .set {ch_resultfile}
-
-process launch_shiny {
-    containerOptions { workflow.profile.contains('singularity') ? '' : '-p 44333:44333' }
-    executor 'local'
-    cache false
-
-    input:
-        path ch_resultfile
-        path app from ch_shinyapp
-        env LABELS from labels
-    when:
-        params.shiny
-    script:
-        def ip = "uname".execute().text.trim() == "Darwin" ? "localhost" : "hostname -i".execute().text.trim()
-        log.error"""
-        Visit the shiny server running at ${"http://"+ip+':44333'} to inspect the results.
-        Closing the browser window will terminate the pipeline.
-        """.stripIndent()
-        """
-        R -e "shiny::runApp('${app}', port=44333, host='0.0.0.0')"
-        """
+        include launch_shiny from './modules/launchShiny'
+        launch_shiny(ch_resultfile, ch_shinyapp, labels)
+    
+    }
 }
 
 workflow.onError {
