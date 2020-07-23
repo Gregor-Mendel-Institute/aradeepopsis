@@ -6,4 +6,4 @@ LABEL authors="patrick.huether@gmi.oeaw.ac.at" \
 COPY environment.yml /
 RUN apt-get update && apt-get install -y procps graphviz && apt-get clean -y
 RUN conda env create -f /environment.yml && conda clean -afy
-ENV PATH /opt/conda/envs/aradeepopsis-dpp-v1.2/bin:$PATH
+ENV PATH /opt/conda/envs/aradeepopsis-dpp-v1.2.1/bin:$PATH

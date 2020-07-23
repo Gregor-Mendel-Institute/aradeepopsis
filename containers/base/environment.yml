@@ -1,7 +1,6 @@
-name: aradeepopsis-base-v1.2
+name: aradeepopsis-base-v1.2.1
 channels:
   - conda-forge
-  - r
   - defaults
 dependencies:
   - anaconda::tensorflow-base=2.0.0
