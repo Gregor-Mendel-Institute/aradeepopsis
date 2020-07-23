@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+* updated pipeline to fetch trained models from the deposited [Zenodo record](https://doi.org/10.5281/zenodo.3946321) instead of Dropbox
+* fixed an issue where the DPP addon produced sub-par segmentation results compared to the [tools](https://deep-plant-phenomics.readthedocs.io/en/latest/Tools/#vegetation-segmentation-network) implementation in Deep Plant Phenomics.
+* updated shiny app to show visualizations sorted by filename
+
 ## [v1.2](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v1.2) - 2020-07-15
 
 * updated `shiny` dependency `1.4.0` > `1.5.0`
