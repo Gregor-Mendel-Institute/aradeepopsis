@@ -113,16 +113,19 @@ switch(params.model) {
         model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
         labels = "class_background=0,class_norm=1"
         ignore_label = "None"
+        max_dimension = 602
         break
     case 'B':
         model = params.multiscale ? 'https://www.dropbox.com/s/9m4wy990ajv7cmg/2_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/s808kcq9jgiyko9/2_class_singlescale.pb?dl=1'
         labels = "class_background=0,class_norm=1,class_senesc=2"
         ignore_label = params.ignore_senescence ? "2" : "None"
+        max_dimension = 602
         break
     case 'C':
         model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
         labels = "class_background=0,class_norm=1,class_senesc=2,class_antho=3"
         ignore_label = params.ignore_senescence ? "2" : "None"
+        max_dimension = 602
         break
     case 'DPP':
         model = [
@@ -133,6 +136,7 @@ switch(params.model) {
                 ]
         labels = !params.label_spec ? "class_background=0,class_norm=1" : params.label_spec
         ignore_label = !params.ignore_label ? 'None' : params.ignore_label
+        max_dimension = 256
         break
 }
 
@@ -226,7 +230,7 @@ process build_records {
                     continue
 
                 height, width = image.shape[:2]
-                max_dimension = 602
+                max_dimension = ${max_dimension}
                 ratio = 1.0
 
                 if height * width > max_dimension**2:
@@ -302,15 +306,15 @@ if (params.model == "DPP") {
 
                 for i in samples:
                     img, filename = tf.cast(samples['original'],tf.float32),  samples['filename']
+                    img = tf.image.per_image_standardization(img)
                     raw = pretrainedDPP.model.forward_pass(img, deterministic=True)
                     try:
                         while True:
                             prediction, name = pretrainedDPP.model._session.run([raw,filename])
                             logger.info("Running prediction on image %s" % name)
-                            seg = np.interp(prediction, (prediction.min(), prediction.max()), (0, 1))
-                            mask = (np.squeeze(seg) > 0.5).astype(np.uint8)
+                            mask = (np.squeeze(prediction) >= 0.5)
                             name = name[0].decode('utf-8').rsplit('.', 1)[0]
-                            imwrite(f'{name}.png', mask)
+                            imwrite(f'{name}.png', mask.astype(np.uint8))
                     except tf.errors.OutOfRangeError:
                         pass
             """
