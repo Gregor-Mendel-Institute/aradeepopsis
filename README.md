@@ -1,9 +1,9 @@
-# ![araDeepopsis](assets/logo/logo.png)
+# ![ARADEEPOPSIS](assets/logo/logo.png)
 
+![CI](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
 ![Latest Release](https://img.shields.io/github/v/release/Gregor-Mendel-Institute/aradeepopsis?sort=semver)
 ![License](https://img.shields.io/github/license/Gregor-Mendel-Institute/aradeepopsis)
-[![DOI](https://zenodo.org/badge/240287274.svg)](https://zenodo.org/badge/latestdoi/240287274)  
-![CI](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Integration%20test/badge.svg?branch=master)
+[![DOI](https://zenodo.org/badge/240287274.svg)](https://zenodo.org/badge/latestdoi/240287274)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.01.0-important.svg)](https://www.nextflow.io/)
 [![conda](https://img.shields.io/badge/install%20with-conda-brightgreen.svg)](https://conda.io/)
 
@@ -16,7 +16,7 @@
 
 # Introduction
 
-araDeepopsis is a software tool that enables plant researchers to non-invasively score plant growth, biomass accumulation and senescence from image data in a highly parallelized, high throughput, yet easy to use manner.
+`ARADEEPOPSIS` is a software tool that enables plant researchers to non-invasively score plant growth, biomass accumulation and senescence from image data in a highly parallelized, high throughput, yet easy to use manner.
 
 It is built upon the published, convolutional neural network (CNN) [DeepLabv3+](https://github.com/tensorflow/models/tree/master/research/deeplab)<sup>[[1]](#ref1)</sup> that serves the task of semantic image segmentation. A [pretrained checkpoint](http://download.tensorflow.org/models/deeplabv3_xception_2018_01_04.tar.gz) of this model has been trained upon using manually annotated top-view images of *Arabidopsis thaliana* plants of different ages.
 The code that was used for training can be found [here](https://github.com/phue/models/tree/aradeepopsis_manuscript/research/deeplab). The different models are available here [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3946618.svg)](https://doi.org/10.5281/zenodo.3946618)
