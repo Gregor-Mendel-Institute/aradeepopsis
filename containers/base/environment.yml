@@ -1,4 +1,4 @@
-name: aradeepopsis-base-v1.2.1
+name: aradeepopsis-base-dev
 channels:
   - conda-forge
   - defaults
