@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-* Added config for LRZ coolmuc2
+* fixed plotting of leaf states over time in Shiny app (when appropriate metadata are provided)
+* added config for LRZ coolmuc2
 
 ## [v1.2.1](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v1.2.1) - 2020-07-23
 

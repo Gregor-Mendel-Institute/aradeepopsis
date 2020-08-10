@@ -222,9 +222,9 @@ server <- function(input, output, session) {
 		})
 		output$leafstates <- renderPlot({
 		  joined() %>%
-		    select(file_name,groupVar,dateVar,matches("norm_area|antho_area|senesc_area")) %>%
+		    select(file,groupVar,dateVar,matches("norm_area|antho_area|senesc_area")) %>%
 		    pivot_longer(starts_with("class_"),names_to = "state") %>%
-		    group_by(groupVar,dateVar,file_name) %>%
+		    group_by(groupVar,dateVar,file) %>%
 		    mutate(relativeFrac=value/sum(value)) %>%
 		    ggplot(aes(x = dateVar, y = relativeFrac, colour=state)) +
 		    stat_summary(geom="line") +
@@ -234,6 +234,7 @@ server <- function(input, output, session) {
 		                                  "class_senesc_area" =  rgb(253,231,37, maxColorValue = 255))) +
 		    scale_y_continuous(labels = scales::percent) +
 		    labs(x="time",y="% of plant area",colour=element_blank()) +
+			facet_wrap(~groupVar) +
 		    theme_bw()
 		})
 		# show a description if Rosette Experiment is selected
