@@ -457,7 +457,7 @@ ch_results
  .set {ch_resultfile}
 
 process launch_shiny {
-    containerOptions { workflow.profile.contains('singularity') ? '' : '-p 44333:44333' }
+    containerOptions { workflow.profile.contains('singularity') || workflow.profile.contains('charliecloud') ? '' : '-p 44333:44333' }
     executor 'local'
     cache false
 
