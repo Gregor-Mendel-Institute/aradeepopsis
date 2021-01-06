@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+* added charliecloud profile (needs nextflow >= 20.12.0-edge)
 * fixed plotting of leaf states over time in Shiny app (when appropriate metadata are provided)
 * added config for LRZ coolmuc2
 
