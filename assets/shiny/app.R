@@ -42,7 +42,7 @@ traitcount <- ncol(data) - 2 # exclude filename and suffix
 imagecount <- nrow(data)
 
 # Define UI
-ui <- navbarPage(title="aradeepopsis", id="nav", theme = shinytheme("flatly"),
+ui <- navbarPage(title=a("aradeepopsis", href="https://github.com/Gregor-Mendel-Institute/aradeepopsis", target="_blank"), windowTitle = "ARADEEPOPSIS", id="nav", theme = shinytheme("flatly"), collapsible=TRUE,
 		tabPanel("Rosette Carousel",
 			sliderInput("chunk", label = "Select chunk:", min = 1, max = ceiling(imagecount/60), value = 1, width = '100%', step = 1),
 			slickROutput("slickr",width='100%',height='400px') %>% withSpinner()
@@ -263,7 +263,7 @@ server <- function(input, output, session) {
 			# this drastically improves page loading time
 			chunks <- if (imagecount > 60) split(imagenames$file, ceiling(seq_along(imagenames$file)/60)) else split(imagenames$file, 1)
 			
-			opts <- settings(slidesToShow = 6, slidesToScroll = 6)
+			opts <- settings(slidesToShow=6, slidesToScroll=6, responsive = htmlwidgets::JS("[{breakpoint: 1440,settings: {slidesToShow: 3,slidesToScroll: 3}},{breakpoint: 680,settings: {slidesToShow: 1,slidesToScroll: 1}}]"))
 			
 			overlay <- slickR(glue::glue("diagnostics/overlay/overlay_{chunks[[input$chunk]]}.jpeg"), height = 200) + opts
 			mask <- slickR(glue::glue("diagnostics/mask/mask_{chunks[[input$chunk]]}.png"), height = 200) + opts + settings(arrows = F)
