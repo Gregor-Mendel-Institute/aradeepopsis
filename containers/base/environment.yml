@@ -5,5 +5,5 @@ channels:
 dependencies:
   - anaconda::tensorflow-base=2.0.0
   - anaconda::tensorflow-estimator=2.0.0
-  - conda-forge::scikit-image=0.17.2
-  - conda-forge::imagemagick=7.0.10_23
+  - conda-forge::scikit-image=0.18.1
+  - conda-forge::imagemagick=7.0.10_28

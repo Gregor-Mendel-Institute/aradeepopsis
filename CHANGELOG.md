@@ -2,7 +2,10 @@
 
 ## Unreleased
 
-
+* updated `scikit-image` `0.17.2` > `0.18.1`
+* updated `imagemagick` dependency `7.0.10_23` > `7.0.10_28`
+* updated `shinycssloaders` dependency `0.3` > `1.0.0`
+* updated `slickr` dependency `0.4.9` > `0.5.0`
 * added publication doi to pipeline manifest
 * changed (back) download links in pipeline to fetch pretrained models from Dropbox instead of Zenodo ([#53](https://github.com/Gregor-Mendel-Institute/aradeepopsis/issues/53#issue-779431868))
 * changed rosette carousel in Shiny app to be responsive to screen width ([#54](https://github.com/Gregor-Mendel-Institute/aradeepopsis/issues/54))

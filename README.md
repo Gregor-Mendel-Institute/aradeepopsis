@@ -4,7 +4,7 @@
 ![Latest Release](https://img.shields.io/github/v/release/Gregor-Mendel-Institute/aradeepopsis?sort=semver)
 ![License](https://img.shields.io/github/license/Gregor-Mendel-Institute/aradeepopsis)
 [![DOI](https://zenodo.org/badge/240287274.svg)](https://zenodo.org/badge/latestdoi/240287274)
-[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.07.0-important.svg)](https://www.nextflow.io/)
+[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.07.1-important.svg)](https://www.nextflow.io/)
 [![conda](https://img.shields.io/badge/install%20with-conda-brightgreen.svg)](https://conda.io/)
 
 | Container  | Image size  | Pulls | Latest version  | 
