@@ -110,19 +110,19 @@ Pipeline parameters
 
 switch(params.model) {
     case 'A':
-        model = "https://zenodo.org/record/3946618/files/1_class_${params.multiscale ? 'multiscale' : 'singlescale'}.pb"
+        model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
         labels = "class_background=0,class_norm=1"
         ignore_label = "None"
         max_dimension = 602
         break
     case 'B':
-        model = "https://zenodo.org/record/3946618/files/2_class_${params.multiscale ? 'multiscale' : 'singlescale'}.pb"
+        model = params.multiscale ? 'https://www.dropbox.com/s/9m4wy990ajv7cmg/2_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/s808kcq9jgiyko9/2_class_singlescale.pb?dl=1'
         labels = "class_background=0,class_norm=1,class_senesc=2"
         ignore_label = params.ignore_senescence ? "2" : "None"
         max_dimension = 602
         break
     case 'C':
-        model = "https://zenodo.org/record/3946618/files/3_class_${params.multiscale ? 'multiscale' : 'singlescale'}.pb"
+        model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
         labels = "class_background=0,class_norm=1,class_senesc=2,class_antho=3"
         ignore_label = params.ignore_senescence ? "2" : "None"
         max_dimension = 602
