@@ -45,7 +45,7 @@ imagecount <- nrow(data)
 ui <- navbarPage(title=a("aradeepopsis", href="https://github.com/Gregor-Mendel-Institute/aradeepopsis", target="_blank"), windowTitle = "ARADEEPOPSIS", id="nav", theme = shinytheme("flatly"), collapsible=TRUE,
 		tabPanel("Rosette Carousel",
 			sliderInput("chunk", label = "Select chunk:", min = 1, max = ceiling(imagecount/60), value = 1, width = '100%', step = 1),
-			slickROutput("slickr",width='100%',height='400px') %>% withSpinner()
+			slickROutput("slickr", width='auto', height='auto') %>% withSpinner()
 		),
 		tabPanel("Rosette Explorer",
 			sidebarPanel(
@@ -129,16 +129,16 @@ server <- function(input, output, session) {
 		updateSelectizeInput(session, "explorer_files", choices = c(imagenames), server = TRUE)
 
 		output$mask <- renderImage(deleteFile=FALSE,{
-			list(src = glue::glue("diagnostics/mask/mask_{input$explorer_files}.png"),width=400,height=400)
+			list(src = glue::glue("diagnostics/mask/mask_{input$explorer_files}.png"),width=400,height="auto")
 		})
 		output$hull <- renderImage(deleteFile=FALSE,{
-			list(src = glue::glue("diagnostics/convex_hull/hull_{input$explorer_files}.png"),width=400,height=400)
+			list(src = glue::glue("diagnostics/convex_hull/hull_{input$explorer_files}.png"),width=400,height="auto")
 		})
 		output$rosette <- renderImage(deleteFile=FALSE,{
-			list(src = glue::glue("diagnostics/crop/crop_{input$explorer_files}.jpeg"),width=400,height=400)
+			list(src = glue::glue("diagnostics/crop/crop_{input$explorer_files}.jpeg"),width=400,height="auto")
 		})
 		output$overlay <- renderImage(deleteFile=FALSE,{
-			list(src = glue::glue("diagnostics/overlay/overlay_{input$explorer_files}.jpeg"),width=400,height=400)
+			list(src = glue::glue("diagnostics/overlay/overlay_{input$explorer_files}.jpeg"),width=400,height="auto")
 		})
 		output$color <- renderPlot({
 	    img <- readJPEG(glue::glue("diagnostics/crop/crop_{input$explorer_files}.jpeg"))
@@ -263,7 +263,7 @@ server <- function(input, output, session) {
 			# this drastically improves page loading time
 			chunks <- if (imagecount > 60) split(imagenames$file, ceiling(seq_along(imagenames$file)/60)) else split(imagenames$file, 1)
 			
-			opts <- settings(slidesToShow=6, slidesToScroll=6, responsive = htmlwidgets::JS("[{breakpoint: 1440,settings: {slidesToShow: 3,slidesToScroll: 3}},{breakpoint: 680,settings: {slidesToShow: 1,slidesToScroll: 1}}]"))
+			opts <- settings(slidesToShow=6, slidesToScroll=6, responsive=htmlwidgets::JS("[{breakpoint: 1440,settings: {slidesToShow: 3,slidesToScroll: 3}},{breakpoint: 680,settings: {slidesToShow: 1,slidesToScroll: 1}}]"))
 			
 			overlay <- slickR(glue::glue("diagnostics/overlay/overlay_{chunks[[input$chunk]]}.jpeg"), height = 200) + opts
 			mask <- slickR(glue::glue("diagnostics/mask/mask_{chunks[[input$chunk]]}.png"), height = 200) + opts + settings(arrows = F)
