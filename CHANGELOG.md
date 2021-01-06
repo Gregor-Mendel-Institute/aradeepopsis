@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+
+* added publication doi to pipeline manifest
+* changed (back) download links in pipeline to fetch pretrained models from Dropbox instead of Zenodo ([#53](https://github.com/Gregor-Mendel-Institute/aradeepopsis/issues/53#issue-779431868))
+* changed rosette carousel in Shiny app to be responsive to screen width ([#54](https://github.com/Gregor-Mendel-Institute/aradeepopsis/issues/54))
+* fixed distorted display of images in Shiny app rosette explorer ([#54](https://github.com/Gregor-Mendel-Institute/aradeepopsis/issues/54))
 * added charliecloud profile (needs nextflow >= 20.12.0-edge)
 * fixed plotting of leaf states over time in Shiny app (when appropriate metadata are provided)
 * added config for LRZ coolmuc2
