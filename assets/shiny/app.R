@@ -129,18 +129,18 @@ server <- function(input, output, session) {
 		updateSelectizeInput(session, "explorer_files", choices = c(imagenames), server = TRUE)
 
 		output$mask <- renderImage(deleteFile=FALSE,{
-			list(src = glue::glue("diagnostics/mask/mask_{input$explorer_files}.png"),width=400,height="auto")
+			list(src = glue::glue("diagnostics/mask/mask_{input$explorer_files}.png"),width=600,height="auto")
 		})
 		output$hull <- renderImage(deleteFile=FALSE,{
-			list(src = glue::glue("diagnostics/convex_hull/hull_{input$explorer_files}.png"),width=400,height="auto")
+			list(src = glue::glue("diagnostics/convex_hull/hull_{input$explorer_files}.png"),width=600,height="auto")
 		})
 		output$rosette <- renderImage(deleteFile=FALSE,{
-			list(src = glue::glue("diagnostics/crop/crop_{input$explorer_files}.jpeg"),width=400,height="auto")
+			list(src = glue::glue("diagnostics/crop/crop_{input$explorer_files}.jpeg"),width=600,height="auto")
 		})
 		output$overlay <- renderImage(deleteFile=FALSE,{
-			list(src = glue::glue("diagnostics/overlay/overlay_{input$explorer_files}.jpeg"),width=400,height="auto")
+			list(src = glue::glue("diagnostics/overlay/overlay_{input$explorer_files}.jpeg"),width=600,height="auto")
 		})
-		output$color <- renderPlot({
+		output$color <- renderPlot(width=600,height=600,{
 	    img <- readJPEG(glue::glue("diagnostics/crop/crop_{input$explorer_files}.jpeg"))
 
 	    r <- img[,,1] %>% as_tibble() %>% pivot_longer(everything()) %>% mutate(name=1)
