@@ -214,9 +214,9 @@ server <- function(input, output, session) {
 			joined() %>%
 		    select(dateVar,groupVar,trait := !!input$exp_traits) %>%
 		    ggplot(aes(x=dateVar,y=trait,colour=groupVar)) +
-		    stat_summary(geom="line") +
+		    stat_summary(geom="line", size=1.5) +
 		    stat_summary(geom="pointrange") +
-				scale_color_viridis_d(option="A") +
+				scale_color_viridis_d(option="A", end=0.9) +
 		    labs(x="time",y="trait value",colour=element_blank()) +
 				theme_bw()
 		})
@@ -227,7 +227,7 @@ server <- function(input, output, session) {
 		    group_by(groupVar,dateVar,file) %>%
 		    mutate(relativeFrac=value/sum(value)) %>%
 		    ggplot(aes(x = dateVar, y = relativeFrac, colour=state)) +
-		    stat_summary(geom="line") +
+		    stat_summary(geom="line", size=1.5) +
 		    stat_summary(geom="pointrange") +
 		    scale_color_manual(values = c("class_norm_area" = rgb(31,158,137, maxColorValue = 255),
 		                                  "class_antho_area" = rgb(72,40,120, maxColorValue = 255),
