@@ -92,7 +92,7 @@ ui <- navbarPage(title=a("aradeepopsis", href="https://github.com/Gregor-Mendel-
 				div(style = "overflow-x:scroll;", tableOutput("meta")),
 				varSelectizeInput("file","Select column containing the filename", data = NULL),
 				varSelectizeInput("date","Select column containing the timestamp", data = NULL),
-				textInput("date_format","Enter timestamp format",value="%y-%m-%d"),
+				textInput("date_format",HTML('Enter timestamp <a href="https://rdrr.io/r/base/strptime.html">format</a>'),value="%y-%m-%d"),
 				varSelectizeInput("groupvar","Select column to group by", data = NULL),
 				actionButton("merge_data", "Analyze!"),
 				conditionalPanel(
@@ -244,12 +244,14 @@ server <- function(input, output, session) {
 					modalDialog(
 						title="Experimental feature!",
 						HTML("This feature is meant to add metadata to the pipeline result, allowing to visualize traits over time.<br>
-						It requires a table with metadata in csv format.<br>
-						Such metadata has to contain one row per input image and columns with the following information:<br>
-						- filename of the original image<br>
-						- timestamp when the image was recorded<br>
-						- <a href='https://rdrr.io/r/base/strptime.html'>format</a> of the timestamp<br>
-						- variable by which the result should be grouped (such as a genotype ID)")
+						It requires a csv table with metadata that is then joined with the pipeline result.<br>
+						<br>
+						Such metadata has to contain one row per input image and the following columns:<br>
+						- Filenames of the original images <br>
+						- Timestamps when the images were recorded<br>
+						- Variable(s) by which the result should be grouped (such as genotype or accession ID)<br>
+						<br>
+						Note: If the 'file' column of aradeepopsis_traits.csv is used to extract such metadata, trait columns should be removed before uploading")
 					)
 				)
 			}
