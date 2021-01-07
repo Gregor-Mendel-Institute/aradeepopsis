@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 /*
-Copyright (C) 2019-2020 Patrick Hüther
+Copyright (C) 2019-2021 Patrick Hüther
 
 This file is part of araDeepopsis.
 araDeepopsis free software: you can redistribute it and/or modify

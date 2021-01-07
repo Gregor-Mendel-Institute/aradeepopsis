@@ -1,5 +1,4 @@
 FROM continuumio/miniconda3
-MAINTAINER Patrick Hüther <patrick.huether@gmi.oeaw.ac.at>
 LABEL authors="patrick.huether@gmi.oeaw.ac.at" \
     description="Container image containing DPP dependencies for araDeepopsis"
 
