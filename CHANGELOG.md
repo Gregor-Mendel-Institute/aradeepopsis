@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [v1.3](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v1.3) - 2021-01-11
 
 * improved image visualization and plot rendering in Shiny app (see [#54](https://github.com/Gregor-Mendel-Institute/aradeepopsis/issues/54)) thanks @dschneiderch for input
 * updated `scikit-image` `0.17.2` > `0.18.1`
