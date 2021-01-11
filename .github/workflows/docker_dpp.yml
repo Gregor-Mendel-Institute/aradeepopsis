@@ -1,4 +1,4 @@
-name: Docker Container (DPP)
+name: Container build (DPP)
 
 on:
   push:
@@ -8,25 +8,20 @@ on:
 
 jobs:
   push_to_registry:
-    name: Push Docker image to GitHub Packages
+    name: Push to quay.io
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-      - name: Push to Docker Hub
-        uses: docker/build-push-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: beckerlab/aradeepopsis-dpp
-          path: containers/addons/dpp
-          tag_with_ref: true
-      - name: Push to GitHub Packages
-        uses: docker/build-push-action@v1
-        with:
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          registry: docker.pkg.github.com
-          repository: gregor-mendel-institute/aradeepopsis/aradeepopsis-dpp
-          path: containers/addons/dpp
-          tag_with_ref: true
+
+      - name: Login to quay.io
+        env:
+          QUAY_USER: ${{ secrets.REGISTRY_USER }}
+          QUAY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+        run: podman login -u QUAY_USER -p QUAY_PASSWORD quay.io
+
+      - name: Build container
+        run: podman build --tag beckerlab/aradeepopsis-dpp containers/addons/dpp
+
+      - name: Push container
+        run: podman push beckerlab/aradeepopsis-dpp docker://quay.io/beckerlab/aradeepopsis-dpp:${GITHUB_REF}

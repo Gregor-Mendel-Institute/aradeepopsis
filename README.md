@@ -7,13 +7,6 @@
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.07.1-important.svg)](https://www.nextflow.io/)
 [![conda](https://img.shields.io/badge/install%20with-conda-brightgreen.svg)](https://conda.io/)
 
-| Container  | Image size  | Pulls | Latest version  | 
-| :---: | :---: | :---: | :---: |
-| ![Docker Container (Base)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(Base)/badge.svg?branch=master) | ![Docker Size (Base)](https://img.shields.io/docker/image-size/beckerlab/aradeepopsis-base?sort=semver) | ![Pulls](https://img.shields.io/docker/pulls/beckerlab/aradeepopsis-base) | ![Image Tag](https://img.shields.io/docker/v/beckerlab/aradeepopsis-base?sort=semver) |
-| ![Docker Container (Shiny)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(Shiny)/badge.svg?branch=master)  | ![Docker Size (Shiny)](https://img.shields.io/docker/image-size/beckerlab/aradeepopsis-shiny?sort=semver) | ![Pulls](https://img.shields.io/docker/pulls/beckerlab/aradeepopsis-shiny) | ![Image Tag](https://img.shields.io/docker/v/beckerlab/aradeepopsis-shiny?sort=semver) |
-| ![Docker Docker (DPP)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(DPP)/badge.svg?branch=master) | ![Docker Size (DPP)](https://img.shields.io/docker/image-size/beckerlab/aradeepopsis-dpp?sort=semver) | ![Pulls](https://img.shields.io/docker/pulls/beckerlab/aradeepopsis-dpp) | ![Image Tag](https://img.shields.io/docker/v/beckerlab/aradeepopsis-base?sort=semver) |
-
-
 # Introduction
 
 `ARADEEPOPSIS` is a software tool that enables plant researchers to non-invasively score plant growth, biomass accumulation and senescence from image data in a highly parallelized, high throughput, yet easy to use manner.
