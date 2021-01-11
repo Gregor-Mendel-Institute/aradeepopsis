@@ -2,6 +2,7 @@
 
 ## [v1.3](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v1.3) - 2021-01-11
 
+* changed container registry from docker.io to quay.io
 * improved image visualization and plot rendering in Shiny app (see [#54](https://github.com/Gregor-Mendel-Institute/aradeepopsis/issues/54)) thanks @dschneiderch for input
 * updated `scikit-image` `0.17.2` > `0.18.1`
 * updated `imagemagick` dependency `7.0.10_23` > `7.0.10_28`
