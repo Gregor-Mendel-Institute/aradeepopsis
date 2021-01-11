@@ -1,5 +1,19 @@
 # Changelog
 
+## [v1.3](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v1.3) - 2021-01-11
+
+* changed container registry from docker.io to quay.io
+* improved image visualization and plot rendering in Shiny app (see [#54](https://github.com/Gregor-Mendel-Institute/aradeepopsis/issues/54)) thanks @dschneiderch for input
+* updated `scikit-image` `0.17.2` > `0.18.1`
+* updated `imagemagick` dependency `7.0.10_23` > `7.0.10_28`
+* updated `shinycssloaders` dependency `0.3` > `1.0.0`
+* updated `slickr` dependency `0.4.9` > `0.5.0`
+* added publication doi to pipeline manifest
+* changed (back) download links in pipeline to fetch pretrained models from Dropbox instead of Zenodo ([#53](https://github.com/Gregor-Mendel-Institute/aradeepopsis/issues/53#issue-779431868))
+* added charliecloud profile (needs nextflow >= 20.12.0-edge)
+* fixed plotting of leaf states over time in Shiny app (when appropriate metadata are provided)
+* added config for LRZ coolmuc2
+
 ## [v1.2.1](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v1.2.1) - 2020-07-23
 
 * updated pipeline to fetch trained models from the deposited [Zenodo record](https://doi.org/10.5281/zenodo.3946321) instead of Dropbox

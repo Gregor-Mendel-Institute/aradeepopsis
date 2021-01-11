@@ -4,15 +4,8 @@
 ![Latest Release](https://img.shields.io/github/v/release/Gregor-Mendel-Institute/aradeepopsis?sort=semver)
 ![License](https://img.shields.io/github/license/Gregor-Mendel-Institute/aradeepopsis)
 [![DOI](https://zenodo.org/badge/240287274.svg)](https://zenodo.org/badge/latestdoi/240287274)
-[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.01.0-important.svg)](https://www.nextflow.io/)
+[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.07.1-important.svg)](https://www.nextflow.io/)
 [![conda](https://img.shields.io/badge/install%20with-conda-brightgreen.svg)](https://conda.io/)
-
-| Container  | Image size  | Pulls | Latest version  | 
-| :---: | :---: | :---: | :---: |
-| ![Docker Container (Base)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(Base)/badge.svg?branch=master) | ![Docker Size (Base)](https://img.shields.io/docker/image-size/beckerlab/aradeepopsis-base?sort=semver) | ![Pulls](https://img.shields.io/docker/pulls/beckerlab/aradeepopsis-base) | ![Image Tag](https://img.shields.io/docker/v/beckerlab/aradeepopsis-base?sort=semver) |
-| ![Docker Container (Shiny)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(Shiny)/badge.svg?branch=master)  | ![Docker Size (Shiny)](https://img.shields.io/docker/image-size/beckerlab/aradeepopsis-shiny?sort=semver) | ![Pulls](https://img.shields.io/docker/pulls/beckerlab/aradeepopsis-shiny) | ![Image Tag](https://img.shields.io/docker/v/beckerlab/aradeepopsis-shiny?sort=semver) |
-| ![Docker Docker (DPP)](https://github.com/Gregor-Mendel-Institute/aradeepopsis/workflows/Docker%20Container%20(DPP)/badge.svg?branch=master) | ![Docker Size (DPP)](https://img.shields.io/docker/image-size/beckerlab/aradeepopsis-dpp?sort=semver) | ![Pulls](https://img.shields.io/docker/pulls/beckerlab/aradeepopsis-dpp) | ![Image Tag](https://img.shields.io/docker/v/beckerlab/aradeepopsis-base?sort=semver) |
-
 
 # Introduction
 

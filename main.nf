@@ -1,21 +1,21 @@
 #!/usr/bin/env nextflow
 
 /*
-Copyright (C) 2019-2020 Patrick Hüther
+Copyright (C) 2019-2021 Patrick Hüther
 
-This file is part of araDeepopsis.
-araDeepopsis free software: you can redistribute it and/or modify
+This file is part of ARADEEPOPSIS.
+ARADEEPOPSIS is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-araDeepopsis is distributed in the hope that it will be useful,
+ARADEEPOPSIS is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with araDeepopsis.  If not, see <https://www.gnu.org/licenses/>.
+along with ARADEEPOPSIS.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /*
@@ -110,19 +110,19 @@ Pipeline parameters
 
 switch(params.model) {
     case 'A':
-        model = "https://zenodo.org/record/3946618/files/1_class_${params.multiscale ? 'multiscale' : 'singlescale'}.pb"
+        model = params.multiscale ? 'https://www.dropbox.com/s/19eeq3yog975otz/1_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/ejpkgnvsv9p9s5d/1_class_singlescale.pb?dl=1'
         labels = "class_background=0,class_norm=1"
         ignore_label = "None"
         max_dimension = 602
         break
     case 'B':
-        model = "https://zenodo.org/record/3946618/files/2_class_${params.multiscale ? 'multiscale' : 'singlescale'}.pb"
+        model = params.multiscale ? 'https://www.dropbox.com/s/9m4wy990ajv7cmg/2_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/s808kcq9jgiyko9/2_class_singlescale.pb?dl=1'
         labels = "class_background=0,class_norm=1,class_senesc=2"
         ignore_label = params.ignore_senescence ? "2" : "None"
         max_dimension = 602
         break
     case 'C':
-        model = "https://zenodo.org/record/3946618/files/3_class_${params.multiscale ? 'multiscale' : 'singlescale'}.pb"
+        model = params.multiscale ? 'https://www.dropbox.com/s/xwnqytcf6xzdumq/3_class_multiscale.pb?dl=1' : 'https://www.dropbox.com/s/1axmww7cqor6i7x/3_class_singlescale.pb?dl=1'
         labels = "class_background=0,class_norm=1,class_senesc=2,class_antho=3"
         ignore_label = params.ignore_senescence ? "2" : "None"
         max_dimension = 602
@@ -457,7 +457,7 @@ ch_results
  .set {ch_resultfile}
 
 process launch_shiny {
-    containerOptions { workflow.profile.contains('singularity') ? '' : '-p 44333:44333' }
+    containerOptions { workflow.profile.contains('singularity') || workflow.profile.contains('charliecloud') ? '' : '-p 44333:44333' }
     executor 'local'
     cache false
 
