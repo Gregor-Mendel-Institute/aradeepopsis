@@ -18,7 +18,7 @@ jobs:
         env:
           QUAY_USER: ${{ secrets.REGISTRY_USER }}
           QUAY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-        run: podman login -u QUAY_USER -p QUAY_PASSWORD quay.io
+        run: podman login -u ${QUAY_USER} -p ${QUAY_PASSWORD} quay.io
 
       - name: Build container
         run: podman build --tag beckerlab/aradeepopsis-shiny containers/shiny
