@@ -30,7 +30,7 @@ jobs:
       - name: Install Charliecloud
         if: matrix.engine == 'charliecloud'
         run: |
-          python -m pip install lark-parser
+          python -m pip install lark-parser requests
           wget -qO- https://github.com/hpc/charliecloud/releases/download/v0.21/charliecloud-0.21.tar.gz | tar -xvz
           cd charliecloud-0.21
           ./configure
