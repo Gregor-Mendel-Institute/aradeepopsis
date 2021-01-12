@@ -11,14 +11,31 @@ on:
 jobs:
   CI:
     env:
+      PROFILE: ${{ matrix.engine }}
       NXF_VER: ${{ matrix.nxf_ver }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        engine: ["docker", "podman"]
+        engine: ["docker", "podman", "charliecloud"]
         nxf_ver: ["20.07.1", ""]
     steps:
       - uses: actions/checkout@v2
+
+      - name: Set up Python
+        if: matrix.engine == 'charliecloud'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install Charliecloud
+        if: matrix.engine == 'charliecloud'
+        run: |
+          python -m pip install lark-parser
+          wget -qO- https://github.com/hpc/charliecloud/releases/download/v0.21/charliecloud-0.21.tar.gz | tar -xvz
+          cd charliecloud-0.21
+          ./configure
+          make
+          sudo make install
 
       - name: Install Nextflow
         run: |
@@ -26,4 +43,4 @@ jobs:
           sudo mv nextflow /usr/local/bin/
       - name: Run aradeepopsis on test images
         run: |
-          nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull --summary_diagnostics --shiny false -profile test,${{ matrix.engine }}
+          nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull --summary_diagnostics --shiny false -profile test,${PROFILE}
