@@ -1,8 +1,7 @@
-FROM continuumio/miniconda3
+FROM mambaorg/micromamba:latest
 LABEL authors="patrick.huether@gmi.oeaw.ac.at" \
-    description="Container image containing base dependencies for ARADEEPOPSIS"
+    description="Container image containing DPP dependencies for ARADEEPOPSIS"
 
-COPY environment.yml /
-RUN apt-get update && apt-get install -y procps graphviz && apt-get clean -y
-RUN conda env create -f /environment.yml && conda clean -afy
-ENV PATH /opt/conda/envs/aradeepopsis-base/bin:$PATH
+COPY environment.yml /environment.yml
+RUN micromamba install -y -n base -f /environment.yml && \
+    rm /opt/conda/pkgs/cache/*
