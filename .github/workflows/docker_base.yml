@@ -21,7 +21,7 @@ jobs:
         run: podman login -u ${QUAY_USER} -p ${QUAY_PASSWORD} quay.io
 
       - name: Build container
-        run: podman build --tag beckerlab/aradeepopsis-base containers/base
+        run: podman build --format docker --tag beckerlab/aradeepopsis-base containers/base
 
       - name: Push container
         run: podman push beckerlab/aradeepopsis-base docker://quay.io/beckerlab/aradeepopsis-base:${GITHUB_REF##*/}
