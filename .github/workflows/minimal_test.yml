@@ -1,4 +1,4 @@
-name: Integration test
+name: CI
 on:
   pull_request:
     branches:
@@ -9,7 +9,7 @@ on:
       - master
 
 jobs:
-  CI:
+  test:
     env:
       PROFILE: ${{ matrix.engine }}
       NXF_VER: ${{ matrix.nxf_ver }}
@@ -18,7 +18,7 @@ jobs:
       matrix:
         engine: ["docker", "podman", "charliecloud", "conda"]
         nxf_ver: ["20.07.1",""]
-        os: ["ubuntu-latest", "macos-latest"]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         exclude:
           - engine: "charliecloud"
             nxf_ver: "20.07.1" # charliecloud needs 21.04.0 or later
@@ -27,6 +27,10 @@ jobs:
           - os: "macos-latest"
             engine: "podman"
           - os: "macos-latest"
+            engine: "charliecloud"
+          - os: "windows-latest"
+            engine: "podman"
+          - os: "windows-latest"
             engine: "charliecloud"
     steps:
       - uses: actions/checkout@v2
@@ -52,7 +56,7 @@ jobs:
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
 
-      - name: Run ARADEEPOPSIS on ubuntu
+      - name: Run ARADEEPOPSIS on Ubuntu
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull --summary_diagnostics --shiny false -profile test,${PROFILE}
@@ -62,3 +66,9 @@ jobs:
         run: |
           sudo chown -R ${UID} ${CONDA}
           nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull --summary_diagnostics --shiny false -profile test,conda
+
+      - name: Run ARADEEPOPSIS on Windows
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull --summary_diagnostics --shiny false -profile test,${PROFILE}
+        shell: bash
