@@ -17,20 +17,20 @@ jobs:
     strategy:
       matrix:
         engine: ["docker", "podman", "charliecloud", "conda"]
-        nxf_ver: ["21.04.0", ""]
+        nxf_ver: ["21.04.0"]
         os: ["ubuntu-latest", "macos-latest"]
     steps:
       - uses: actions/checkout@v2
         if: ${{ matrix.engine == 'conda' || matrix.os == 'ubuntu-latest' }}
 
       - name: Set up Python
-        if: ${{ matrix.engine == 'charliecloud' }}
+        if: ${{ matrix.engine == 'charliecloud' && matrix.os == 'ubuntu-latest' }}
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
 
       - name: Install Charliecloud
-        if: ${{ matrix.engine == 'charliecloud' }}
+        if: ${{ matrix.engine == 'charliecloud' && matrix.os == 'ubuntu-latest' }}
         run: |
           python -m pip install lark-parser requests
           wget -qO- https://github.com/hpc/charliecloud/releases/download/v0.22/charliecloud-0.22.tar.gz | tar -xvz
@@ -40,6 +40,7 @@ jobs:
           sudo make install
 
       - name: Install Nextflow
+        if: ${{ matrix.engine == 'conda' || matrix.os == 'ubuntu-latest' }}
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
