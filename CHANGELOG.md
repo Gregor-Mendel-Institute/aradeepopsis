@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+* fixed illegible text in Markdown documents when browsing Github in Dark Mode (thanks @greymonroe for pointing this out)
+* added config profile for BioHPC Genomics cluster at LRZ
+* removed unneeded `tensorflow-estimator` dependency
+* updated `tensorflow-base` `2.0.0` > `2.4.1`
+* updated `imagemagick` dependency `7.0.10_28` > `7.0.11_12`
+* updated `shiny` dependency `1.5.0` > `1.6.0`
+* updated `tidyverse` dependency `1.3.0` > `1.3.1`
+* updated `shinythemes` dependency `1.1.2` > `1.2.0`
+* updated `corrplot` dependency `0.84` > `0.88`
+* changed container base to micromamba for smaller container images and faster builds
+* added CI tests for `conda` profile on macOS and additional container engines on linux (`charliecloud` and `podman`)
+
 ## [v1.3](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v1.3) - 2021-01-11
 
 * changed container registry from docker.io to quay.io
