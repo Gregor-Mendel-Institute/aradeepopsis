@@ -10,6 +10,7 @@ on:
 
 jobs:
   CI:
+    if: ${{ matrix.engine == 'conda' || matrix.os == 'ubuntu-latest' }}
     env:
       PROFILE: ${{ matrix.engine }}
       NXF_VER: ${{ matrix.nxf_ver }}
