@@ -4,8 +4,12 @@
 ![Latest Release](https://img.shields.io/github/v/release/Gregor-Mendel-Institute/aradeepopsis?sort=semver)
 ![License](https://img.shields.io/github/license/Gregor-Mendel-Institute/aradeepopsis)
 [![DOI](https://zenodo.org/badge/240287274.svg)](https://zenodo.org/badge/latestdoi/240287274)
-[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.07.1-important.svg)](https://www.nextflow.io/)
-[![conda](https://img.shields.io/badge/install%20with-conda-brightgreen.svg)](https://conda.io/)
+[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.07.1-important.svg)](https://www.nextflow.io/)  
+[![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
+[![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
+[![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
+[![run with podman](https://img.shields.io/badge/run%20with-podman-1d355c.svg?labelColor=000000&logo=podman)](https://docs.podman.io/)
+[![run with charliecloud](https://img.shields.io/badge/run%20with-charliecloud-1d355c.svg?labelColor=000000)](https://hpc.github.io/charliecloud/)
 
 # Introduction
 
@@ -62,7 +66,7 @@ Running the pipeline with the provided models requires at least 6GB of memory fo
 
 1. Install [`Nextflow`](https://www.nextflow.io/index.html#GetStarted)
 
-2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/), [`Docker`](https://docs.docker.com/install/), [`podman`](https://podman.io/getting-started/installation) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html)
+2. Install either [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/), [`Docker`](https://docs.docker.com/install/), [`podman`](https://podman.io/getting-started/installation), [`Charliecloud`](https://hpc.github.io/charliecloud/) or [`Singularity`](https://sylabs.io/guides/3.0/user-guide/installation.html).
 
 > Note: To run the pipeline on MacOS with Docker, it is necessary to increase the allowed memory usage from the default setting of 2GB to 6GB (See the [Docker documentation](https://docs.docker.com/docker-for-mac/#resources) for instructions)
 
@@ -71,7 +75,7 @@ Running the pipeline with the provided models requires at least 6GB of memory fo
 To run the pipeline you have to provide single-pot plant images:
 
 ```bash
-nextflow run Gregor-Mendel-Institute/aradeepopsis --images 'path/to/images/*{png|jpg}' -profile {conda|docker|podman|singularity}
+nextflow run Gregor-Mendel-Institute/aradeepopsis --images 'path/to/images/*{png|jpg}' -profile {conda|docker|podman|singularity|charliecloud}
 ```
 
 ### Example to run on the CBE cluster using Singularity
