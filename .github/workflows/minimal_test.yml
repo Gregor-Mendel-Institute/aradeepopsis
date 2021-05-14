@@ -21,15 +21,16 @@ jobs:
         os: ["ubuntu-latest", "macos-latest"]
     steps:
       - uses: actions/checkout@v2
+        if: ${{ matrix.engine == 'conda' || matrix.os == 'ubuntu-latest' }}
 
       - name: Set up Python
-        if: ${{ matrix.engine == 'charliecloud' && matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.engine == 'charliecloud' }}
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
 
       - name: Install Charliecloud
-        if: ${{ matrix.engine == 'charliecloud' && matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.engine == 'charliecloud' }}
         run: |
           python -m pip install lark-parser requests
           wget -qO- https://github.com/hpc/charliecloud/releases/download/v0.22/charliecloud-0.22.tar.gz | tar -xvz
@@ -43,12 +44,13 @@ jobs:
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
 
-      - name: Run ARADEEPOPSIS
+      - name: Run ARADEEPOPSIS on ubuntu
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull --summary_diagnostics --shiny false -profile test,${PROFILE}
 
-      - name: Run ARADEEPOPSIS
+      - name: Run ARADEEPOPSIS on macOS
         if: ${{ matrix.os == 'macos-latest' && matrix.engine == 'conda' }}
         run: |
-          nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull --summary_diagnostics --shiny false -profile test,${PROFILE}
+          sudo chown -R ${UID} ${CONDA}
+          nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull --summary_diagnostics --shiny false -profile test,conda
