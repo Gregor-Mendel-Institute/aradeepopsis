@@ -10,7 +10,6 @@ on:
 
 jobs:
   CI:
-    if: ${{ matrix.engine == 'conda' || matrix.os == 'ubuntu-latest' }}
     env:
       PROFILE: ${{ matrix.engine }}
       NXF_VER: ${{ matrix.nxf_ver }}
@@ -18,20 +17,28 @@ jobs:
     strategy:
       matrix:
         engine: ["docker", "podman", "charliecloud", "conda"]
-        nxf_ver: ["21.04.0"]
+        nxf_ver: ["20.07.1",""]
         os: ["ubuntu-latest", "macos-latest"]
+        exclude:
+          - engine: "charliecloud"
+            nxf_ver: "20.07.1" # charliecloud needs 21.04.0 or later
+          - os: "macos-latest"
+            engine: "docker"
+          - os: "macos-latest"
+            engine: "podman"
+          - os: "macos-latest"
+            engine: "charliecloud"
     steps:
       - uses: actions/checkout@v2
-        if: ${{ matrix.engine == 'conda' || matrix.os == 'ubuntu-latest' }}
 
       - name: Set up Python
-        if: ${{ matrix.engine == 'charliecloud' && matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.engine == 'charliecloud' }}
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
 
       - name: Install Charliecloud
-        if: ${{ matrix.engine == 'charliecloud' && matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.engine == 'charliecloud' }}
         run: |
           python -m pip install lark-parser requests
           wget -qO- https://github.com/hpc/charliecloud/releases/download/v0.22/charliecloud-0.22.tar.gz | tar -xvz
@@ -41,7 +48,6 @@ jobs:
           sudo make install
 
       - name: Install Nextflow
-        if: ${{ matrix.engine == 'conda' || matrix.os == 'ubuntu-latest' }}
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
@@ -52,7 +58,7 @@ jobs:
           nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull --summary_diagnostics --shiny false -profile test,${PROFILE}
 
       - name: Run ARADEEPOPSIS on macOS
-        if: ${{ matrix.os == 'macos-latest' && matrix.engine == 'conda' }}
+        if: ${{ matrix.os == 'macos-latest' }}
         run: |
           sudo chown -R ${UID} ${CONDA}
           nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull --summary_diagnostics --shiny false -profile test,conda
