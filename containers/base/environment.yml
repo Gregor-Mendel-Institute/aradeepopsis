@@ -3,7 +3,6 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - anaconda::tensorflow-base=2.0.0
-  - anaconda::tensorflow-estimator=2.0.0
+  - conda-forge::tensorflow-base=2.4.1
   - conda-forge::scikit-image=0.18.1
-  - conda-forge::imagemagick=7.0.10_28
+  - conda-forge::imagemagick=7.0.11_12
