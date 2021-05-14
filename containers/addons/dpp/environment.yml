@@ -3,14 +3,9 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.7
-  - pip
+  - conda-forge::python=3.7
+  - conda-forge::pip=21.1.1
   - conda-forge::procps-ng=3.3.17
-  - conda-forge::scipy=1.5.0
-  - conda-forge::opt-einsum=3.0.0
-  - conda-forge::tqdm=4.47.0
-  - conda-forge::pillow=7.1.2
   - pip:
-    - tensorflow==1.15
-    - opencv-python==4.2.0.34
+    - opencv-python-headless==4.5.2.52
     - https://github.com/p2irc/deepplantphenomics/archive/2.1.0.tar.gz
