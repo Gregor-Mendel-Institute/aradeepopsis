@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [v1.3.1](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v1.3.1) - 2021-05-14
 
 * fixed illegible text in Markdown documents when browsing Github in Dark Mode (thanks @greymonroe for pointing this out)
 * added config profile for BioHPC Genomics cluster at LRZ

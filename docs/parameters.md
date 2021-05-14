@@ -127,11 +127,11 @@ Launch a [Shiny](https://shiny.rstudio.com/) app as the last step of the pipelin
 > cd /path/to/results
 >
 > # if using the conda environment
-> conda create -f /path/to/cloned/repository/environment.yml
-> conda activate aradeepopsis
+> conda create -f /path/to/cloned/repository/containers/shiny/environment.yml
+> conda activate aradeepopsis-shiny
 > R -e "shiny::runApp('app.R', port=44333)"
 >
 > # if using the container image
-> {docker|podman} run -v $(pwd):/mnt/shiny -p 44333:44333 quay.io/beckerlab/aradeepopsis-shiny:dev R -e "shiny::runApp('/mnt/shiny/app.R', port=44333, host='0.0.0.0')"
+> {docker|podman} run -v $(pwd):/mnt/shiny -p 44333:44333 quay.io/beckerlab/aradeepopsis-shiny:1.3.1 R -e "shiny::runApp('/mnt/shiny/app.R', port=44333, host='0.0.0.0')"
 > ```
 > The shiny app can then be opened in a browser by typing localhost:44333 in the address bar. It will terminate when the browser window is closed.
