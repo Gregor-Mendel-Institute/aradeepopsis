@@ -62,3 +62,15 @@ jobs:
         run: |
           sudo chown -R ${UID} ${CONDA}
           nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull --summary_diagnostics --shiny false -profile test,conda
+
+      - name: Upload segmentation results
+        uses: actions/upload-artifact@v2
+        with:
+          name: summary_diagnostics
+          path: results/diagnostics/summary
+
+      - name: Upload Nextflow report
+        uses: actions/upload-artifact@v2
+        with:
+          name: execution_report
+          path: results/www/execution_report.html
