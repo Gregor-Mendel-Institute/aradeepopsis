@@ -66,11 +66,11 @@ jobs:
       - name: Upload segmentation results
         uses: actions/upload-artifact@v2
         with:
-          name: summary_diagnostics
+          name: summary_diagnostics ${{ matrix.os }} ${{ matrix.engine }} ${{ matrix.nxf_ver }}
           path: results/diagnostics/summary
 
       - name: Upload Nextflow report
         uses: actions/upload-artifact@v2
         with:
-          name: execution_report
+          name: execution_report ${{ matrix.os }} ${{ matrix.engine }} ${{ matrix.nxf_ver }}
           path: results/www/execution_report.html
