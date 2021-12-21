@@ -1,5 +1,15 @@
 # Changelog
 
+## [v2.0dev]
+
+* moved hosting of pretrained models and test data to VBC azure endpoint thanks @ebirn
+* added CITATION.cff
+* updated `tensorflow-base` `2.4.1` > `2.6.2`
+* updated `imagemagick` dependency `7.0.11_12` > `7.1.0_16`
+* updated `r-shiny` dependency `1.6.0` > `1.7.1`
+* updated `r-corrplot` dependency `0.88` > `0.92`
+* updated `r-jpeg` dependency `0.1_8.1` > `0.1_9`
+
 ## [v1.3.1](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v1.3.1) - 2021-05-14
 
 * fixed illegible text in Markdown documents when browsing Github in Dark Mode (thanks @greymonroe for pointing this out)
