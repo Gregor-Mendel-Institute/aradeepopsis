@@ -6,7 +6,6 @@
 * added CITATION.cff
 * updated `tensorflow-base` `2.4.1` > `2.6.2`
 * updated `imagemagick` dependency `7.0.11_12` > `7.1.0_16`
-* updated `r-shiny` dependency `1.6.0` > `1.7.1`
 * updated `r-corrplot` dependency `0.88` > `0.92`
 * updated `r-jpeg` dependency `0.1_8.1` > `0.1_9`
 
