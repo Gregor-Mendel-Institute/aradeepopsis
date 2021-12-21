@@ -1,0 +1,17 @@
+@article{aradeepopsis,
+  title     = "{ARADEEPOPSIS, an Automated Workflow for Top-View Plant Phenomics
+               using Semantic Segmentation of Leaf States}",
+  author    = "Hüther, Patrick and Schandry, Niklas and Jandrasits, Katharina
+               and Bezrukov, Ilja and Becker, Claude",
+  abstract  = "ARADEEPOPSIS is a robust, open-source, and easy-to-use pipeline
+               to extract plant phenotypic traits and to classify leaf states
+               from large-scale image data.",
+  journal   = "Plant Cell",
+  publisher = "Oxford Academic",
+  volume    =  32,
+  number    =  12,
+  pages     = "3674--3688",
+  month     =  oct,
+  year      =  2020,
+  language  = "en"
+}
