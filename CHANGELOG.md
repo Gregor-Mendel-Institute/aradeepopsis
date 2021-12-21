@@ -2,8 +2,11 @@
 
 ## [v2.0dev]
 
+* added renv lockfile for shiny container
+* updated shiny app to use bootstrap 5
 * moved hosting of pretrained models and test data to VBC azure endpoint thanks @ebirn
 * added CITATION.cff
+* updated `shiny` `1.6.0` > `1.7.1`
 * updated `tensorflow-base` `2.4.1` > `2.6.2`
 * updated `imagemagick` dependency `7.0.11_12` > `7.1.0_16`
 * updated `r-corrplot` dependency `0.88` > `0.92`
