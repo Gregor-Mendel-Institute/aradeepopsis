@@ -19,7 +19,6 @@ library(slickR)
 library(tidyverse)
 library(radarchart)
 library(shinycssloaders)
-library(shinythemes)
 library(corrplot)
 library(jpeg)
 
@@ -42,7 +41,7 @@ traitcount <- ncol(data) - 2 # exclude filename and suffix
 imagecount <- nrow(data)
 
 # Define UI
-ui <- navbarPage(title=a("aradeepopsis", href="https://github.com/Gregor-Mendel-Institute/aradeepopsis", target="_blank"), windowTitle = "ARADEEPOPSIS", id="nav", theme = shinytheme("flatly"), collapsible=TRUE,
+ui <- navbarPage(title=a("aradeepopsis", href="https://github.com/Gregor-Mendel-Institute/aradeepopsis", target="_blank"), windowTitle="ARADEEPOPSIS", id="nav", theme=bslib::bs_theme(version=5, bootswatch="flatly"), collapsible=TRUE,
 		tabPanel("Rosette Carousel",
 			sliderInput("chunk", label = "Select chunk:", min = 1, max = ceiling(imagecount/60), value = 1, width = '100%', step = 1),
 			slickROutput("slickr", width='auto', height='auto') %>% withSpinner()
