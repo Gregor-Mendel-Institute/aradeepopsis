@@ -2,8 +2,11 @@
 
 ## [v2.0dev]
 
-* moved hosting of pretrained models and test data to VBC azure endpoint thanks @ebirn
+* moved hosting of pretrained models and test data to Azure (thanks @ebirn)
 * added CITATION.cff
+* added version pinning for `R` and updated to `4.1.2`
+* dropped `r-shinythemes` dependency as `r-shiny` now has bootstrap 5 support
+* updated `r-shiny` `1.6.0` > `1.7.1`
 * updated `tensorflow-base` `2.4.1` > `2.6.2`
 * updated `imagemagick` dependency `7.0.11_12` > `7.1.0_16`
 * updated `r-corrplot` dependency `0.88` > `0.92`
