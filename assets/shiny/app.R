@@ -14,19 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with ARADEEPOPSIS.  If not, see <https://www.gnu.org/licenses/>.
 
-library(corrplot)
-library(dplyr)
-library(ggplot2)
-library(glue)
-library(jpeg)
-library(lubridate)
-library(radarchart)
-library(readr)
 library(shiny)
-library(shinycssloaders)
 library(slickR)
-library(stringr)
-library(tidyr)
+library(tidyverse)
+library(radarchart)
+library(shinycssloaders)
+library(shinythemes)
+library(corrplot)
+library(jpeg)
 
 # raise file upload limit to 20MB
 options(shiny.maxRequestSize=20*1024^2)
@@ -47,7 +42,7 @@ traitcount <- ncol(data) - 2 # exclude filename and suffix
 imagecount <- nrow(data)
 
 # Define UI
-ui <- navbarPage(title=a("aradeepopsis", href="https://github.com/Gregor-Mendel-Institute/aradeepopsis", target="_blank"), windowTitle="ARADEEPOPSIS", id="nav", theme=bslib::bs_theme(version=5, bootswatch="flatly"), collapsible=TRUE,
+ui <- navbarPage(title=a("aradeepopsis", href="https://github.com/Gregor-Mendel-Institute/aradeepopsis", target="_blank"), windowTitle = "ARADEEPOPSIS", id="nav", theme = shinytheme("flatly"), collapsible=TRUE,
 		tabPanel("Rosette Carousel",
 			sliderInput("chunk", label = "Select chunk:", min = 1, max = ceiling(imagecount/60), value = 1, width = '100%', step = 1),
 			slickROutput("slickr", width='auto', height='auto') %>% withSpinner()
