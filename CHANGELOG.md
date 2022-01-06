@@ -2,9 +2,11 @@
 
 ## [v2.0dev]
 
+* ported pipeline code to [nextflow dsl2](https://www.nextflow.io/docs/latest/dsl2.html)
+* bumped recommended `nextflow` version to `21.10.6`
 * moved hosting of pretrained models and test data to Azure (thanks @ebirn)
 * added CITATION.cff
-* added version pinning for `R` and updated to `4.1.2`
+* added version pinning for `R 4.1.2`
 * dropped `r-shinythemes` dependency as `r-shiny` now has bootstrap 5 support
 * updated `r-shiny` `1.6.0` > `1.7.1`
 * updated `tensorflow-base` `2.4.1` > `2.6.2`
