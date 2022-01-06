@@ -38,6 +38,7 @@ jobs:
       - name: Install Charliecloud
         if: ${{ matrix.engine == 'charliecloud' }}
         run: |
+          python -m pip install requests
           wget -qO- https://github.com/hpc/charliecloud/releases/download/v0.25/charliecloud-0.25.tar.gz | tar -xvz
           cd charliecloud-0.25
           ./configure
