@@ -5,4 +5,4 @@ channels:
 dependencies:
   - conda-forge::tensorflow-base=2.6.2
   - conda-forge::scikit-image=0.19.1
-  - conda-forge::imagemagick=7.1.0_16
+  - conda-forge::imagemagick=7.1.0_19

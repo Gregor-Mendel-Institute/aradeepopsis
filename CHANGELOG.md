@@ -10,7 +10,7 @@
 * dropped `r-shinythemes` dependency as `r-shiny` now has bootstrap 5 support
 * updated `r-shiny` `1.6.0` > `1.7.1`
 * updated `tensorflow-base` `2.4.1` > `2.6.2`
-* updated `imagemagick` dependency `7.0.11_12` > `7.1.0_16`
+* updated `imagemagick` dependency `7.0.11_12` > `7.1.0_19`
 * updated `r-corrplot` dependency `0.88` > `0.92`
 * updated `r-jpeg` dependency `0.1_8.1` > `0.1_9`
 
