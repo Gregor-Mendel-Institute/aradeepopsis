@@ -64,11 +64,10 @@ process RECORDS {
                 height, width = image.shape[:2]
                 ratio = 1.0
 
-                if height * width > ${params.size}**2:
+                if max(height,width) > ${params.size}:
                     logger.info('%s: dimensions %d x %d are too large,' % (filename, height, width))
                     ratio = max(height,width)/${params.size}
-                    new_height = int(height/ratio)
-                    new_width = int(width/ratio)
+                    new_height, new_width = int(height/ratio), int(width/ratio)
                     logger.info('%s: resized to %d x %d (scale factor:%f)' % (filename, new_height, new_width, ratio))
                     image = tf.image.resize(image, size=[new_height,new_width], preserve_aspect_ratio=False, antialias=True)
                     image_data = tf.image.encode_png(tf.cast(image, tf.uint8)).numpy()
