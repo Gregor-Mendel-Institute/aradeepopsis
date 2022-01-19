@@ -2,6 +2,7 @@
 
 ## [v2.0dev]
 
+* fixed a bug that lead to invalid dimensions for input images with certain aspect ratios
 * ported pipeline code to [nextflow dsl2](https://www.nextflow.io/docs/latest/dsl2.html)
 * bumped recommended `nextflow` version to `21.10.6`
 * moved hosting of pretrained models and test data to Azure (thanks @ebirn)
