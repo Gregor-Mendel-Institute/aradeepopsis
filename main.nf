@@ -1,7 +1,5 @@
 #!/usr/bin/env nextflow
 
-nextflow.enable.dsl=2
-
 /*
 Copyright (C) 2019-2021 Patrick Hüther
 

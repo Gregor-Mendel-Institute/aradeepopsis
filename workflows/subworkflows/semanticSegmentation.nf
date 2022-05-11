@@ -16,15 +16,12 @@ You should have received a copy of the GNU General Public License
 along with ARADEEPOPSIS.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-nextflow.enable.dsl=2
-
 def idx = 1
 def max_dimension = ( params.model in ['A','B','C'] ? 602 : 256 )
 
 include { RECORDS } from '../modules/buildRecords' addParams(size: max_dimension)
 include { MODEL   } from '../modules/runPredictions'
 include { DPP     } from '../modules/runDPP'
-
 
 workflow SEGMENT {
     take:

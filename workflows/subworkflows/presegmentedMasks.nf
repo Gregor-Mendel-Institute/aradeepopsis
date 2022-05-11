@@ -16,8 +16,6 @@ You should have received a copy of the GNU General Public License
 along with ARADEEPOPSIS.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-nextflow.enable.dsl=2
-
 def idx = 1
 
 workflow MASKS {
