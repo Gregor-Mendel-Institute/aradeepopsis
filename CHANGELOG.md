@@ -4,14 +4,14 @@
 
 * fixed a bug that lead to invalid dimensions for input images with certain aspect ratios
 * ported pipeline code to [nextflow dsl2](https://www.nextflow.io/docs/latest/dsl2.html)
-* bumped recommended `nextflow` version to `21.10.6`
+* bumped required `nextflow` version to `22.04.0`
 * moved hosting of pretrained models and test data to Azure (thanks @ebirn)
 * added CITATION.cff
-* added version pinning for `R 4.1.2`
+* added version pinning for `R 4.1.3`
 * dropped `r-shinythemes` dependency as `r-shiny` now has bootstrap 5 support
 * updated `r-shiny` `1.6.0` > `1.7.1`
-* updated `tensorflow-base` `2.4.1` > `2.6.2`
-* updated `imagemagick` dependency `7.0.11_12` > `7.1.0_19`
+* updated `tensorflow-base` `2.4.1` > `2.7.1`
+* updated `imagemagick` dependency `7.0.11_12` > `7.1.0_33`
 * updated `r-corrplot` dependency `0.88` > `0.92`
 * updated `r-jpeg` dependency `0.1_8.1` > `0.1_9`
 
