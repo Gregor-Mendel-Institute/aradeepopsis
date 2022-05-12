@@ -1,5 +1,20 @@
 # Changelog
 
+## [v2.0](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v2.0) - 2022-05-12
+
+* fixed a bug that lead to invalid dimensions for input images with certain aspect ratios
+* ported pipeline code to [nextflow dsl2](https://www.nextflow.io/docs/latest/dsl2.html)
+* bumped required `nextflow` version to `22.04.0`
+* moved hosting of pretrained models and test data to Azure (thanks @ebirn)
+* added CITATION.cff
+* added version pinning for `R 4.1.3`
+* dropped `r-shinythemes` dependency as `r-shiny` now has bootstrap 5 support
+* updated `r-shiny` `1.6.0` > `1.7.1`
+* updated `tensorflow-base` `2.4.1` > `2.7.1`
+* updated `imagemagick` dependency `7.0.11_12` > `7.1.0_33`
+* updated `r-corrplot` dependency `0.88` > `0.92`
+* updated `r-jpeg` dependency `0.1_8.1` > `0.1_9`
+
 ## [v1.3.1](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v1.3.1) - 2021-05-14
 
 * fixed illegible text in Markdown documents when browsing Github in Dark Mode (thanks @greymonroe for pointing this out)

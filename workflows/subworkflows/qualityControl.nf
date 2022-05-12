@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2019-2021 Patrick Hüther
+Copyright (C) 2019-2022 Patrick Hüther
 
 This file is part of ARADEEPOPSIS.
 ARADEEPOPSIS is free software: you can redistribute it and/or modify
@@ -16,15 +16,26 @@ You should have received a copy of the GNU General Public License
 along with ARADEEPOPSIS.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/* -------------------------------------------------
- * Nextflow config file for ARADEEPOPSIS
- * -------------------------------------------------
- */
+include { SUMMARY } from '../modules/drawDiagnostics'
+include { SHINY   } from '../modules/launchShiny'
 
-charliecloud {
-  enabled = true
-}
+workflow QC {
+    take:
+        results
+        diagnostics
+    main:
 
-manifest {
-    nextflowVersion = '>=21.04.0'
+        Channel
+            .fromPath("${projectDir}/assets/shiny/app.R", checkIfExists: true)
+            .collectFile(name: 'app.R', storeDir: "$params.outdir")
+            .set { shinyapp }
+
+        SUMMARY(
+            diagnostics.groupTuple(by: 1)
+        )
+
+        SHINY(
+            results,
+            shinyapp
+        )
 }

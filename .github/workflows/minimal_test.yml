@@ -17,11 +17,9 @@ jobs:
     strategy:
       matrix:
         engine: ["docker", "podman", "charliecloud", "conda"]
-        nxf_ver: ["20.07.1",""]
+        nxf_ver: ["22.04.0",""]
         os: ["ubuntu-latest", "macos-latest"]
         exclude:
-          - engine: "charliecloud"
-            nxf_ver: "20.07.1" # charliecloud needs 21.04.0 or later
           - os: "macos-latest"
             engine: "docker"
           - os: "macos-latest"
@@ -40,9 +38,9 @@ jobs:
       - name: Install Charliecloud
         if: ${{ matrix.engine == 'charliecloud' }}
         run: |
-          python -m pip install lark-parser requests
-          wget -qO- https://github.com/hpc/charliecloud/releases/download/v0.22/charliecloud-0.22.tar.gz | tar -xvz
-          cd charliecloud-0.22
+          python -m pip install requests
+          wget -qO- https://github.com/hpc/charliecloud/releases/download/v0.25/charliecloud-0.25.tar.gz | tar -xvz
+          cd charliecloud-0.25
           ./configure
           make
           sudo make install
@@ -62,3 +60,15 @@ jobs:
         run: |
           sudo chown -R ${UID} ${CONDA}
           nextflow run ${GITHUB_WORKSPACE} --save_rosette --save_histogram --save_hull --summary_diagnostics --shiny false -profile test,conda
+
+      - name: Upload segmentation results
+        uses: actions/upload-artifact@v2
+        with:
+          name: summary_diagnostics ${{ matrix.os }} ${{ matrix.engine }} ${{ matrix.nxf_ver }}
+          path: results/diagnostics/summary
+
+      - name: Upload Nextflow report
+        uses: actions/upload-artifact@v2
+        with:
+          name: execution_report ${{ matrix.os }} ${{ matrix.engine }} ${{ matrix.nxf_ver }}
+          path: results/www/execution_report.html

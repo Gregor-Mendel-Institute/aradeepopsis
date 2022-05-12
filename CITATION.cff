@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Hüther"
+  given-names: "Patrick"
+  orcid: "https://orcid.org/0000-0003-3315-2484"
+- family-names: "Schandry"
+  given-names: "Niklas"
+  orcid: "https://orcid.org/0000-0003-3099-7860"
+title: "ARADEEPOPSIS"
+version: 2.0
+doi: 10.5281/zenodo.3946320
+date-released: 2022-05-12
+url: "https://github.com/Gregor-Mendel-Institute/aradeepopsis"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Hüther"
+    given-names: "Patrick"
+    orcid: "https://orcid.org/0000-0003-3315-2484"
+  - family-names: "Schandry"
+    given-names: "Niklas"
+    orcid: "https://orcid.org/0000-0003-3099-7860"
+  - family-names: "Jandrasits"
+    given-names: "Katharina"
+    orcid: "https://orcid.org/0000-0002-0161-582X"
+  - family-names: "Bezrukov"
+    given-names: "Ilja"
+    orcid: "https://orcid.org/0000-0003-0420-4329"
+  - family-names: "Becker"
+    given-names: "Claude"
+    orcid: "https://orcid.org/0000-0003-3406-4670"
+  doi: "10.1105/tpc.20.00318"
+  journal: "The Plant Cell"
+  month: 12
+  start: 3674
+  end: 3688
+  title: "ARADEEPOPSIS, an Automated Workflow for Top-View Plant Phenomics using Semantic Segmentation of Leaf States"
+  issue: 12
+  volume: 32
+  year: 2020
