@@ -1,6 +1,6 @@
 # Changelog
 
-## [v2.0dev]
+## [v2.0](https://github.com/Gregor-Mendel-Institute/aradeepopsis/releases/tag/v2.0) - 2022-05-12
 
 * fixed a bug that lead to invalid dimensions for input images with certain aspect ratios
 * ported pipeline code to [nextflow dsl2](https://www.nextflow.io/docs/latest/dsl2.html)
